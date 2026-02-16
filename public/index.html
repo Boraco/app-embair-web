@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catálogo | Materiales Eléctricos y Plomería</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .filter-chip { transition: all 0.2s; white-space: nowrap; }
+    .filter-chip.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+    .drawer-open { overflow: hidden; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden border border-slate-200">
+           <img id="app-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Logo" class="absolute inset-0 w-full h-full object-contain bg-white hidden">
+           <span id="app-logo-fallback">ME</span>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-2xl font-semibold leading-tight">Tienda online de materiales eléctricos y plomería</h1>
+          <p class="text-[10px] md:text-sm text-slate-500 hidden sm:block">Explora el catálogo, arma tu pedido y envíalo directo desde tu dominio.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 md:gap-3">
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="text-xs text-slate-600">Tienda activa en tu dominio</span>
+        </div>
+        <input id="store-wa" placeholder="WhatsApp tienda..." class="w-32 md:w-auto border border-slate-300 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
+        <button id="share-store" class="hidden md:block bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">Compartir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-10">
+    <section class="mb-12" id="hero">
+      <div class="grid md:grid-cols-2 gap-8 items-center bg-gradient-to-r from-indigo-600 to-sky-500 text-white rounded-2xl px-6 md:px-10 py-10 shadow-xl relative overflow-hidden">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-3">Materiales eléctricos y plomería, ordenados y listos para tu cliente</h2>
+          <p class="text-sm md:text-base text-indigo-100 mb-6 max-w-xl">Explora el catálogo, arma el pedido y envíalo por WhatsApp en segundos. Pensado para mostrar precios, fotos y disponibilidad de forma clara.</p>
+          <div class="flex flex-wrap gap-3">
+            <a id="cta-wa" href="https://wa.me/584242240909" target="_blank" rel="noopener" class="bg-white text-indigo-700 hover:bg-indigo-50 rounded-full px-5 py-3 text-sm font-medium shadow-sm">Escribir por WhatsApp</a>
+            <div class="flex items-center gap-2 text-xs md:text-sm text-indigo-100">
+              <span class="w-6 h-px bg-indigo-100/60"></span>
+              <span>Catálogo actualizado y fácil de compartir</span>
+            </div>
+          </div>
+        </div>
+        <div class="relative h-64 md:h-80 w-full rounded-2xl overflow-hidden shadow-lg border-4 border-white/20 bg-white/10 backdrop-blur-sm">
+          <div id="hero-slider" class="absolute inset-0 w-full h-full">
+            <!-- Images will be injected by JS -->
+          </div>
+          <div id="hero-indicators" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10"></div>
+        </div>
+      </div>
+    </section>
+    <section id="catalogo" class="mb-10 mt-4">
+      <div class="sticky top-[72px] z-20 bg-slate-50/95 backdrop-blur py-3 border-b border-slate-200 mb-6 -mx-4 px-4 overflow-x-auto flex gap-3 no-scrollbar" id="category-chips">
+        <button class="filter-chip active px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="">Todo</button>
+        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Electricidad">Electricidad</button>
+        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Plomería">Plomería</button>
+        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Herramientas">Herramientas</button>
+      </div>
+      
+      <div class="mb-6 relative">
+        <input id="search-prod" placeholder="🔍 Buscar productos..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 pl-11 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <span class="absolute left-4 top-3.5 text-slate-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </span>
+      </div>
+
+      <div id="prod-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+      <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+        <p>Cargando productos...</p>
+      </div>
+    </div>
+    </section>
+
+    <!-- Cart Drawer -->
+    <div id="cart-drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden transition-opacity opacity-0"></div>
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full md:w-[400px] bg-white z-50 transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
+        <h2 class="text-lg font-bold text-slate-900">Tu Pedido</h2>
+        <button id="close-drawer" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div id="cart-items-drawer" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Cart items will be injected here -->
+        <div class="text-center py-10 text-slate-400">
+          <div class="text-4xl mb-3">🛒</div>
+          <p>Tu carrito está vacío</p>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-slate-600">Total estimado</span>
+          <span id="drawer-total" class="text-xl font-bold text-indigo-700">$0</span>
+        </div>
+        <button id="send-wa-drawer" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3.5 font-semibold shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+          <span>Enviar pedido por WhatsApp</span>
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <nav id="mobile-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-30 md:hidden pb-safe">
+      <button class="flex flex-col items-center text-indigo-600 w-full h-full justify-center" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <span class="text-xl mb-0.5">🏠</span>
+        <span class="text-[10px] font-medium">Inicio</span>
+      </button>
+      <button class="flex flex-col items-center text-slate-500 hover:text-indigo-600 w-full h-full justify-center relative" id="open-cart-mobile">
+        <div class="relative">
+          <span class="text-xl mb-0.5">🛒</span>
+          <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full hidden">0</span>
+        </div>
+        <span class="text-[10px] font-medium">Carrito</span>
+      </button>
+      <a href="https://wa.me/584242240909" target="_blank" class="flex flex-col items-center text-slate-500 hover:text-emerald-600 w-full h-full justify-center">
+        <span class="text-xl mb-0.5">💬</span>
+        <span class="text-[10px] font-medium">WhatsApp</span>
+      </a>
+    </nav>
+
+    <div id="assistant-root" class="fixed bottom-32 right-4 md:right-6 z-40">
+      <div id="assistant-panel" class="hidden w-80 md:w-96 max-h-[70vh] bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-slate-900">Asistente de compras</div>
+            <div class="text-[11px] text-slate-500">Describe lo que necesitas y te sugerimos productos.</div>
+          </div>
+          <button id="assistant-close" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+        </div>
+        <div id="assistant-messages" class="flex-1 px-3 py-3 space-y-2 overflow-y-auto text-sm bg-slate-50"></div>
+        <div class="border-t border-slate-200 p-3 bg-white">
+          <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none" placeholder="Ej: Necesito todo para instalar una lámpara en el comedor"></textarea>
+          <div class="flex justify-end mt-2">
+            <button id="assistant-send" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4 py-1.5 text-xs font-medium">Enviar</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-col items-end gap-2">
+        <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Abrir asistente virtual">
+          <span class="text-lg leading-none">💬</span>
+        </button>
+        <div class="px-4 py-1.5 rounded-full bg-indigo-500 text-white text-[11px] font-medium shadow">
+          Asistente virtual
+        </div>
+      </div>
+    </div>
+
+    <section id="servicios" class="mb-16 mt-12">
+      <h3 class="text-2xl font-semibold mb-6">Servicios</h3>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="text-lg font-medium mb-1">Instalaciones eléctricas</div>
+          <div class="text-gray-600 mb-3">Asesoría en selección de cables, tableros y protecciones.</div>
+          <div class="text-indigo-700 font-semibold">Consulta por WhatsApp</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="text-lg font-medium mb-1">Proyectos de obra</div>
+          <div class="text-gray-600 mb-3">Apoyo para listas de materiales en obras nuevas o remodelaciones.</div>
+          <div class="text-indigo-700 font-semibold">Armamos tu lista completa</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-5">
+          <div class="text-lg font-medium mb-1">Plomería y agua</div>
+          <div class="text-gray-600 mb-3">Tuberías, fittings y soluciones para redes de agua.</div>
+          <div class="text-indigo-700 font-semibold">Stock y alternativas</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t">
+    <div class="max-w-5xl mx-auto px-4 py-6 text-sm text-gray-600">© Todos los derechos reservados</div>
+  </footer>
+
+  <script>
+    (function(){
+      // --- DOM Elements ---
+      const grid = document.getElementById("prod-grid")
+      const searchInput = document.getElementById("search-prod")
+      const categoryChipsContainer = document.getElementById("category-chips")
+      
+      const cartDrawer = document.getElementById("cart-drawer")
+      const cartOverlay = document.getElementById("cart-drawer-overlay")
+      const closeDrawerBtn = document.getElementById("close-drawer")
+      const cartItemsDrawer = document.getElementById("cart-items-drawer")
+      const drawerTotal = document.getElementById("drawer-total")
+      const sendWaDrawer = document.getElementById("send-wa-drawer")
+      const openCartMobile = document.getElementById("open-cart-mobile")
+      const cartBadge = document.getElementById("cart-badge")
+      
+      const storeWa = document.getElementById("store-wa")
+      
+      // --- State ---
+      let PRODUCTS = []
+      let CART = []
+      let activeCategory = ""
+
+      // --- 1. Data Fetching ---
+      const PRODUCTS_SAMPLE = [
+        { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", price: 1200, available: "Disponible", img: "https://via.placeholder.com/400x300?text=Cable", desc: "Cable de cobre multipolar 2x1.5mm", specs: ["Voltaje 220V", "Norma IRAM"] },
+        { id: 2, name: "Interruptor simple", category: "Electricidad", price: 800, available: "Disponible", img: "https://via.placeholder.com/400x300?text=Switch", desc: "Interruptor de pared de 10A", specs: ["Color blanco", "Montaje embutido"] },
+        { id: 3, name: "Tubo PVC 1/2\"", category: "Plomería", price: 1500, available: "Agotado", img: "https://via.placeholder.com/400x300?text=PVC", desc: "Tubo PVC para agua fría", specs: ["Diámetro 1/2\"", "Largo 3m"] },
+        { id: 5, name: "Lámpara LED 9W", category: "Electricidad", price: 700, available: "Disponible", img: "https://via.placeholder.com/400x300?text=LED", desc: "Lámpara LED bajo consumo", specs: ["Luz blanca 6500K", "E27"] }
+      ]
+
+      async function getProducts() {
+        try {
+          // Timeout protection
+          const controller = new AbortController()
+          const id = setTimeout(() => controller.abort(), 5000)
+          
+          const res = await fetch("/api/products", { signal: controller.signal })
+          clearTimeout(id)
+          
+          if (res.ok) {
+            const arr = await res.json()
+            if (Array.isArray(arr) && arr.length) return arr
+          }
+        } catch (e) {
+          console.error("Error fetching products:", e)
+        }
+        
+        try {
+          const raw = localStorage.getItem("products")
+          if (raw) {
+            const arr = JSON.parse(raw)
+            if (Array.isArray(arr) && arr.length) return arr
+          }
+        } catch {}
+        
+        return PRODUCTS_SAMPLE
+      }
+
+      // --- 2. Formatting ---
+      function formatPrice(p) {
+        if (p == null) return "Consultar"
+        return "$" + Number(p).toLocaleString("es-AR")
+      }
+
+      // --- 3. Render Grid ---
+      function renderGrid() {
+        const q = (searchInput.value || "").toLowerCase()
+        
+        const filtered = PRODUCTS.filter(p => {
+          const okQ = q ? (p.name.toLowerCase().includes(q) || (p.desc && p.desc.toLowerCase().includes(q))) : true
+          const okC = activeCategory ? p.category === activeCategory : true
+          return okQ && okC
+        })
+
+        grid.innerHTML = ""
+        
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-10 text-slate-500">
+              <p>No encontramos productos con esos filtros.</p>
+              <button class="mt-2 text-indigo-600 font-medium" onclick="document.getElementById('search-prod').value=''; document.querySelector('.filter-chip[data-cat=\\'\\']').click()">Ver todo</button>
+            </div>
+          `
+          return
+        }
+
+        for (const p of filtered) {
+          const card = document.createElement("div")
+          card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow"
+          
+          const imgContainer = document.createElement("div")
+          imgContainer.className = "relative aspect-square overflow-hidden bg-slate-100"
+          
+          const img = document.createElement("img")
+          img.src = p.img
+          img.alt = p.name
+          img.className = "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          imgContainer.appendChild(img)
+          
+          if (p.available === "Agotado") {
+            const badge = document.createElement("div")
+            badge.className = "absolute top-2 right-2 bg-slate-800/80 text-white text-[10px] px-2 py-1 rounded font-medium backdrop-blur-sm"
+            badge.textContent = "AGOTADO"
+            imgContainer.appendChild(badge)
+          }
+
+          const body = document.createElement("div")
+          body.className = "p-3 md:p-4 flex-1 flex flex-col"
+          
+          const categoryLabel = document.createElement("div")
+          categoryLabel.className = "text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1"
+          categoryLabel.textContent = p.category
+          
+          const title = document.createElement("h3")
+          title.className = "font-medium text-slate-900 text-sm md:text-base mb-1 line-clamp-2 leading-snug min-h-[2.5em]"
+          title.textContent = p.name
+          
+          const priceRow = document.createElement("div")
+          priceRow.className = "mt-auto flex items-center justify-between pt-2"
+          
+          const price = document.createElement("div")
+          price.className = "font-bold text-slate-900"
+          price.textContent = formatPrice(p.price)
+          
+          const addBtn = document.createElement("button")
+          addBtn.className = "w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-600 hover:text-white flex items-center justify-center text-slate-600 transition-colors"
+          addBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>'
+          addBtn.onclick = () => addToCart(p)
+
+          priceRow.appendChild(price)
+          if (p.available !== "Agotado") {
+            priceRow.appendChild(addBtn)
+          }
+
+          body.appendChild(categoryLabel)
+          body.appendChild(title)
+          body.appendChild(priceRow)
+          
+          card.appendChild(imgContainer)
+          card.appendChild(body)
+          grid.appendChild(card)
+        }
+      }
+
+      // --- 4. Cart Logic ---
+      function loadCart() {
+        try {
+          const raw = localStorage.getItem("cart")
+          if (raw) CART = JSON.parse(raw)
+        } catch {}
+        updateCartUI()
+      }
+
+      function saveCart() {
+        localStorage.setItem("cart", JSON.stringify(CART))
+        updateCartUI()
+      }
+
+      function addToCart(product, qty = 1) {
+        const existing = CART.find(i => i.id === product.id)
+        if (existing) {
+          existing.qty += qty
+        } else {
+          CART.push({ ...product, qty: qty })
+        }
+        saveCart()
+        openDrawer()
+      }
+      window.addToCart = addToCart // Expose for Assistant
+
+      function removeFromCart(id) {
+        CART = CART.filter(i => i.id !== id)
+        saveCart()
+      }
+      window.removeFromCart = removeFromCart
+
+      function updateQty(id, delta) {
+        const item = CART.find(i => i.id === id)
+        if (item) {
+          item.qty += delta
+          if (item.qty <= 0) removeFromCart(id)
+          else saveCart()
+        }
+      }
+      window.updateQty = updateQty
+
+      function updateCartUI() {
+        // Update Badge
+        const totalCount = CART.reduce((acc, item) => acc + item.qty, 0)
+        if (cartBadge) {
+            cartBadge.textContent = totalCount
+            if(totalCount > 0) cartBadge.classList.remove("hidden")
+            else cartBadge.classList.add("hidden")
+        }
+
+        // Render Drawer Items
+        cartItemsDrawer.innerHTML = ""
+        let total = 0
+
+        if (CART.length === 0) {
+          cartItemsDrawer.innerHTML = `
+            <div class="text-center py-10 text-slate-400">
+              <div class="text-4xl mb-3">🛒</div>
+              <p>Tu carrito está vacío</p>
+              <button onclick="document.getElementById('close-drawer').click()" class="mt-4 text-indigo-600 font-medium text-sm">Seguir comprando</button>
+            </div>
+          `
+        } else {
+          CART.forEach(item => {
+            if (item.price) total += item.price * item.qty
+            
+            const row = document.createElement("div")
+            row.className = "flex gap-3 bg-white p-3 rounded-lg border border-slate-100 shadow-sm"
+            
+            const img = document.createElement("img")
+            img.src = item.img
+            img.className = "w-16 h-16 rounded-md object-cover bg-slate-50"
+            
+            const details = document.createElement("div")
+            details.className = "flex-1 flex flex-col justify-between"
+            
+            const top = document.createElement("div")
+            top.innerHTML = `
+              <div class="flex justify-between items-start">
+                <h4 class="text-sm font-medium text-slate-900 line-clamp-2">${item.name}</h4>
+                <button class="text-slate-400 hover:text-red-500 ml-2" onclick="removeFromCart(${item.id})">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            `
+            
+            const bottom = document.createElement("div")
+            bottom.className = "flex justify-between items-end mt-2"
+            bottom.innerHTML = `
+              <div class="text-sm font-bold text-slate-700">${formatPrice(item.price)}</div>
+              <div class="flex items-center border border-slate-200 rounded-lg">
+                <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50" onclick="updateQty(${item.id}, -1)">-</button>
+                <span class="px-2 text-xs font-medium text-slate-900">${item.qty}</span>
+                <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50" onclick="updateQty(${item.id}, 1)">+</button>
+              </div>
+            `
+            
+            details.appendChild(top)
+            details.appendChild(bottom)
+            row.appendChild(img)
+            row.appendChild(details)
+            cartItemsDrawer.appendChild(row)
+          })
+        }
+        
+        drawerTotal.textContent = "$" + total.toLocaleString("es-AR")
+      }
+
+      function openDrawer() {
+        cartOverlay.classList.remove("hidden")
+        requestAnimationFrame(() => {
+          cartOverlay.classList.remove("opacity-0")
+          cartDrawer.classList.remove("translate-x-full")
+        })
+        document.body.classList.add("drawer-open")
+      }
+
+      function closeDrawer() {
+        cartOverlay.classList.add("opacity-0")
+        cartDrawer.classList.add("translate-x-full")
+        setTimeout(() => {
+          cartOverlay.classList.add("hidden")
+          document.body.classList.remove("drawer-open")
+        }, 300)
+      }
+
+      // --- 5. Customer & Checkout Logic ---
+      function getCustomerData() {
+        try { return JSON.parse(localStorage.getItem("customerData")) } catch { return null }
+      }
+      function saveCustomerData(data) {
+        localStorage.setItem("customerData", JSON.stringify(data))
+      }
+      function upsertClientFromCustomer(customer) {
+        // Send to server logic (simplified)
+        fetch("/api/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...customer, pedidos: 1 })
+        }).catch(console.error)
+      }
+      function logOrder(cart) {
+        try {
+            const list = JSON.parse(localStorage.getItem("orderLogs") || "[]")
+            list.push({ ts: Date.now(), items: cart.map(i=>({id:i.id, qty:i.qty})) })
+            localStorage.setItem("orderLogs", JSON.stringify(list))
+        } catch {}
+      }
+
+      function openCustomerModal(onConfirm) {
+        const existing = getCustomerData() || {}
+        const overlay = document.createElement("div")
+        overlay.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+        const modal = document.createElement("div")
+        modal.className = "bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 animate-fade-in"
+        modal.innerHTML = `
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Datos de Envío</h3>
+          <p class="text-sm text-slate-500 mb-4">Ingresa tus datos para completar el pedido por WhatsApp.</p>
+          <div class="space-y-3">
+            <input id="c-name" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.nombre||''}">
+            <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.apellido||''}">
+            <input id="c-id" placeholder="Cédula" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.cedula||''}">
+            <input id="c-addr" placeholder="Dirección exacta" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.direccion||''}">
+            <input id="c-phone" placeholder="Celular" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.celular||''}">
+            <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
+                <option value="">Tipo de cliente...</option>
+                <option value="Particular" ${existing.tipo==='Particular'?'selected':''}>Particular</option>
+                <option value="Instalador" ${existing.tipo==='Instalador'?'selected':''}>Instalador</option>
+            </select>
+            <select id="c-ship" class="w-full border rounded-lg px-3 py-2 text-sm">
+                <option value="">Entrega...</option>
+                <option value="Delivery" ${existing.entrega==='Delivery'?'selected':''}>Delivery</option>
+                <option value="Pick up" ${existing.entrega==='Pick up'?'selected':''}>Retiro en oficina</option>
+            </select>
+          </div>
+          <div class="flex gap-2 mt-6">
+            <button id="c-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium text-sm">Cancelar</button>
+            <button id="c-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700">Enviar Pedido</button>
+          </div>
+        `
+        document.body.appendChild(overlay)
+        
+        modal.querySelector("#c-cancel").onclick = () => document.body.removeChild(overlay)
+        modal.querySelector("#c-confirm").onclick = () => {
+            const data = {
+                nombre: modal.querySelector("#c-name").value.trim(),
+                apellido: modal.querySelector("#c-last").value.trim(),
+                cedula: modal.querySelector("#c-id").value.trim(),
+                direccion: modal.querySelector("#c-addr").value.trim(),
+                celular: modal.querySelector("#c-phone").value.trim(),
+                tipo: modal.querySelector("#c-type").value,
+                entrega: modal.querySelector("#c-ship").value
+            }
+            if(!Object.values(data).every(Boolean)) return alert("Por favor completa todos los campos")
+            
+            saveCustomerData(data)
+            document.body.removeChild(overlay)
+            onConfirm(data)
+        }
+      }
+
+      sendWaDrawer.addEventListener("click", () => {
+        if (CART.length === 0) return
+        openCustomerModal((customer) => {
+            let msg = "¡Hola! Quiero realizar el siguiente pedido:\n\n"
+            let total = 0
+            CART.forEach(item => {
+                const sub = item.price ? item.price * item.qty : 0
+                total += sub
+                msg += `▪ ${item.qty}x ${item.name} `
+                msg += item.price ? `($${sub.toLocaleString("es-AR")})\n` : "(Consultar)\n"
+            })
+            msg += `\nTotal Estimado: $${total.toLocaleString("es-AR")}\n\n`
+            
+            msg += `*Datos del Cliente:*\n`
+            msg += `Nombre: ${customer.nombre} ${customer.apellido}\n`
+            msg += `Cédula: ${customer.cedula}\n`
+            msg += `Dirección: ${customer.direccion}\n`
+            msg += `Tel: ${customer.celular}\n`
+            msg += `Entrega: ${customer.entrega}\n`
+            
+            upsertClientFromCustomer(customer)
+            logOrder(CART)
+            
+            const num = (storeWa && storeWa.value) ? storeWa.value.replace(/\D/g, "") : "584242240909"
+            window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank")
+        })
+      })
+
+      // --- 6. Event Listeners ---
+      closeDrawerBtn.addEventListener("click", closeDrawer)
+      cartOverlay.addEventListener("click", closeDrawer)
+      
+      if (openCartMobile) {
+        openCartMobile.addEventListener("click", (e) => {
+          e.preventDefault()
+          openDrawer()
+        })
+      }
+
+      if (categoryChipsContainer) {
+        const chips = categoryChipsContainer.querySelectorAll(".filter-chip")
+        chips.forEach(chip => {
+          chip.addEventListener("click", () => {
+            chips.forEach(c => c.classList.remove("active"))
+            chip.classList.add("active")
+            activeCategory = chip.dataset.cat
+            renderGrid()
+            chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+          })
+        })
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener("input", renderGrid)
+      }
+      
+      // Store WA persistence
+      if (storeWa) {
+        try { storeWa.value = localStorage.getItem("storeWa") || "" } catch {}
+        storeWa.addEventListener("input", () => localStorage.setItem("storeWa", storeWa.value))
+      }
+
+      // Hero Slider (Existing logic kept simple)
+      (function() {
+        // Imágenes del banner actualizadas
+        const images = [
+          "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1000&q=80", // Tableros
+          "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1000&q=80", // Construcción
+          "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1000&q=80", // Tuberías
+          "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?auto=format&fit=crop&w=1000&q=80"  // Iluminación
+        ]
+
+        const container = document.getElementById("hero-slider")
+        const indicators = document.getElementById("hero-indicators")
+        let current = 0
+        const slides = [] 
+        
+        if (!container || !indicators) return
+
+        container.innerHTML = ""
+        indicators.innerHTML = ""
+
+        // Preload first image
+        const firstImg = new Image()
+        firstImg.src = images[0]
+
+        images.forEach((src, i) => {
+          const img = document.createElement("img")
+          img.src = src
+          img.alt = "Banner " + (i + 1)
+          img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`
+          
+          // Fallback to a colored div if image fails
+          img.onerror = () => { 
+             img.style.display = 'none';
+             const fallback = document.createElement('div');
+             fallback.className = `absolute inset-0 w-full h-full flex items-center justify-center bg-slate-800 text-white ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`;
+             fallback.textContent = "Banner " + (i+1);
+             container.appendChild(fallback);
+             slides[i] = fallback; // Replace in slides array
+          }
+          
+          container.appendChild(img)
+          slides.push(img)
+          
+          const dot = document.createElement("button")
+          dot.className = `w-2.5 h-2.5 rounded-full transition-colors ${i === 0 ? 'bg-white' : 'bg-white/40 hover:bg-white/60'}`
+          dot.onclick = () => setSlide(i)
+          indicators.appendChild(dot)
+        })
+
+        function setSlide(index) {
+          current = index
+          slides.forEach((el, i) => {
+            if(!el) return
+            if (i === current) {
+                el.classList.remove('opacity-0', 'z-0')
+                el.classList.add('opacity-100', 'z-10')
+            } else {
+                el.classList.remove('opacity-100', 'z-10')
+                el.classList.add('opacity-0', 'z-0')
+            }
+          })
+          
+          Array.from(indicators.children).forEach((dot, i) => {
+            dot.className = `w-2.5 h-2.5 rounded-full transition-colors ${i === current ? 'bg-white' : 'bg-white/40 hover:bg-white/60'}`
+          })
+        }
+
+        setInterval(() => {
+          setSlide((current + 1) % images.length)
+        }, 3000)
+      })()
+
+
+      // Share Button
+      const shareStoreBtn = document.getElementById("share-store")
+      if (shareStoreBtn) {
+        shareStoreBtn.addEventListener("click", () => {
+          const url = window.location.href
+          const text = encodeURIComponent(`¡Hola! Mira este catálogo: ${url}`)
+          window.open(`https://wa.me/?text=${text}`, "_blank")
+        })
+      }
+
+      // Initialize
+      loadCart()
+      
+      // Load Logo from LocalStorage or Server
+      try {
+        const logoImg = document.getElementById("app-logo")
+        const logoFallback = document.getElementById("app-logo-fallback")
+        
+        function showLogo(src) {
+            if (!logoImg) return
+            logoImg.src = src
+            logoImg.onload = () => {
+                logoImg.classList.remove("hidden")
+                if (logoFallback) logoFallback.classList.add("hidden")
+            }
+            logoImg.onerror = () => {
+                console.warn("Logo load failed for:", src)
+                // Keep fallback visible
+            }
+        }
+
+        const savedLogo = localStorage.getItem("company_logo")
+        if (savedLogo) {
+            showLogo(savedLogo)
+        } else {
+            // Try default path check
+            const testImg = new Image()
+            testImg.src = "uploads/logo.png"
+            testImg.onload = () => showLogo("uploads/logo.png")
+            // If fails, we just keep the fallback "ME" visible
+        }
+      } catch (e) {
+        console.error("Error loading logo:", e)
+      }
+
+      getProducts().then(p => {
+        PRODUCTS = p
+        window.PRODUCTS = PRODUCTS
+        renderGrid()
+      }).catch(err => {
+        console.error("Init Error:", err)
+        // Force remove spinner
+        if(grid) grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Error cargando la tienda. Por favor recarga.</div>`
+      })
+
+    })()
+  </script>
+  <script>
+    const assistantRoot = document.getElementById("assistant-root")
+    const assistantPanel = document.getElementById("assistant-panel")
+    const assistantToggle = document.getElementById("assistant-toggle")
+    const assistantClose = document.getElementById("assistant-close")
+    const assistantMessages = document.getElementById("assistant-messages")
+    const assistantInput = document.getElementById("assistant-input")
+    const assistantSend = document.getElementById("assistant-send")
+    function getAssistantLogs() {
+      try {
+        const raw = localStorage.getItem("assistantLogs")
+        const arr = raw ? JSON.parse(raw) : []
+        return Array.isArray(arr) ? arr : []
+      } catch {
+        return []
+      }
+    }
+    function saveAssistantLogs(list) {
+      try {
+        localStorage.setItem("assistantLogs", JSON.stringify(list))
+      } catch {}
+    }
+    const assistantState = {
+      lastQuery: "",
+      pending: ""
+    }
+    function logAssistantInteraction(query, productIds) {
+      const logs = getAssistantLogs()
+      logs.push({ ts: Date.now(), query: query || "", productIds: productIds || [] })
+      saveAssistantLogs(logs)
+    }
+    function addAssistantMessage(sender, text) {
+      if (!assistantMessages) return
+      const wrap = document.createElement("div")
+      wrap.className = "flex " + (sender === "user" ? "justify-end" : "justify-start")
+      const bubble = document.createElement("div")
+      bubble.className = (sender === "user"
+        ? "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-indigo-600 text-white rounded-br-none"
+        : "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-white text-slate-800 border border-slate-200 rounded-bl-none")
+      bubble.textContent = text
+      wrap.appendChild(bubble)
+      assistantMessages.appendChild(wrap)
+      assistantMessages.scrollTop = assistantMessages.scrollHeight
+    }
+    function addProductSuggestion(p) {
+      if (!assistantMessages) return
+      const row = document.createElement("div")
+      row.className = "flex items-center justify-between gap-2 text-xs bg-white border border-slate-200 rounded-lg px-3 py-2"
+      const left = document.createElement("div")
+      left.innerHTML = `<div class="font-medium text-slate-900">${p.name}</div><div class="text-[11px] text-slate-500">${p.category}${p.subcategory ? " • "+p.subcategory : ""}${p.material ? " • "+p.material : ""}</div>`
+      const right = document.createElement("div")
+      right.className = "flex flex-col items-end gap-1"
+      const price = document.createElement("div")
+      price.className = "text-[11px] text-indigo-700 font-semibold"
+      price.textContent = p.price == null ? "Solicitar cotización" : "$" + Number(p.price).toLocaleString("es-AR")
+      const btn = document.createElement("button")
+      btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 py-1 text-[11px] font-medium"
+      btn.textContent = "Agregar al carrito"
+      btn.addEventListener("click", () => {
+        if (window.addToCart) window.addToCart(p, 1)
+      })
+      right.appendChild(price)
+      right.appendChild(btn)
+      row.appendChild(left)
+      row.appendChild(right)
+      assistantMessages.appendChild(row)
+      assistantMessages.scrollTop = assistantMessages.scrollHeight
+    }
+    function findBestProductMatch(text) {
+      const q = (text || "").toLowerCase()
+      const list = Array.isArray(window.PRODUCTS) ? window.PRODUCTS.slice() : []
+      let best = null
+      let bestScore = 0
+      for (const p of list) {
+        const name = (p.name || "").toLowerCase()
+        const hay = `${p.name || ""} ${p.desc || ""}`.toLowerCase()
+        let score = 0
+        const words = q.split(/\s+/).filter(Boolean)
+        for (const w of words) {
+          if (!w) continue
+          if (name.includes(w)) score += 3
+          if (hay.includes(w)) score += 1
+        }
+        if (score > bestScore) {
+          bestScore = score
+          best = p
+        }
+      }
+      if (bestScore === 0) return null
+      return best
+    }
+    function recommendProductsForQuery(query) {
+      const q = (query || "").toLowerCase()
+      const words = q.split(/\s+/).filter(Boolean)
+      const list = Array.isArray(window.PRODUCTS) ? window.PRODUCTS.slice() : []
+      const filtered = []
+      for (const p of list) {
+        if (p.available && p.available !== "Disponible") continue
+        const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""}`.toLowerCase()
+        let score = 0
+        if (!words.length) score += 1
+        for (const w of words) {
+          if (hay.includes(w)) score += 3
+        }
+        if (/lámpara|iluminación|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
+        if (/tubo|agua|llave|grifo|grifería|sifón/.test(q) && p.category === "Plomería") score += 4
+        if (p.price != null) score += Math.min(p.price / 1000, 5)
+        if (score > 0) {
+          filtered.push({ p, score })
+        }
+      }
+      filtered.sort((a, b) => b.score - a.score)
+      return filtered.slice(0, 4).map(x => x.p)
+    }
+    function handleAssistantQuery() {
+      const text = (assistantInput.value || "").trim()
+      if (!text) return
+      assistantInput.value = ""
+      addAssistantMessage("user", text)
+      const lower = text.toLowerCase()
+      if (assistantState.pending === "tablero-detalle") {
+        const combined = (assistantState.lastQuery || "") + " " + text
+        const recs = recommendProductsForQuery(combined)
+        assistantState.pending = ""
+        if (!recs.length) {
+          addAssistantMessage("bot", "Con esos datos no encuentro algo claro en el catálogo. Tal vez puedas indicarme cuántos módulos necesitas o si es para interior o exterior.")
+          return
+        }
+        addAssistantMessage("bot", "Perfecto, con ese detalle te recomiendo estos tableros:")
+        for (const p of recs) {
+          addProductSuggestion(p)
+        }
+        logAssistantInteraction(combined, recs.map(r => r.id))
+        return
+      }
+      if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
+        const prod = findBestProductMatch(text)
+        if (prod) {
+          if (prod.available && prod.available !== "Disponible") {
+            addAssistantMessage("bot", "Ese producto figura como agotado en el catálogo: " + prod.name + ". Si quieres puedo sugerirte alternativas similares.")
+            const altQuery = prod.category + " " + (prod.subcategory || "")
+            const recsAlt = recommendProductsForQuery(altQuery)
+            if (recsAlt.length) {
+              addAssistantMessage("bot", "Mira estas opciones que podrían reemplazarlo:")
+              for (const p of recsAlt) addProductSuggestion(p)
+              logAssistantInteraction(text, recsAlt.map(r => r.id))
+            }
+          } else {
+            addAssistantMessage("bot", "Sí, en el catálogo figura como disponible: " + prod.name + ". Puedes agregarlo al carrito desde las sugerencias o buscándolo en el listado.")
+          }
+          return
+        }
+      }
+      if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
+        assistantState.lastQuery = text
+        assistantState.pending = "tablero-detalle"
+        addAssistantMessage("bot", "¿Qué tipo de tablero necesitas? Por ejemplo, empotrado o de superficie, y para cuántos módulos aproximados.")
+        return
+      }
+      const recs = recommendProductsForQuery(text)
+      if (!recs.length) {
+        addAssistantMessage("bot", "Con lo que me cuentas no encontré nada claro en el catálogo. Prueba contándome qué ambiente o instalación quieres armar (ej: iluminación de sala, cambio de grifería de baño).")
+        return
+      }
+      addAssistantMessage("bot", "Te sugiero estos productos. Puedes agregarlos directo al carrito:")
+      for (const p of recs) {
+        addProductSuggestion(p)
+      }
+      logAssistantInteraction(text, recs.map(r => r.id))
+    }
+    if (assistantToggle && assistantPanel) {
+      assistantToggle.addEventListener("click", () => {
+        assistantPanel.classList.remove("hidden")
+        assistantToggle.classList.add("hidden")
+        if (assistantMessages && !assistantMessages.dataset.init) {
+          addAssistantMessage("bot", "Hola, soy tu asistente de compras. Cuéntame qué necesitas y buscaré en el catálogo los productos adecuados. Por ejemplo: \"Necesito todo para instalar una lámpara en el comedor\" o \"Busco tubería y accesorios para agua en cocina\".")
+          assistantMessages.dataset.init = "1"
+        }
+        assistantInput.focus()
+      })
+    }
+    if (assistantClose && assistantPanel && assistantToggle) {
+      assistantClose.addEventListener("click", () => {
+        assistantPanel.classList.add("hidden")
+        assistantToggle.classList.remove("hidden")
+      })
+    }
+    if (assistantSend) {
+      assistantSend.addEventListener("click", handleAssistantQuery)
+    }
+    if (assistantInput) {
+      assistantInput.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault()
+          handleAssistantQuery()
+        }
+      })
+    }
+  </script>
+
+  <script>
+    // --- STATE ---
+    let PRODUCTS = []
+    let CART = []
+    let CURRENT_CAT = ""
+    
+    // --- DOM ELEMENTS ---
+    const gridEl = document.getElementById("prod-grid")
+    const searchProdEl = document.getElementById("search-prod")
+    const categoryChips = document.getElementById("category-chips")
+    const cartDrawer = document.getElementById("cart-drawer")
+    const cartOverlay = document.getElementById("cart-drawer-overlay")
+    const closeDrawerBtn = document.getElementById("close-drawer")
+    const cartItemsDrawer = document.getElementById("cart-items-drawer")
+    const drawerTotal = document.getElementById("drawer-total")
+    const sendWaDrawerBtn = document.getElementById("send-wa-drawer")
+    const shareStoreBtn = document.getElementById("share-store")
+    const storeWaInput = document.getElementById("store-wa")
+
+    // --- INITIALIZATION ---
+    async function init() {
+      // 1. Load Cart
+      try {
+        const raw = localStorage.getItem("cart")
+        if (raw) CART = JSON.parse(raw)
+      } catch {}
+      updateCartDrawer()
+
+      // 2. Load Products
+      await loadProducts()
+      
+      // 3. Sync from URL
+      const params = new URLSearchParams(window.location.search)
+      const catParam = params.get("category")
+      const searchParam = params.get("q")
+      
+      if (catParam) {
+        CURRENT_CAT = catParam
+        updateActiveChip()
+      }
+      if (searchParam) {
+        searchProdEl.value = searchParam
+      }
+
+      // 4. Render
+      renderCatalog()
+      setupHeroSlider()
+    }
+
+    // --- PRODUCTS ---
+    async function loadProducts() {
+      const SAMPLE = [
+          { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://images.unsplash.com/photo-1544724569-5f546fd6dd2d?auto=format&fit=crop&w=400&q=80", packInfo: "Rollo 100m", brand: "Genérica", sku: "CB-15", code: "ELEC-001" },
+          { id: 2, name: "Llave de paso 1/2\"", category: "Plomería", subcategory: "Válvulas", material: "Latón", price: 2500, available: "Disponible", img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80", packInfo: "Unidad", brand: "Aqua", sku: "LP12", code: "PLOM-010" },
+          { id: 3, name: "Bombillo LED 9W", category: "Electricidad", subcategory: "Iluminación", material: "Plástico", price: 150, available: "Disponible", img: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=400&q=80", packInfo: "Caja x10", brand: "Lumina", sku: "LED-9W", code: "ELEC-020" }
+      ]
+      
+      try {
+        // Try Server
+        const res = await fetch("/api/products")
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data) && data.length > 0) {
+            PRODUCTS = data
+            return
+          }
+        }
+      } catch (e) { console.log("Server offline, using local/sample") }
+
+      // Try LocalStorage
+      try {
+        const raw = localStorage.getItem("products")
+        if (raw) {
+          const arr = JSON.parse(raw)
+          if (Array.isArray(arr) && arr.length > 0) {
+            PRODUCTS = arr
+            return
+          }
+        }
+      } catch {}
+
+      // Fallback
+      PRODUCTS = SAMPLE
+    }
+
+    function renderCatalog() {
+      const q = (searchProdEl.value || "").toLowerCase()
+      
+      const items = PRODUCTS.filter(p => {
+        const okCat = CURRENT_CAT ? p.category === CURRENT_CAT : true
+        const text = `${p.name} ${p.brand||""} ${p.code||""} ${p.sku||""}`.toLowerCase()
+        const okSearch = q ? text.includes(q) : true
+        return okCat && okSearch
+      })
+
+      gridEl.innerHTML = ""
+      if (items.length === 0) {
+        gridEl.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">No se encontraron productos</div>`
+        return
+      }
+
+      for (const p of items) {
+        const price = p.price == null ? "Consultar" : "$" + Number(p.price).toLocaleString("es-AR")
+        const card = document.createElement("div")
+        card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
+        
+        // Handle image error
+        const imgUrl = p.img || "https://via.placeholder.com/400x300?text=Sin+Imagen"
+        
+        card.innerHTML = `
+          <div class="relative h-48 overflow-hidden bg-slate-100 group">
+            <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/400x300?text=Error+Imagen'">
+            ${p.available === "Agotado" ? '<div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">Agotado</div>' : ''}
+          </div>
+          <div class="p-4 flex-1 flex flex-col">
+            <div class="text-xs text-slate-500 mb-1">${p.category} ${p.subcategory ? '• '+p.subcategory : ''}</div>
+            <h3 class="font-semibold text-slate-800 leading-tight mb-1">${p.name}</h3>
+            <div class="text-xs text-slate-400 mb-3">${p.brand||""} ${p.sku ? 'SKU: '+p.sku : ''}</div>
+            
+            <div class="mt-auto flex items-center justify-between">
+              <span class="text-lg font-bold text-indigo-700">${price}</span>
+              <button onclick="addToCart(${p.id})" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white p-2 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              </button>
+            </div>
+          </div>
+        `
+        gridEl.appendChild(card)
+      }
+      
+      // Update URL without reload
+      const url = new URL(window.location)
+      if (CURRENT_CAT) url.searchParams.set("category", CURRENT_CAT)
+      else url.searchParams.delete("category")
+      
+      if (q) url.searchParams.set("q", q)
+      else url.searchParams.delete("q")
+      
+      window.history.replaceState({}, "", url)
+    }
+
+    // --- CART LOGIC ---
+    window.addToCart = function(id) {
+      const p = PRODUCTS.find(x => x.id === id)
+      if (!p) return
+      
+      const existing = CART.find(x => x.id === id)
+      if (existing) {
+        existing.qty++
+      } else {
+        CART.push({ ...p, qty: 1 })
+      }
+      saveCart()
+      openDrawer()
+    }
+
+    function removeFromCart(id) {
+      CART = CART.filter(x => x.id !== id)
+      saveCart()
+    }
+
+    function updateQty(id, delta) {
+      const item = CART.find(x => x.id === id)
+      if (!item) return
+      const newQty = item.qty + delta
+      if (newQty < 1) removeFromCart(id)
+      else {
+        item.qty = newQty
+        saveCart()
+      }
+    }
+
+    function saveCart() {
+      localStorage.setItem("cart", JSON.stringify(CART))
+      updateCartDrawer()
+    }
+
+    function updateCartDrawer() {
+      cartItemsDrawer.innerHTML = ""
+      let total = 0
+      
+      if (CART.length === 0) {
+        cartItemsDrawer.innerHTML = `
+          <div class="text-center py-10 text-slate-400">
+            <div class="text-4xl mb-3">🛒</div>
+            <p>Tu carrito está vacío</p>
+          </div>`
+      } else {
+        CART.forEach(item => {
+          const itemTotal = (item.price || 0) * item.qty
+          total += itemTotal
+          const el = document.createElement("div")
+          el.className = "flex gap-3 bg-slate-50 p-3 rounded-xl"
+          el.innerHTML = `
+            <img src="${item.img}" class="w-16 h-16 object-cover rounded-lg bg-white border border-slate-200">
+            <div class="flex-1">
+              <div class="text-sm font-medium text-slate-900 line-clamp-1">${item.name}</div>
+              <div class="text-xs text-slate-500 mb-2">$${Number(item.price).toLocaleString("es-AR")} x ${item.qty}</div>
+              <div class="flex items-center gap-3">
+                <div class="flex items-center bg-white border border-slate-200 rounded-lg h-8">
+                  <button onclick="updateQty(${item.id}, -1)" class="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-l-lg">-</button>
+                  <span class="text-xs font-medium w-6 text-center">${item.qty}</span>
+                  <button onclick="updateQty(${item.id}, 1)" class="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-r-lg">+</button>
+                </div>
+                <button onclick="removeFromCart(${item.id})" class="text-xs text-red-500 hover:underline ml-auto">Eliminar</button>
+              </div>
+            </div>
+          `
+          cartItemsDrawer.appendChild(el)
+        })
+      }
+      
+      drawerTotal.textContent = "$" + total.toLocaleString("es-AR")
+      
+      // Badge logic if needed (optional)
+    }
+
+    function openDrawer() {
+      cartDrawer.classList.remove("translate-x-full")
+      cartOverlay.classList.remove("hidden", "opacity-0")
+      document.body.classList.add("drawer-open")
+    }
+
+    function closeDrawer() {
+      cartDrawer.classList.add("translate-x-full")
+      cartOverlay.classList.add("hidden", "opacity-0")
+      document.body.classList.remove("drawer-open")
+    }
+
+    // --- HERO SLIDER ---
+    function setupHeroSlider() {
+      const images = [
+        "uploads/banner-1.jpg", 
+        "uploads/banner-2.jpg",
+        "uploads/banner-3.jpg"
+      ]
+      const fallbacks = [
+        "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1200&q=80", 
+        "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1544724569-5f546fd6dd2d?auto=format&fit=crop&w=1200&q=80"
+      ]
+      const container = document.getElementById("hero-slider")
+      const indicators = document.getElementById("hero-indicators")
+      let current = 0
+      
+      if (!container || !indicators) return
+
+      // Clear previous
+      container.innerHTML = ""
+      indicators.innerHTML = ""
+
+      images.forEach((src, i) => {
+        const img = document.createElement("img")
+        img.src = src
+        img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === 0 ? 'opacity-100' : 'opacity-0'}`
+        img.onerror = () => { img.src = fallbacks[i % fallbacks.length] }
+        container.appendChild(img)
+        
+        const dot = document.createElement("button")
+        dot.className = `w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-6' : 'bg-white/50'}`
+        dot.onclick = () => showSlide(i)
+        indicators.appendChild(dot)
+      })
+
+      function showSlide(index) {
+        current = index
+        Array.from(container.children).forEach((img, i) => {
+          img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === index ? 'opacity-100' : 'opacity-0'}`
+        })
+        Array.from(indicators.children).forEach((dot, i) => {
+          dot.className = `w-2 h-2 rounded-full transition-all ${i === index ? 'bg-white w-6' : 'bg-white/50'}`
+        })
+      }
+
+      setInterval(() => {
+        showSlide((current + 1) % images.length)
+      }, 5000)
+    }
+
+    // --- EVENTS ---
+    const logoImg = document.getElementById("app-logo")
+    if (logoImg) {
+      const customLogo = localStorage.getItem("company_logo")
+      if (customLogo) logoImg.src = customLogo
+
+      logoImg.onload = () => {
+         logoImg.classList.remove("hidden")
+         document.getElementById("app-logo-fallback").classList.add("hidden")
+      }
+    }
+
+    categoryChips.addEventListener("click", e => {
+      if (e.target.tagName === "BUTTON") {
+        CURRENT_CAT = e.target.getAttribute("data-cat")
+        updateActiveChip()
+        renderCatalog()
+      }
+    })
+
+    function updateActiveChip() {
+      Array.from(categoryChips.children).forEach(btn => {
+        if (btn.getAttribute("data-cat") === CURRENT_CAT) {
+          btn.classList.add("active", "bg-indigo-600", "text-white", "border-indigo-600")
+          btn.classList.remove("bg-white", "text-slate-600", "border-slate-300")
+        } else {
+          btn.classList.remove("active", "bg-indigo-600", "text-white", "border-indigo-600")
+          btn.classList.add("bg-white", "text-slate-600", "border-slate-300")
+        }
+      })
+    }
+
+    searchProdEl.addEventListener("input", renderCatalog)
+    closeDrawerBtn.addEventListener("click", closeDrawer)
+    cartOverlay.addEventListener("click", closeDrawer)
+
+    // Send Order via WhatsApp
+    sendWaDrawerBtn.addEventListener("click", () => {
+      if (CART.length === 0) return
+      
+      let text = "Hola, me gustaría hacer el siguiente pedido:\n\n"
+      let total = 0
+      CART.forEach(p => {
+        text += `- ${p.name} (x${p.qty}): $${(p.price*p.qty).toLocaleString("es-AR")}\n`
+        total += p.price * p.qty
+      })
+      text += `\n*Total: $${total.toLocaleString("es-AR")}*`
+      
+      const storePhone = storeWaInput.value.trim() || "584242240909" // Default fallback
+      const url = `https://wa.me/${storePhone.replace(/\D/g,"")}?text=${encodeURIComponent(text)}`
+      window.open(url, "_blank")
+    })
+
+    // Share Store Link
+    if (shareStoreBtn) {
+      shareStoreBtn.addEventListener("click", () => {
+        const url = window.location.href
+        const text = `¡Mira este catálogo de materiales! ${url}`
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
+        window.open(waUrl, "_blank")
+      })
+    }
+
+    init()
+  </script>
+</body>
+</html>

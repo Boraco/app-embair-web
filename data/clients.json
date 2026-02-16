@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "nombre": "Manuel",
+    "apellido": "Gonzalez",
+    "cedula": "18033044",
+    "direccion": "Boyera",
+    "celular": "04127077059",
+    "tipo": "Instalador",
+    "interesado": true,
+    "pedidos": 1
+  },
+  {
+    "id": 1770728790237,
+    "email": "melgonza88@gmail.com",
+    "nombre": "Manuel",
+    "apellido": "Gonzalez",
+    "celular": "04127077059",
+    "zona": "Caracas",
+    "tipo": "Empresa",
+    "created_at": "2026-02-10T13:06:30.237Z",
+    "updated_at": "2026-02-10T13:15:14.718Z"
+  },
+  {
+    "id": 1770735310278,
+    "email": "ayramarmarin@gmail.com",
+    "nombre": "Ayramar",
+    "apellido": "Carolina Marín",
+    "celular": "04241981378",
+    "zona": "caracas",
+    "tipo": "Particular",
+    "created_at": "2026-02-10T14:55:10.278Z",
+    "campaigns": [
+      "qr-1770735154640"
+    ]
+  }
+]

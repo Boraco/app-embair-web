@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel de Administración</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
+             <img id="admin-logo" src="uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
+             <span>ME</span>
+        </div>
+        <h1 class="text-2xl font-semibold">Panel de Administración</h1>
+      </div>
+      <div class="flex items-center gap-4">
+         <label for="logo-upload" class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium">Cambiar Logo</label>
+         <input type="file" id="logo-upload" accept="image/*" class="hidden" />
+         <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">Clientes</h2>
+      <div class="flex items-center gap-3">
+        <select id="client-type-filter" class="border rounded px-3 py-2 text-sm">
+          <option value="">Todos los tipos</option>
+          <option value="Particular">Particular</option>
+          <option value="Instalador">Instalador</option>
+        </select>
+        <input id="client-search" placeholder="Buscar por nombre, cédula o teléfono" class="border rounded px-3 py-2 text-sm" />
+        <button id="export-clients" class="bg-gray-800 text-white rounded px-3 py-2 text-sm">Exportar clientes (Excel)</button>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <form id="client-form" class="grid sm:grid-cols-3 gap-4">
+        <input type="hidden" id="client-id" />
+        <div>
+          <label class="block text-sm mb-1">Nombre</label>
+          <input id="client-nombre" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Apellido</label>
+          <input id="client-apellido" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Cédula</label>
+          <input id="client-cedula" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Correo Electrónico</label>
+          <input id="client-email" type="email" class="w-full border rounded px-3 py-2 text-sm" placeholder="cliente@email.com" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Dirección</label>
+          <input id="client-direccion" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Zona / Sector</label>
+          <input id="client-zona" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ej: Centro, Norte, Sur" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Celular</label>
+          <input id="client-celular" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Tipo de cliente</label>
+          <select id="client-tipo" class="w-full border rounded px-3 py-2 text-sm">
+            <option value="">Selecciona tipo</option>
+            <option value="Particular">Particular</option>
+            <option value="Instalador">Instalador</option>
+          </select>
+        </div>
+        <div class="sm:col-span-3 flex gap-3 mt-2">
+          <button id="save-client" class="bg-indigo-600 text-white rounded px-4 py-2 text-sm">Guardar cliente</button>
+          <button id="reset-client" type="button" class="border border-gray-300 rounded px-4 py-2 text-sm">Limpiar</button>
+        </div>
+      </form>
+    </div>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="px-3 py-2">Nombre y apellido</th>
+            <th class="px-3 py-2">Cédula</th>
+            <th class="px-3 py-2">Tipo</th>
+            <th class="px-3 py-2">Celular</th>
+            <th class="px-3 py-2">Zona</th>
+            <th class="px-3 py-2">Dirección</th>
+            <th class="px-3 py-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="client-rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">Productos</h2>
+      <div class="flex gap-3">
+        <button id="export-products" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar JSON</button>
+        <button id="export-products-csv" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar Excel</button>
+        <button id="import-toggle" class="border border-gray-300 rounded px-3 py-2 text-sm">Importar JSON</button>
+      </div>
+    </div>
+    <div id="import-box" class="hidden mb-4 p-4 bg-gray-50 border rounded-lg">
+      <div class="mb-2 text-sm text-gray-600">Carga masiva de productos (JSON o CSV). Los productos nuevos se agregarán al catálogo existente.</div>
+      <div class="flex flex-col gap-2">
+        <input type="file" id="import-file" accept=".json,.csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+        <textarea id="import-text" rows="4" class="w-full border rounded px-3 py-2 text-sm" placeholder="O pega aquí el JSON de productos..."></textarea>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button id="import-products" class="bg-indigo-600 text-white rounded px-3 py-2 text-sm">Importar / Agregar</button>
+        <button id="import-cancel" class="border border-gray-300 rounded px-3 py-2 text-sm">Cancelar</button>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <form id="product-form" class="grid sm:grid-cols-2 gap-4">
+        <input type="hidden" id="prod-id" />
+        <div>
+          <label class="block text-sm mb-1">Nombre</label>
+          <input id="prod-name" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Código</label>
+          <input id="prod-code" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Marca</label>
+          <input id="prod-brand" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">SKU</label>
+          <input id="prod-sku" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Categoría</label>
+          <select id="prod-category" class="w-full border rounded px-3 py-2">
+            <option value="Electricidad">Materiales eléctricos</option>
+            <option value="Plomería">Artículos de plomería</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Subcategoría</label>
+          <input id="prod-subcategory" class="w-full border rounded px-3 py-2" placeholder="Ej: iluminación, grifería" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Material</label>
+          <input id="prod-material" class="w-full border rounded px-3 py-2" placeholder="Ej: PVC, Cobre, Acero" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Precio</label>
+          <input id="prod-price" type="number" min="0" class="w-full border rounded px-3 py-2" />
+          <label class="inline-flex items-center gap-2 text-sm mt-1"><input type="checkbox" id="prod-quote"> Solicitar cotización</label>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Disponibilidad</label>
+          <select id="prod-available" class="w-full border rounded px-3 py-2">
+            <option value="Disponible">Disponible</option>
+            <option value="Agotado">Agotado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Imagen producto (URL)</label>
+          <input id="prod-img" class="w-full border rounded px-3 py-2" />
+          <input type="file" id="prod-img-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Imagen empaque (URL)</label>
+          <input id="prod-pack" class="w-full border rounded px-3 py-2" />
+          <input type="file" id="prod-pack-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Empaque / Unidad</label>
+          <input id="prod-packinfo" class="w-full border rounded px-3 py-2" placeholder="Ej: caja x20, bolsa x10, unidad" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-1">Descripción</label>
+          <textarea id="prod-desc" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-1">Especificaciones (una por línea)</label>
+          <textarea id="prod-specs" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+        <div class="sm:col-span-2 flex gap-3">
+          <button id="save-product" class="bg-indigo-600 text-white rounded px-4 py-2">Guardar producto</button>
+          <button id="reset-form" type="button" class="border border-gray-300 rounded px-4 py-2">Limpiar</button>
+        </div>
+      </form>
+    </div>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="px-3 py-2">Nombre</th>
+            <th class="px-3 py-2">Categoría</th>
+            <th class="px-3 py-2">Precio</th>
+            <th class="px-3 py-2">Disponibilidad</th>
+            <th class="px-3 py-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="prod-rows"></tbody>
+      </table>
+    </div>
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold mb-4">Estadísticas de uso del catálogo</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="text-sm font-semibold mb-2">Productos más solicitados</div>
+          <ul id="stats-top-products" class="text-sm text-gray-700 space-y-1"></ul>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4 md:col-span-2">
+          <div class="text-sm font-semibold mb-2">Combinaciones frecuentes</div>
+          <ul id="stats-combos" class="text-sm text-gray-700 space-y-1"></ul>
+        </div>
+      </div>
+    </section>
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold mb-4">Vista de marketing</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-4 md:col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <div class="text-sm font-semibold">Top tipos de productos</div>
+              <div class="text-xs text-gray-500">Distribución por familias (cables, interruptores, tomacorrientes, etc.)</div>
+            </div>
+          </div>
+          <div class="h-48">
+            <canvas id="chart-top-products" class="w-full h-full"></canvas>
+          </div>
+          <ul id="chart-top-products-list" class="mt-3 space-y-1 text-xs text-gray-600"></ul>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="text-sm font-semibold mb-2">Clientes por tipo</div>
+          <canvas id="chart-client-type" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="text-sm font-semibold mb-2">Clientes por zona</div>
+          <canvas id="chart-client-zona" class="w-full h-48"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section id="email-campaigns" class="mt-10 mb-20">
+      <h2 class="text-xl font-semibold mb-4">Campañas de Email (Listas de Precios)</h2>
+      
+      <!-- Public/QR Link Generator Section -->
+      <div class="mb-6 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-lg border border-indigo-100 p-4">
+        <div class="flex flex-col md:flex-row items-center gap-4">
+            <div class="flex-1">
+                <h3 class="font-bold text-indigo-900">Generador de Enlace Público y QR</h3>
+                <p class="text-xs text-indigo-700 mt-1">Sube un PDF para generar un enlace único que cualquiera pueda descargar escaneando un QR o visitando el link. Los datos se capturarán igual que en las campañas.</p>
+            </div>
+            <div class="flex-1 w-full flex flex-col gap-2">
+                <input id="qr-subject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Nombre (ej: Catálogo público febrero)" />
+                <input id="qr-public-url" class="w-full border rounded px-3 py-2 text-sm" placeholder="URL pública de tu dominio (opcional) - Ej: https://tutienda.com" />
+                <input type="file" id="qr-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white file:text-indigo-700 hover:file:bg-indigo-50" />
+            </div>
+            <button id="generate-qr-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700 text-sm whitespace-nowrap">
+                Generar Link
+            </button>
+        </div>
+        <!-- Result Container -->
+        <div id="qr-result" class="hidden mt-4 pt-4 border-t border-indigo-200 flex flex-col md:flex-row gap-6 items-center justify-center bg-white p-4 rounded">
+            <div id="qr-code-display"></div>
+            <div class="flex-1 text-center md:text-left">
+                <p class="text-sm font-bold text-gray-700 mb-1">Enlace Público:</p>
+                <div class="flex gap-2">
+                    <input id="qr-link-output" readonly class="flex-1 border bg-gray-50 rounded px-2 py-1 text-xs text-gray-600 font-mono" />
+                    <button id="copy-qr-link" class="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Copiar</button>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2">Comparte este enlace o el código QR. Los usuarios deberán ingresar sus datos para descargar.</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- New Campaign Form -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-semibold mb-4">Nueva Campaña de Email</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm mb-1 font-medium">Asunto del Correo</label>
+              <input id="camp-subject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ej: Nueva Lista de Precios - Febrero" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 font-medium">Archivo PDF (Lista de Precios)</label>
+              <input type="file" id="camp-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 font-medium">Destinatarios (Uno por línea)</label>
+              <textarea id="camp-emails" rows="5" class="w-full border rounded px-3 py-2 text-sm" placeholder="cliente1@ejemplo.com&#10;cliente2@ejemplo.com"></textarea>
+            </div>
+            
+            <details class="border rounded p-2">
+              <summary class="cursor-pointer text-sm font-medium text-indigo-600">Configuración Avanzada (SMTP / Ngrok)</summary>
+              <div class="mt-2 space-y-2 text-sm">
+                
+                <div class="mb-3">
+                  <label class="block text-xs font-semibold mb-1">URL pública (dominio) opcional</label>
+                  <input id="public-url" class="w-full border rounded px-2 py-1" placeholder="Ej: https://tutienda.com" />
+                  <p class="text-[10px] text-gray-500 mt-1">Si tu dominio ya está apuntando a este servidor, puedes dejar este campo vacío. Si quieres forzar otro dominio/base de URL, escríbelo aquí.</p>
+                </div>
+
+                <div class="border-t pt-2 mt-2">
+                    <p class="font-semibold text-xs mb-2">Configuración de Correo (SMTP)</p>
+                    <div class="bg-blue-50 text-blue-800 p-3 rounded text-xs mb-2">
+                        <strong>¡Atención Gmail!</strong> Para enviar correos debes:
+                        <ol class="list-decimal ml-4 mt-1 space-y-1">
+                            <li>Activar la <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" class="underline font-bold">Verificación en 2 pasos</a> en tu cuenta Google.</li>
+                            <li>Crear una <a href="https://myaccount.google.com/apppasswords" target="_blank" class="underline font-bold">Contraseña de Aplicación</a>.</li>
+                            <li>Usar esa contraseña de 16 letras aquí (sin espacios).</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="flex gap-2 mb-2">
+                        <button type="button" id="fill-gmail" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">Usar Gmail</button>
+                        <button type="button" id="fill-outlook" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">Usar Outlook</button>
+                    </div>
+
+                    <input id="smtp-host" class="w-full border rounded px-2 py-1" placeholder="Host (ej: smtp.gmail.com)" />
+                    <div class="flex gap-2">
+                    <input id="smtp-port" class="w-full border rounded px-2 py-1" placeholder="Puerto (ej: 587)" />
+                    <input id="smtp-user" class="w-full border rounded px-2 py-1" placeholder="Usuario (tu correo)" />
+                    </div>
+                    <input id="smtp-pass" type="password" class="w-full border rounded px-2 py-1" placeholder="Contraseña de Aplicación" />
+                    <button id="test-smtp" type="button" class="mt-2 w-full text-xs bg-gray-100 border text-gray-700 rounded px-2 py-1 hover:bg-gray-200">Probar Conexión</button>
+                </div>
+              </div>
+            </details>
+
+            <button id="send-campaign" class="w-full bg-indigo-600 text-white rounded px-4 py-2 hover:bg-indigo-700 transition">Enviar Campaña</button>
+          </div>
+        </div>
+
+        <!-- Campaign History -->
+        <div class="bg-white rounded-lg shadow p-6 overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">Historial y Estadísticas</h3>
+            <button id="refresh-campaigns" class="text-indigo-600 text-sm hover:underline">Actualizar</button>
+          </div>
+          <div class="overflow-y-auto max-h-[500px]">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 sticky top-0">
+                <tr>
+                  <th class="px-2 py-2 text-left">Fecha</th>
+                  <th class="px-2 py-2 text-left">Asunto</th>
+                  <th class="px-2 py-2 text-center">Enviados</th>
+                  <th class="px-2 py-2 text-center">Abiertos</th>
+                  <th class="px-2 py-2 text-center">Clics</th>
+                  <th class="px-2 py-2 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="campaign-rows" class="divide-y">
+                <!-- Rows injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal Reporte Campaña -->
+    <dialog id="camp-report-modal" class="p-0 rounded-lg shadow-xl w-full max-w-4xl backdrop:bg-gray-900/50">
+        <div class="bg-white flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="font-semibold text-lg" id="camp-report-title">Reporte de Campaña</h3>
+                <button onclick="document.getElementById('camp-report-modal').close()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-3 py-2">Cliente</th>
+                            <th class="px-3 py-2">Email</th>
+                            <th class="px-3 py-2">Zona / Tipo</th>
+                            <th class="px-3 py-2 text-center">Estado</th>
+                            <th class="px-3 py-2 text-right">Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="camp-report-rows" class="divide-y">
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t bg-gray-50 text-right">
+                <button onclick="document.getElementById('camp-report-modal').close()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded text-sm font-medium hover:bg-gray-300">Cerrar</button>
+            </div>
+        </div>
+    </dialog>
+  </main>
+
+  <script>
+    const clientRowsEl = document.getElementById("client-rows")
+    const clientFormEl = document.getElementById("client-form")
+    const clientIdEl = document.getElementById("client-id")
+    const clientNombreEl = document.getElementById("client-nombre")
+    const clientApellidoEl = document.getElementById("client-apellido")
+    const clientCedulaEl = document.getElementById("client-cedula")
+    const clientEmailEl = document.getElementById("client-email")
+    const clientDireccionEl = document.getElementById("client-direccion")
+    const clientZonaEl = document.getElementById("client-zona")
+    const clientCelularEl = document.getElementById("client-celular")
+    const clientTipoEl = document.getElementById("client-tipo")
+    const clientTypeFilterEl = document.getElementById("client-type-filter")
+    const clientSearchEl = document.getElementById("client-search")
+    const clientSaveBtn = document.getElementById("save-client")
+    const clientResetBtn = document.getElementById("reset-client")
+    const exportClientsBtn = document.getElementById("export-clients")
+    async function loadClients() {
+       try {
+         const res = await fetch("/api/clients")
+         if (res.ok) {
+           const arr = await res.json()
+           // If server has data, use it
+           if (Array.isArray(arr) && arr.length > 0) {
+             return arr
+           }
+           // If server is empty, try to migrate from local
+           const raw = localStorage.getItem("clients")
+           const local = raw ? JSON.parse(raw) : []
+           if (Array.isArray(local) && local.length > 0) {
+             console.log("Migrating clients to server...")
+             saveClients(local) // Sync to server
+             return local
+           }
+           return []
+         }
+       } catch {}
+       // Fallback if server offline
+       try {
+         const raw = localStorage.getItem("clients")
+         const arr = raw ? JSON.parse(raw) : []
+         return Array.isArray(arr) ? arr : []
+       } catch {
+         return []
+       }
+     }
+    async function saveClients(list) {
+       // Local backup
+       localStorage.setItem("clients", JSON.stringify(list))
+       // Server sync
+       try {
+         await fetch("/api/clients", {
+           method: "POST",
+           headers: { 
+             "Content-Type": "application/json",
+             "Authorization": "Basic " + btoa("admin:admin") // Default admin credentials
+           },
+           body: JSON.stringify(list)
+         })
+       } catch (e) {
+         console.error("Failed to sync clients", e)
+       }
+     }
+    let CLIENTS = []
+    loadClients().then(c => {
+      CLIENTS = c
+      renderClients()
+      if (typeof renderClientCharts === "function") renderClientCharts()
+    })
+    function renderClients() {
+      const typeFilter = clientTypeFilterEl.value || ""
+      const q = (clientSearchEl.value || "").toLowerCase()
+      const items = CLIENTS.filter(c => {
+        const okType = typeFilter ? c.tipo === typeFilter : true
+        const text = `${c.nombre || ""} ${c.apellido || ""} ${c.cedula || ""} ${c.celular || ""} ${c.zona || ""}`.toLowerCase()
+        const okSearch = q ? text.includes(q) : true
+        return okType && okSearch
+      })
+      clientRowsEl.innerHTML = ""
+      for (const c of items) {
+        const tr = document.createElement("tr")
+        const nombre = `${c.nombre || ""} ${c.apellido || ""}`.trim()
+        tr.innerHTML = `
+          <td class="px-3 py-2">${nombre}</td>
+          <td class="px-3 py-2">${c.cedula || ""}</td>
+          <td class="px-3 py-2">${c.tipo || ""}</td>
+          <td class="px-3 py-2">${c.celular || ""}</td>
+          <td class="px-3 py-2">${c.zona || ""}</td>
+          <td class="px-3 py-2">${c.direccion || ""}</td>
+          <td class="px-3 py-2">
+            <button data-id="${c.id}" data-action="wa" class="bg-emerald-500 text-white px-2 py-1 rounded mr-2 text-xs">WhatsApp</button>
+            <button data-id="${c.id}" data-action="edit" class="bg-indigo-600 text-white px-2 py-1 rounded mr-2 text-xs">Editar</button>
+            <button data-id="${c.id}" data-action="del" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+          </td>
+        `
+        clientRowsEl.appendChild(tr)
+      }
+      clientRowsEl.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-id"))
+          const action = btn.getAttribute("data-action")
+          if (action === "edit") {
+            const c = CLIENTS.find(x => x.id === id)
+            if (!c) return
+            clientIdEl.value = String(c.id)
+            clientNombreEl.value = c.nombre || ""
+            clientApellidoEl.value = c.apellido || ""
+            clientCedulaEl.value = c.cedula || ""
+            clientEmailEl.value = c.email || ""
+            clientDireccionEl.value = c.direccion || ""
+            clientCelularEl.value = c.celular || ""
+            clientZonaEl.value = c.zona || ""
+            clientTipoEl.value = c.tipo || ""
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          } else if (action === "wa") {
+            const c = CLIENTS.find(x => x.id === id)
+            if (c && c.celular) {
+              const num = c.celular.replace(/\D/g, "")
+              const text = encodeURIComponent(`Hola ${c.nombre}, te contactamos desde Materiales Eléctricos.`)
+              window.open(`https://wa.me/${num}?text=${text}`, "_blank")
+            } else {
+              alert("El cliente no tiene un número de celular válido.")
+            }
+          } else if (action === "del") {
+            CLIENTS = CLIENTS.filter(x => x.id !== id)
+            saveClients(CLIENTS)
+            renderClients()
+            if (typeof renderClientCharts === "function") renderClientCharts()
+          }
+        })
+      })
+    }
+    clientSaveBtn.addEventListener("click", e => {
+      e.preventDefault()
+      const id = Number(clientIdEl.value || 0)
+      const nombre = clientNombreEl.value.trim()
+      const apellido = clientApellidoEl.value.trim()
+      const cedula = clientCedulaEl.value.trim()
+      const email = clientEmailEl.value.trim()
+      const direccion = clientDireccionEl.value.trim()
+      const celular = clientCelularEl.value.trim()
+      const tipo = clientTipoEl.value
+      const zona = clientZonaEl.value.trim()
+      if (!nombre || !apellido || !cedula || !celular || !tipo) {
+        alert("Completa al menos nombre, apellido, cédula, celular y tipo de cliente.")
+        return
+      }
+      if (id) {
+        const idx = CLIENTS.findIndex(x => x.id === id)
+        if (idx >= 0) {
+          const prev = CLIENTS[idx]
+          CLIENTS[idx] = {
+            id,
+            nombre,
+            apellido,
+            cedula,
+            email,
+            direccion,
+            celular,
+            tipo,
+            zona,
+            pedidos: typeof prev.pedidos === "number" ? prev.pedidos : 0,
+            interesado: prev.interesado === true
+          }
+        }
+      } else {
+        const newId = CLIENTS.length ? Math.max(...CLIENTS.map(x => x.id)) + 1 : 1
+        CLIENTS.push({ id: newId, nombre, apellido, cedula, email, direccion, celular, tipo, zona, pedidos: 0, interesado: true })
+      }
+      saveClients(CLIENTS)
+      renderClients()
+      if (typeof renderClientCharts === "function") renderClientCharts()
+      clientFormEl.reset()
+      clientIdEl.value = ""
+    })
+    clientResetBtn.addEventListener("click", () => {
+      clientFormEl.reset()
+      clientIdEl.value = ""
+    })
+    clientTypeFilterEl.addEventListener("change", renderClients)
+    clientSearchEl.addEventListener("input", renderClients)
+    function exportClientsToCsv() {
+      const headers = ["Nombre", "Apellido", "Cédula", "Email", "Dirección", "Zona", "Celular", "Tipo", "Pedidos", "Estado"]
+      const lines = []
+      lines.push(headers.join(";"))
+      for (const c of CLIENTS) {
+        const row = [
+          c.nombre || "",
+          c.apellido || "",
+          c.cedula || "",
+          c.email || "",
+          c.direccion || "",
+          c.zona || "",
+          c.celular || "",
+          c.tipo || "",
+          typeof c.pedidos === "number" ? c.pedidos : 0,
+          c.pedidos && c.pedidos > 0 ? "Con pedidos" : (c.interesado ? "Interesado" : "Sin actividad")
+        ].map(v => {
+          const s = String(v).replace(/"/g, '""')
+          return `"${s}"`
+        })
+        lines.push(row.join(";"))
+      }
+      const csv = lines.join("\n")
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "clientes.csv"
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+    exportClientsBtn.addEventListener("click", exportClientsToCsv)
+    renderClients()
+    // --- EMAIL CAMPAIGN LOGIC ---
+    const campSubjectEl = document.getElementById("camp-subject")
+    const campFileEl = document.getElementById("camp-file")
+    const campEmailsEl = document.getElementById("camp-emails")
+    const sendCampBtn = document.getElementById("send-campaign")
+    const refreshCampBtn = document.getElementById("refresh-campaigns")
+    const campRowsEl = document.getElementById("campaign-rows")
+    const smtpHostEl = document.getElementById("smtp-host")
+    const smtpPortEl = document.getElementById("smtp-port")
+    const smtpUserEl = document.getElementById("smtp-user")
+    const smtpPassEl = document.getElementById("smtp-pass")
+
+    document.getElementById("fill-gmail")?.addEventListener("click", () => {
+        smtpHostEl.value = "smtp.gmail.com"
+        smtpPortEl.value = "587"
+        alert("Configurado para Gmail. Recuerda:\n1. El usuario es tu correo completo.\n2. La contraseña debe ser una 'Contraseña de Aplicación' (creada en tu cuenta de Google > Seguridad > Verificación en 2 pasos).")
+    })
+
+    document.getElementById("fill-outlook")?.addEventListener("click", () => {
+        smtpHostEl.value = "smtp.office365.com"
+        smtpPortEl.value = "587"
+        alert("Configurado para Outlook/Hotmail.")
+    })
+
+    document.getElementById("test-smtp")?.addEventListener("click", async () => {
+        const btn = document.getElementById("test-smtp")
+        const host = smtpHostEl.value
+        const port = smtpPortEl.value
+        const user = smtpUserEl.value
+        const pass = smtpPassEl.value
+
+        if (!host || !user || !pass) {
+            alert("Por favor completa Host, Usuario y Contraseña para probar.")
+            return
+        }
+
+        btn.disabled = true
+        btn.textContent = "Probando..."
+        
+        try {
+            const res = await fetch("/api/smtp/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    smtpConfig: { host, port: Number(port) || 587, user, pass }
+                })
+            })
+            
+            const data = await res.json()
+            if (res.ok) {
+                alert("✅ ¡Conexión Exitosa!\nTus credenciales son correctas. Ya puedes enviar campañas.")
+            } else {
+                if (data.error === "smtp_error") {
+                     alert(`❌ Error de conexión:\n${data.details}\n\nSi usas Gmail, recuerda:\n1. Activa "Verificación en 2 pasos".\n2. Crea y usa una "Contraseña de Aplicación".`)
+                } else {
+                     alert("❌ Error: " + (data.error || "Desconocido"))
+                }
+            }
+        } catch (e) {
+            alert("Error de red: " + e.message)
+        } finally {
+            btn.disabled = false
+            btn.textContent = "Probar Conexión"
+        }
+    })
+
+    let CAMPAIGNS = []
+    async function loadCampaigns() {
+      try {
+        const res = await fetch("/api/campaigns")
+        if (res.ok) {
+          CAMPAIGNS = await res.json()
+          renderCampaigns(CAMPAIGNS)
+        }
+      } catch (e) {
+        console.error("Error loading campaigns", e)
+      }
+    }
+
+    function renderCampaigns(list) {
+      if (!campRowsEl) return
+      campRowsEl.innerHTML = list.map(c => {
+        const sent = c.sent || 0
+        const opens = Object.keys(c.opens || {}).length
+        const clicks = Object.keys(c.clicks || {}).length
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-2 py-2 text-gray-600">${new Date(c.date).toLocaleDateString()} ${new Date(c.date).toLocaleTimeString()}</td>
+            <td class="px-2 py-2 font-medium text-indigo-600">${c.subject}</td>
+            <td class="px-2 py-2 text-center">${sent} / ${c.total}</td>
+            <td class="px-2 py-2 text-center text-green-600 font-bold">${opens}</td>
+            <td class="px-2 py-2 text-center text-blue-600 font-bold">${clicks}</td>
+            <td class="px-2 py-2 text-right">
+                <button onclick='showCampReport("${c.id}")' class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-100 font-medium">Ver Reporte</button>
+            </td>
+          </tr>
+        `
+      }).join("")
+    }
+
+    // --- Export Campaign Data ---
+    function exportCampaignData(c) {
+        // Find clients related to this campaign
+        let relatedClients = []
+        
+        // 1. From clicks
+        if (c.clicks) {
+            Object.keys(c.clicks).forEach(email => {
+                const client = CLIENTS.find(cl => cl.email && cl.email.toLowerCase() === email.toLowerCase())
+                if (client && !relatedClients.includes(client)) {
+                    relatedClients.push(client)
+                }
+            })
+        }
+        
+        // 2. From client.campaigns array (for public/QR links)
+        CLIENTS.forEach(client => {
+            if (client.campaigns && client.campaigns.includes(c.id)) {
+                if (!relatedClients.includes(client)) {
+                    relatedClients.push(client)
+                }
+            }
+        })
+        
+        if (relatedClients.length === 0) {
+            alert("No hay datos de clientes registrados para esta campaña.")
+            return
+        }
+        
+        // Generate CSV
+        const headers = ["Nombre", "Apellido", "Email", "Celular", "Zona", "Tipo", "Direccion", "Fecha Registro"]
+        const rows = relatedClients.map(cl => [
+            cl.nombre || "",
+            cl.apellido || "",
+            cl.email || "",
+            cl.celular || "",
+            cl.zona || "",
+            cl.tipo || "",
+            cl.direccion || "",
+            cl.created_at || ""
+        ])
+        
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n")
+        
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.setAttribute("href", url)
+        link.setAttribute("download", `reporte_campana_${c.id}.csv`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
+    window.showCampReport = (id) => {
+        const c = CAMPAIGNS.find(x => x.id === id)
+        if (!c) return
+        
+        const modal = document.getElementById("camp-report-modal")
+        const title = document.getElementById("camp-report-title")
+        const rows = document.getElementById("camp-report-rows")
+        
+        title.textContent = `Reporte: ${c.subject}`
+
+        // Add Export Button to Modal Title
+        const existingBtn = document.getElementById("export-camp-btn")
+        if (existingBtn) existingBtn.remove()
+        
+        const exportBtn = document.createElement("button")
+        exportBtn.id = "export-camp-btn"
+        exportBtn.textContent = "Descargar CSV"
+        exportBtn.className = "ml-4 text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+        exportBtn.onclick = () => exportCampaignData(c)
+        title.appendChild(exportBtn)
+        
+        // Merge interactions
+        const interactions = []
+        
+        // 1. Process Opens
+        if (c.opens) {
+            Object.entries(c.opens).forEach(([email, ts]) => {
+                interactions.push({ email, type: "open", ts, label: "Abierto" })
+            })
+        }
+        
+        // 2. Process Clicks
+        if (c.clicks) {
+            Object.entries(c.clicks).forEach(([email, ts]) => {
+                interactions.push({ email, type: "click", ts, label: "Clic en PDF" })
+            })
+        }
+
+        // 3. Process Public Signups (for QR campaigns)
+        CLIENTS.forEach(client => {
+            if (client.campaigns && client.campaigns.includes(c.id)) {
+                 interactions.push({ 
+                     email: client.email, 
+                     type: "signup", 
+                     ts: client.updated_at || client.created_at || new Date().toISOString(), 
+                     label: "Registro QR/Link" 
+                 })
+            }
+        })
+        
+        // Sort by time desc
+        interactions.sort((a, b) => new Date(b.ts) - new Date(a.ts))
+        
+        if (interactions.length === 0) {
+            rows.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Aún no hay interacciones registradas.</td></tr>`
+        } else {
+            rows.innerHTML = interactions.map(i => {
+                // Find client
+                const client = CLIENTS.find(cl => cl.email && cl.email.toLowerCase().trim() === i.email.toLowerCase().trim())
+                
+                const name = client ? `${client.nombre || ""} ${client.apellido || ""}` : "Desconocido"
+                const zona = client ? `${client.zona || "-"} / ${client.tipo || "-"}` : "-"
+                const phone = client ? (client.celular || "") : ""
+                
+                let badgeClass = "bg-gray-100 text-gray-800"
+                if (i.type === "open") badgeClass = "bg-green-100 text-green-800"
+                if (i.type === "click") badgeClass = "bg-blue-100 text-blue-800"
+                if (i.type === "signup") badgeClass = "bg-purple-100 text-purple-800"
+                
+                return `
+                    <tr class="hover:bg-gray-50 border-b last:border-0">
+                        <td class="px-3 py-2">
+                            <div class="font-medium text-gray-900">${name}</div>
+                            ${phone ? `<div class="text-xs text-gray-500">Tel: ${phone}</div>` : ""}
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">${i.email}</td>
+                        <td class="px-3 py-2 text-gray-500 text-xs">${zona}</td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badgeClass}">
+                                ${i.label}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-right text-xs text-gray-500">
+                            ${new Date(i.ts).toLocaleString()}
+                        </td>
+                    </tr>
+                `
+            }).join("")
+        }
+        
+        modal.showModal()
+    }
+
+    if (sendCampBtn) {
+      sendCampBtn.addEventListener("click", async () => {
+        const subject = campSubjectEl.value.trim()
+        const emailsText = campEmailsEl.value.trim()
+        const file = campFileEl.files[0]
+
+        if (!subject || !emailsText || !file) {
+          alert("Por favor completa el asunto, selecciona un PDF y agrega destinatarios.")
+          return
+        }
+
+        const emails = emailsText.split("\n").map(e => e.trim()).filter(e => e.includes("@"))
+        if (emails.length === 0) {
+          alert("No hay correos válidos.")
+          return
+        }
+
+        sendCampBtn.disabled = true
+        sendCampBtn.textContent = "Subiendo archivo..."
+
+        try {
+          // 1. Upload PDF
+          const fd = new FormData()
+          fd.append("file", file)
+          const upRes = await fetch("/api/upload", { method: "POST", body: fd })
+          const upData = await upRes.json()
+          
+          if (!upData.ok || !upData.url) throw new Error("Error subiendo PDF")
+
+          // 2. Send Campaign
+          sendCampBtn.textContent = "Enviando correos..."
+          
+          const payload = {
+            subject,
+            pdfUrl: upData.url,
+            emails,
+            publicUrl: document.getElementById("public-url").value.trim(),
+            smtpConfig: smtpHostEl.value ? {
+              host: smtpHostEl.value,
+              port: Number(smtpPortEl.value) || 587,
+              user: smtpUserEl.value,
+              pass: smtpPassEl.value
+            } : null
+          }
+
+          const campRes = await fetch("/api/campaign/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          })
+
+          if (campRes.ok) {
+            alert("Campaña iniciada correctamente. Los correos se enviarán en segundo plano.")
+            campSubjectEl.value = ""
+            campEmailsEl.value = ""
+            campFileEl.value = ""
+            loadCampaigns()
+          } else {
+            const errData = await campRes.json().catch(() => ({}))
+            if (errData.error === "smtp_error") {
+                alert(`Error de conexión SMTP:\n${errData.details}\n\nSUGERENCIAS:\n1. Si usas Gmail, NO uses tu contraseña normal. Debes crear una "Contraseña de Aplicación".\n2. Verifica que no haya espacios en la contraseña.\n3. Revisa el puerto (587 suele ser correcto).`)
+            } else {
+                alert("Error al iniciar campaña: " + (errData.error || "Desconocido"))
+            }
+          }
+
+        } catch (e) {
+          console.error(e)
+          alert("Ocurrió un error: " + e.message)
+        } finally {
+          sendCampBtn.disabled = false
+          sendCampBtn.textContent = "Enviar Campaña"
+        }
+      })
+    }
+
+    if (refreshCampBtn) {
+      refreshCampBtn.addEventListener("click", loadCampaigns)
+    }
+
+    // Init
+    loadCampaigns()
+  </script>
+  <script>
+    const prodRows = document.getElementById("prod-rows")
+    const formEl = document.getElementById("product-form")
+    const idEl = document.getElementById("prod-id")
+    const nameEl = document.getElementById("prod-name")
+    const codeEl = document.getElementById("prod-code")
+    const brandEl = document.getElementById("prod-brand")
+    const skuEl = document.getElementById("prod-sku")
+    const catEl = document.getElementById("prod-category")
+    const subcatEl = document.getElementById("prod-subcategory")
+    const materialEl = document.getElementById("prod-material")
+    const priceEl = document.getElementById("prod-price")
+    const quoteEl = document.getElementById("prod-quote")
+    const availEl = document.getElementById("prod-available")
+    const imgEl = document.getElementById("prod-img")
+    const packEl = document.getElementById("prod-pack")
+    const imgFileEl = document.getElementById("prod-img-file")
+    const packFileEl = document.getElementById("prod-pack-file")
+    const packInfoEl = document.getElementById("prod-packinfo")
+    const descEl = document.getElementById("prod-desc")
+    const specsEl = document.getElementById("prod-specs")
+    const saveBtn = document.getElementById("save-product")
+    const resetBtn = document.getElementById("reset-form")
+    const exportBtn = document.getElementById("export-products")
+    const exportCsvBtn = document.getElementById("export-products-csv")
+    const importToggle = document.getElementById("import-toggle")
+    const importBox = document.getElementById("import-box")
+    const importText = document.getElementById("import-text")
+    const importBtn = document.getElementById("import-products")
+    const importCancel = document.getElementById("import-cancel")
+
+    // --- QR Generator Logic ---
+    const qrSubjectEl = document.getElementById("qr-subject")
+    const qrPublicUrlEl = document.getElementById("qr-public-url")
+    const qrFileEl = document.getElementById("qr-file")
+    const qrBtn = document.getElementById("generate-qr-btn")
+    const qrResult = document.getElementById("qr-result")
+    const qrLinkOutput = document.getElementById("qr-link-output")
+    const qrCodeDisplay = document.getElementById("qr-code-display")
+    const copyQrLinkBtn = document.getElementById("copy-qr-link")
+
+    if (qrBtn) {
+        qrBtn.addEventListener("click", async () => {
+            const subject = qrSubjectEl.value.trim()
+            const file = qrFileEl.files[0]
+            // Use specific QR public URL input, fallback to global setting, or empty (server defaults to local IP)
+            const globalPublicUrl = document.getElementById("public-url") ? document.getElementById("public-url").value.trim() : ""
+            const publicUrl = qrPublicUrlEl.value.trim() || globalPublicUrl
+
+            if (!subject || !file) {
+                alert("Por favor ingresa un nombre y selecciona un PDF.")
+                return
+            }
+
+            qrBtn.disabled = true
+            qrBtn.textContent = "Generando..."
+
+            try {
+                // 1. Upload PDF
+                const fd = new FormData()
+                fd.append("file", file)
+                const upRes = await fetch("/api/upload", { method: "POST", body: fd })
+                const upData = await upRes.json()
+                
+                if (!upData.ok || !upData.url) throw new Error("Error subiendo PDF")
+
+                // 2. Create Public Campaign
+                const res = await fetch("/api/campaign/public", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        subject,
+                        pdfUrl: upData.url,
+                        publicUrl
+                    })
+                })
+                
+                const data = await res.json()
+                if (data.ok) {
+                    qrResult.classList.remove("hidden")
+                    qrLinkOutput.value = data.link
+                    
+                    // Generate QR
+                    qrCodeDisplay.innerHTML = ""
+                    try {
+                        new QRCode(qrCodeDisplay, {
+                            text: data.link,
+                            width: 128,
+                            height: 128
+                        })
+                    } catch (err) {
+                        console.error("QR Code Error:", err)
+                        qrCodeDisplay.textContent = "Error visualizando QR"
+                    }
+                    
+                    loadCampaigns() // Refresh list
+                    alert("Enlace generado con éxito.")
+                } else {
+                    alert("Error al generar enlace.")
+                }
+            } catch (e) {
+                console.error(e)
+                alert("Error: " + e.message)
+            } finally {
+                qrBtn.disabled = false
+                qrBtn.textContent = "Generar Link"
+            }
+        })
+        
+        copyQrLinkBtn.addEventListener("click", () => {
+            qrLinkOutput.select()
+            document.execCommand("copy")
+            // Or clipboard API
+            // navigator.clipboard.writeText(qrLinkOutput.value)
+            const original = copyQrLinkBtn.textContent
+            copyQrLinkBtn.textContent = "¡Copiado!"
+            setTimeout(() => copyQrLinkBtn.textContent = original, 2000)
+        })
+    }
+    // --- End QR Logic ---
+
+    const SAMPLE = [
+      { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://picsum.photos/seed/cable/400/300", pack: "https://picsum.photos/seed/cablepack/400/300", desc: "Cable de cobre multipolar 2x1.5mm", specs: ["Voltaje 220V", "Norma IRAM"] },
+      { id: 2, name: "Interruptor simple", category: "Electricidad", subcategory: "Iluminación", material: "Plástico", price: 800, available: "Disponible", img: "https://picsum.photos/seed/switch/400/300", pack: "https://picsum.photos/seed/switchpack/400/300", desc: "Interruptor de pared de 10A", specs: ["Color blanco", "Montaje embutido"] }
+    ]
+    async function loadProducts() {
+       try {
+         const res = await fetch("/api/products")
+         if (res.ok) {
+           const arr = await res.json()
+           if (Array.isArray(arr) && arr.length > 0) {
+             PRODUCTS = arr
+             renderProducts()
+             renderStats()
+             return
+           }
+           // Server empty? Migrate local
+           const raw = localStorage.getItem("products")
+           if (raw) {
+             const local = JSON.parse(raw)
+             if (Array.isArray(local) && local.length > 0) {
+                console.log("Migrating products to server...")
+                PRODUCTS = local
+                saveProducts(local) // Sync
+                renderProducts()
+                renderStats()
+                return
+             }
+           }
+         }
+       } catch {}
+       try {
+         const raw = localStorage.getItem("products")
+        if (raw) {
+          PRODUCTS = JSON.parse(raw)
+          renderProducts()
+          renderStats()
+          return
+        }
+      } catch {}
+      PRODUCTS = SAMPLE
+      renderProducts()
+      renderStats()
+    }
+    async function saveProducts(list) {
+       localStorage.setItem("products", JSON.stringify(list))
+       try {
+         await fetch("/api/products", {
+           method: "POST",
+           headers: { 
+             "Content-Type": "application/json",
+             "Authorization": "Basic " + btoa("admin:admin") // Default admin credentials
+           },
+           body: JSON.stringify(list)
+         })
+       } catch (e) {
+         console.error("Failed to sync products", e)
+       }
+     }
+    let PRODUCTS = []
+    loadProducts()
+    function getAssistantLogs() {
+      try {
+        const raw = localStorage.getItem("assistantLogs")
+        const arr = raw ? JSON.parse(raw) : []
+        return Array.isArray(arr) ? arr : []
+      } catch {
+        return []
+      }
+    }
+    function getOrderLogs() {
+      try {
+        const raw = localStorage.getItem("orderLogs")
+        const arr = raw ? JSON.parse(raw) : []
+        return Array.isArray(arr) ? arr : []
+      } catch {
+        return []
+      }
+    }
+    let chartTopProducts = null
+    let chartClientType = null
+    let chartClientZona = null
+    function renderClientCharts() {
+      if (typeof Chart === "undefined") return
+      const list = Array.isArray(CLIENTS) ? CLIENTS : []
+      const tipoCounts = { Particular: 0, Instalador: 0, Otro: 0 }
+      const zonaCounts = new Map()
+      for (const c of list) {
+        const t = c.tipo === "Particular" || c.tipo === "Instalador" ? c.tipo : "Otro"
+        tipoCounts[t] = (tipoCounts[t] || 0) + 1
+        const zona = (c.zona && c.zona.trim()) ? c.zona.trim() : "Sin zona"
+        zonaCounts.set(zona, (zonaCounts.get(zona) || 0) + 1)
+      }
+      const tipoLabels = ["Particular", "Instalador", "Otro"]
+      const tipoData = tipoLabels.map(k => tipoCounts[k] || 0)
+      const ctxTipo = document.getElementById("chart-client-type")
+      if (ctxTipo) {
+        if (chartClientType) chartClientType.destroy()
+        chartClientType = new Chart(ctxTipo, {
+          type: "pie",
+          data: {
+            labels: tipoLabels,
+            datasets: [{
+              data: tipoData,
+              backgroundColor: ["#4f46e5", "#f97316", "#9ca3af"]
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { position: "bottom", labels: { font: { size: 11 } } }
+            }
+          }
+        })
+      }
+      const zonaList = Array.from(zonaCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,6)
+      const zonaLabels = zonaList.map(([z]) => z)
+      const zonaData = zonaList.map(([,n]) => n)
+      const ctxZona = document.getElementById("chart-client-zona")
+      if (ctxZona) {
+        if (chartClientZona) chartClientZona.destroy()
+        chartClientZona = new Chart(ctxZona, {
+          type: "pie",
+          data: {
+            labels: zonaLabels,
+            datasets: [{
+              data: zonaData,
+              backgroundColor: ["#6366f1", "#22c55e", "#eab308", "#ec4899", "#06b6d4", "#a855f7"]
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { position: "bottom", labels: { font: { size: 11 } } }
+            }
+          }
+        })
+      }
+    }
+    function renderStats() {
+      const topEl = document.getElementById("stats-top-products")
+      const combosEl = document.getElementById("stats-combos")
+      if (!topEl || !combosEl) return
+      const logs = getAssistantLogs()
+      const orders = getOrderLogs()
+      const counts = new Map()
+      const comboCounts = new Map()
+      function addCount(id, inc) {
+        counts.set(id, (counts.get(id) || 0) + inc)
+      }
+      function addCombos(ids, inc) {
+        const unique = Array.from(new Set(ids)).sort((a,b)=>a-b)
+        for (let i = 0; i < unique.length; i++) {
+          for (let j = i+1; j < unique.length; j++) {
+            const key = unique[i] + "|" + unique[j]
+            comboCounts.set(key, (comboCounts.get(key) || 0) + inc)
+          }
+        }
+      }
+      for (const l of logs) {
+        if (!l || !Array.isArray(l.productIds)) continue
+        for (const id of l.productIds) addCount(id, 1)
+        addCombos(l.productIds, 1)
+      }
+      for (const o of orders) {
+        if (!o || !Array.isArray(o.items)) continue
+        const ids = []
+        for (const it of o.items) {
+          if (!it || typeof it.id !== "number") continue
+          addCount(it.id, it.qty || 1)
+          ids.push(it.id)
+        }
+        addCombos(ids, 1)
+      }
+      const prodById = new Map()
+      for (const p of PRODUCTS) prodById.set(p.id, p)
+      const topList = Array.from(counts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      topEl.innerHTML = ""
+      for (const [id, n] of topList) {
+        const p = prodById.get(id)
+        const li = document.createElement("li")
+        li.textContent = p ? `${p.name} — ${n} menciones/pedidos` : `ID ${id} — ${n}`
+        topEl.appendChild(li)
+      }
+      function productFamily(p) {
+        const name = (p.name || "").toLowerCase()
+        const sub = (p.subcategory || "").toLowerCase()
+        const text = name + " " + sub
+        if (/cable/.test(text)) return "Cables"
+        if (/interruptor/.test(text)) return "Interruptores"
+        if (/toma|tomacorriente|enchufe/.test(text)) return "Tomacorrientes"
+        if (/l[áa]mpara|bombillo|foco/.test(text)) return "Lámparas"
+        if (/tubo|tuber[íi]a/.test(text)) return "Tuberías"
+        if (/v[áa]lvula/.test(text)) return "Válvulas"
+        if (p.category === "Electricidad") return "Eléctricos"
+        if (p.category === "Plomería") return "Plomería"
+        return "Otros"
+      }
+      const familyCounts = new Map()
+      for (const [id, n] of counts.entries()) {
+        const p = prodById.get(id)
+        if (!p) continue
+        const fam = productFamily(p)
+        familyCounts.set(fam, (familyCounts.get(fam) || 0) + n)
+      }
+      const familyList = Array.from(familyCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,6)
+      const labelsTop = familyList.map(([label]) => label)
+      const dataTop = familyList.map(([,n]) => n)
+      const listTopEl = document.getElementById("chart-top-products-list")
+      if (listTopEl) {
+        listTopEl.innerHTML = ""
+        familyList.forEach(([label, n], index) => {
+          const li = document.createElement("li")
+          li.innerHTML = `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-50 text-[11px] font-semibold text-indigo-700 mr-2">${index+1}</span>${label} <span class="ml-1 text-[11px] text-gray-500">(${n} menciones/pedidos)</span>`
+          listTopEl.appendChild(li)
+        })
+      }
+      const ctxTop = document.getElementById("chart-top-products")
+      if (ctxTop && typeof Chart !== "undefined") {
+        if (chartTopProducts) chartTopProducts.destroy()
+        chartTopProducts = new Chart(ctxTop, {
+          type: "doughnut",
+          data: {
+            labels: labelsTop,
+            datasets: [{
+              data: dataTop,
+              backgroundColor: ["#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe"]
+            }]
+          },
+          options: {
+            plugins: {
+              legend: { position: "bottom", labels: { font: { size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: ctx => ` ${ctx.parsed} menciones/pedidos`
+                }
+              }
+            }
+          }
+        })
+      }
+      const comboList = Array.from(comboCounts.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5)
+      combosEl.innerHTML = ""
+      for (const [key, n] of comboList) {
+        const parts = key.split("|").map(x=>Number(x))
+        const p1 = prodById.get(parts[0])
+        const p2 = prodById.get(parts[1])
+        const li = document.createElement("li")
+        if (p1 && p2) {
+          li.textContent = `${p1.name} + ${p2.name} — ${n} veces`
+        } else {
+          li.textContent = `${key} — ${n} veces`
+        }
+        combosEl.appendChild(li)
+      }
+    }
+    function renderProducts() {
+      prodRows.innerHTML = ""
+      for (const p of PRODUCTS) {
+        const tr = document.createElement("tr")
+        const price = p.price == null ? "Cotizar" : "$" + Number(p.price).toLocaleString("es-AR")
+        tr.innerHTML = `
+          <td class="px-3 py-2">
+            ${p.name}
+            <div class="text-xs text-gray-500">${p.brand || ""} ${p.sku ? "• "+p.sku : ""}</div>
+            <div class="text-xs text-gray-500">${p.code || ""}</div>
+          </td>
+          <td class="px-3 py-2">${p.category}</td>
+          <td class="px-3 py-2">${price}</td>
+          <td class="px-3 py-2">${p.available}${p.packInfo?` • ${p.packInfo}`:""}${p.subcategory?` • ${p.subcategory}`:""}${p.material?` • ${p.material}`:""}</td>
+          <td class="px-3 py-2">
+            <button data-id="${p.id}" data-action="edit" class="bg-indigo-600 text-white px-2 py-1 rounded mr-2">Editar</button>
+            <button data-id="${p.id}" data-action="del" class="bg-red-600 text-white px-2 py-1 rounded">Eliminar</button>
+          </td>
+        `
+        prodRows.appendChild(tr)
+      }
+      prodRows.querySelectorAll("button").forEach(b=>{
+        b.addEventListener("click", ()=>{
+          const id = Number(b.getAttribute("data-id"))
+          const act = b.getAttribute("data-action")
+          if (act === "edit") {
+            const p = PRODUCTS.find(x=>x.id===id)
+            if (!p) return
+            idEl.value = String(p.id)
+            nameEl.value = p.name
+            catEl.value = p.category
+            priceEl.value = p.price ?? ""
+            quoteEl.checked = p.price == null
+            availEl.value = p.available
+            imgEl.value = p.img
+            packEl.value = p.pack
+            codeEl.value = p.code || ""
+            brandEl.value = p.brand || ""
+            skuEl.value = p.sku || ""
+            packInfoEl.value = p.packInfo || ""
+            subcatEl.value = p.subcategory || ""
+            materialEl.value = p.material || ""
+            descEl.value = p.desc
+            specsEl.value = (p.specs || []).join("\n")
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          } else if (act === "del") {
+            PRODUCTS = PRODUCTS.filter(x=>x.id!==id)
+            saveProducts(PRODUCTS)
+            renderProducts()
+          }
+        })
+      })
+    }
+    async function uploadFile(file) {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (data && data.ok && data.url) return data.url
+      throw new Error("upload failed")
+    }
+    saveBtn.addEventListener("click", async (e)=>{
+      e.preventDefault()
+      const id = Number(idEl.value || 0)
+      const name = nameEl.value.trim()
+      const code = codeEl.value.trim()
+      const category = catEl.value
+      const subcategory = subcatEl.value.trim()
+      const material = materialEl.value.trim()
+      const price = quoteEl.checked ? null : Number(priceEl.value || 0)
+      const available = availEl.value
+      let img = imgEl.value.trim()
+      let pack = packEl.value.trim()
+      const packInfo = packInfoEl.value.trim()
+      const brand = brandEl.value.trim()
+      const sku = skuEl.value.trim()
+      if (imgFileEl.files && imgFileEl.files[0]) {
+        try { img = await uploadFile(imgFileEl.files[0]) } catch {}
+      }
+      if (packFileEl.files && packFileEl.files[0]) {
+        try { pack = await uploadFile(packFileEl.files[0]) } catch {}
+      }
+      img = img || "https://picsum.photos/seed/p"+Date.now()+"/400/300"
+      pack = pack || "https://picsum.photos/seed/pp"+Date.now()+"/400/300"
+      const desc = descEl.value.trim()
+      const specs = specsEl.value.split("\n").map(s=>s.trim()).filter(Boolean)
+      if (!name) return
+      if (id) {
+        const idx = PRODUCTS.findIndex(x=>x.id===id)
+        if (idx>=0) PRODUCTS[idx] = { id, name, code, brand, sku, category, subcategory, material, price, available, img, pack, packInfo, desc, specs }
+      } else {
+        const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x=>x.id))+1 : 1
+        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, price, available, img, pack, packInfo, desc, specs })
+      }
+      saveProducts(PRODUCTS)
+      renderProducts()
+      formEl.reset()
+      idEl.value = ""
+    })
+    resetBtn.addEventListener("click", ()=>{
+      formEl.reset()
+      idEl.value = ""
+    })
+    exportBtn.addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(PRODUCTS, null, 2)], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "products.json"
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+    exportCsvBtn.addEventListener("click", ()=>{
+      const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Precio", "Disponibilidad", "Empaque"]
+      const lines = []
+      lines.push(headers.join(";"))
+      for (const p of PRODUCTS) {
+        const row = [
+          p.name || "",
+          p.code || "",
+          p.brand || "",
+          p.sku || "",
+          p.category || "",
+          p.subcategory || "",
+          p.material || "",
+          p.price == null ? "Cotizar" : String(p.price),
+          p.available || "",
+          p.packInfo || ""
+        ].map(v => {
+          const s = String(v).replace(/"/g, '""')
+          return `"${s}"`
+        })
+        lines.push(row.join(";"))
+      }
+      const csv = lines.join("\n")
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "productos.csv"
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+    importToggle.addEventListener("click", ()=>{
+      importBox.classList.toggle("hidden")
+    })
+    importCancel.addEventListener("click", ()=>{
+      importBox.classList.add("hidden")
+      importText.value = ""
+      document.getElementById("import-file").value = ""
+    })
+    importBtn.addEventListener("click", async ()=>{
+      const fileInput = document.getElementById("import-file")
+      const file = fileInput.files[0]
+      let arr = []
+      
+      try {
+        if (file) {
+          const text = await file.text()
+          if (file.name.toLowerCase().endsWith(".csv")) {
+            const lines = text.split("\n").filter(l=>l.trim())
+            // Skip header if it looks like header
+            let start = 0
+            if (lines[0] && lines[0].includes("Nombre")) start = 1
+            
+            for(let i=start; i<lines.length; i++) {
+                // Handle semicolon separated values, basic parsing
+                const cols = lines[i].split(";").map(c=>c.replace(/^"|"$/g, "").replace(/""/g, '"').trim())
+                if(cols.length < 2) continue
+                
+                // Map based on export order: Name, Code, Brand, SKU, Cat, Subcat, Mat, Price, Avail, Pack
+                const p = {
+                    id: 0,
+                    name: cols[0] || "Sin Nombre",
+                    code: cols[1] || "",
+                    brand: cols[2] || "",
+                    sku: cols[3] || "",
+                    category: cols[4] || "General",
+                    subcategory: cols[5] || "",
+                    material: cols[6] || "",
+                    price: (cols[7] === "Cotizar" || !cols[7]) ? null : Number(cols[7]),
+                    available: cols[8] || "Disponible",
+                    packInfo: cols[9] || "",
+                    img: "https://via.placeholder.com/400x300?text=Sin+Imagen"
+                }
+                arr.push(p)
+            }
+          } else {
+            arr = JSON.parse(text)
+          }
+        } else {
+          arr = JSON.parse(importText.value || "[]")
+        }
+
+        if (Array.isArray(arr) && arr.length > 0) {
+          // APPEND logic
+          let maxId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x=>x.id)) : 0
+          let count = 0
+          for (const p of arr) {
+              if (!p.name) continue
+              // Avoid duplicates by code/sku if present?
+              // For now, just append as requested "cargar por partes"
+              p.id = ++maxId
+              PRODUCTS.push(p)
+              count++
+          }
+          saveProducts(PRODUCTS)
+          renderProducts()
+          renderStats()
+          importBox.classList.add("hidden")
+          importText.value = ""
+          fileInput.value = ""
+          alert(`Se agregaron ${count} productos al catálogo.`)
+        } else {
+            alert("No se encontraron datos válidos.")
+        }
+      } catch (e) {
+          console.error(e)
+          alert("Error al procesar el archivo: " + e.message)
+      }
+    })
+    renderProducts()
+    renderStats()
+    renderClientCharts()
+
+    // --- LOGO LOGIC ---
+    const logoUpload = document.getElementById("logo-upload")
+    const adminLogo = document.getElementById("admin-logo")
+    
+    if(adminLogo) {
+        const customLogo = localStorage.getItem("company_logo")
+        if (customLogo) adminLogo.src = customLogo
+        adminLogo.onload = () => adminLogo.classList.remove("hidden")
+    }
+
+    if (logoUpload) {
+      logoUpload.addEventListener("change", async e => {
+        const file = e.target.files[0]
+        if (!file) return
+        
+        try {
+           const fd = new FormData()
+           fd.append("file", file)
+           const res = await fetch("/api/upload", { method: "POST", body: fd })
+           const data = await res.json()
+           if (data.ok && data.url) {
+              localStorage.setItem("company_logo", data.url)
+              alert("Logo actualizado.")
+              window.location.reload()
+           }
+        } catch(err) {
+            console.error(err)
+            alert("Error al subir logo")
+        }
+      })
+    }
+  </script>
+</body>
+</html>

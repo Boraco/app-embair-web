@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descargar Lista de Precios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+  <body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+
+  <div class="bg-white/90 backdrop-blur p-8 rounded-2xl shadow-xl max-w-md w-full border border-slate-100">
+    <div class="text-center mb-6">
+      <div class="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 overflow-hidden border border-slate-200">
+        <img src="uploads/logo.png" alt="Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+        <span class="text-2xl font-bold text-slate-400" style="display:none">ME</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900">Descargar lista de precios</h1>
+      <p class="text-slate-600 text-sm mt-2">Completa tus datos para recibir el archivo desde la tienda oficial.</p>
+    </div>
+
+    <form id="download-form" class="space-y-4">
+      <!-- Hidden fields -->
+      <input type="hidden" id="pdf-url">
+      <input type="hidden" id="campaign-id">
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Correo electrónico</label>
+        <input type="email" id="email" class="mt-1 block w-full bg-slate-100 border border-slate-300 rounded-md shadow-sm py-2 px-3 text-slate-500 sm:text-sm" readonly>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700">Nombre *</label>
+          <input type="text" id="nombre" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700">Apellido *</label>
+          <input type="text" id="apellido" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Celular / WhatsApp *</label>
+        <input type="tel" id="celular" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Ej: 099123456">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Zona / ciudad</label>
+        <input type="text" id="zona" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Tipo de cliente *</label>
+        <select id="tipo" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">Selecciona una opción...</option>
+          <option value="Instalador">Instalador</option>
+          <option value="Revendedor">Revendedor</option>
+          <option value="Particular">Particular</option>
+          <option value="Empresa">Empresa</option>
+        </select>
+      </div>
+
+      <button type="submit" id="submit-btn" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+        Confirmar y descargar
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Parse URL params
+      const params = new URLSearchParams(window.location.search)
+      const emailParam = params.get("email")
+      const cid = params.get("cid")
+      const pdf = params.get("pdf")
+
+      if (!pdf) {
+        alert("Enlace inválido. Falta el archivo PDF.")
+        return
+      }
+
+      const emailInput = document.getElementById("email")
+      if (emailParam) {
+        emailInput.value = emailParam
+      } else {
+        // If no email, make it editable and required
+        emailInput.removeAttribute("readonly")
+        emailInput.classList.remove("bg-slate-100", "text-slate-500")
+        emailInput.classList.add("bg-white", "text-slate-900", "focus:ring-indigo-500", "focus:border-indigo-500")
+        emailInput.required = true
+      }
+
+      document.getElementById("campaign-id").value = cid || ""
+      document.getElementById("pdf-url").value = pdf
+
+      // Handle Submit
+      const form = document.getElementById("download-form")
+      const btn = document.getElementById("submit-btn")
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault()
+        btn.disabled = true
+        btn.textContent = "Guardando..."
+
+        const finalEmail = emailInput.value.trim()
+        
+        const data = {
+          email: finalEmail,
+          campaignId: cid || "",
+          nombre: document.getElementById("nombre").value.trim(),
+          apellido: document.getElementById("apellido").value.trim(),
+          celular: document.getElementById("celular").value.trim(),
+          zona: document.getElementById("zona").value.trim(),
+          tipo: document.getElementById("tipo").value,
+          campaignId: cid
+        }
+
+        try {
+          const res = await fetch("/api/public/client", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true" 
+            },
+            body: JSON.stringify(data)
+          })
+
+          if (res.ok) {
+            // Success -> Redirect to PDF
+            window.location.href = pdf
+          } else {
+            alert("Hubo un error al guardar los datos. Intenta nuevamente.")
+            btn.disabled = false
+            btn.textContent = "Confirmar y Descargar"
+          }
+        } catch (err) {
+          console.error(err)
+          // Fallback: Redirect anyway if server fails, so user gets their PDF?
+          // Or show error. Let's redirect anyway to not block the user, but warn.
+          // Better: Alert error.
+          alert("Error de conexión. Se intentará descargar de todas formas.")
+          window.location.href = pdf
+        }
+      })
+    })
+  </script>
+</body>
+</html>

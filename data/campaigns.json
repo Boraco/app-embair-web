@@ -1,0 +1,196 @@
+[
+  {
+    "id": "qr-1770735154640",
+    "date": "2026-02-10T14:52:34.640Z",
+    "subject": "Lista de Precios Feb 2026",
+    "pdfUrl": "/uploads/LISTA_PRECIOS_EMBAIR_FEBRERO_2026_MAT_ELECTRICOS_1770735154632.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734957385",
+    "date": "2026-02-10T14:49:17.385Z",
+    "subject": "Prueba 1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734957358.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734401024",
+    "date": "2026-02-10T14:40:01.024Z",
+    "subject": "1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734401017.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734394641",
+    "date": "2026-02-10T14:39:54.641Z",
+    "subject": "1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734394632.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734301136",
+    "date": "2026-02-10T14:38:21.136Z",
+    "subject": "1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734301128.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734294752",
+    "date": "2026-02-10T14:38:14.752Z",
+    "subject": "1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734294744.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734140289",
+    "date": "2026-02-10T14:35:40.289Z",
+    "subject": "Lista Prueba 1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734140281.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "qr-1770734131203",
+    "date": "2026-02-10T14:35:31.204Z",
+    "subject": "Lista Prueba 1",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770734131174.pdf",
+    "total": 0,
+    "sent": 0,
+    "opens": {},
+    "clicks": {},
+    "type": "qr"
+  },
+  {
+    "id": "1770733225953",
+    "date": "2026-02-10T14:20:25.953Z",
+    "subject": "Prueba 08",
+    "pdfUrl": "/uploads/COMPRA_N01_05_02_2026_1770733225910.pdf",
+    "total": 1,
+    "sent": 1,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770729266268",
+    "date": "2026-02-10T13:14:26.268Z",
+    "subject": "Prueba 07",
+    "pdfUrl": "/uploads/CATALOGO_VOLTAGE_NUEVO_1770729266187.pdf",
+    "total": 1,
+    "sent": 1,
+    "opens": {},
+    "clicks": {
+      "melgonza88@gmail.com": "2026-02-10T13:14:44.895Z"
+    }
+  },
+  {
+    "id": "1770728730385",
+    "date": "2026-02-10T13:05:30.385Z",
+    "subject": "Prueba 06",
+    "pdfUrl": "/uploads/CATALOGO_GIOLITO_1770728730348.pdf",
+    "total": 1,
+    "sent": 1,
+    "opens": {},
+    "clicks": {
+      "melgonza88@gmail.com": "2026-02-10T13:06:05.367Z"
+    }
+  },
+  {
+    "id": "1770727710976",
+    "date": "2026-02-10T12:48:30.976Z",
+    "subject": "Prueba 05 fin",
+    "pdfUrl": "/uploads/04_Primaria_1er_Grado_25_26_1770727710935.pdf",
+    "total": 1,
+    "sent": 1,
+    "opens": {},
+    "clicks": {
+      "ayramarmarin@gmail.com": "2026-02-10T12:50:15.154Z"
+    }
+  },
+  {
+    "id": "1770727085412",
+    "date": "2026-02-10T12:38:05.412Z",
+    "subject": "prueba 04",
+    "pdfUrl": "/uploads/04_Primaria_1er_Grado_25_26_1770727085372.pdf",
+    "total": 1,
+    "sent": 1,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770726650804",
+    "date": "2026-02-10T12:30:50.804Z",
+    "subject": "Prueba 03",
+    "pdfUrl": "/uploads/04_Primaria_1er_Grado_25_26_1770726650760.pdf",
+    "total": 1,
+    "sent": 0,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770726573115",
+    "date": "2026-02-10T12:29:33.115Z",
+    "subject": "Prueba 02",
+    "pdfUrl": "/uploads/04_Primaria_1er_Grado_25_26_1770726573060.pdf",
+    "total": 1,
+    "sent": 0,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770726445202",
+    "date": "2026-02-10T12:27:25.202Z",
+    "subject": "Prueba 01",
+    "pdfUrl": "/uploads/F003935_1770726445108.pdf",
+    "total": 1,
+    "sent": 0,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770689929909",
+    "date": "2026-02-10T02:18:49.909Z",
+    "subject": "prueba",
+    "pdfUrl": "/uploads/Presentacion_Pptx_Embair_1770689929900.pdf",
+    "total": 1,
+    "sent": 0,
+    "opens": {},
+    "clicks": {}
+  },
+  {
+    "id": "1770689706941",
+    "date": "2026-02-10T02:15:06.941Z",
+    "subject": "Prueba",
+    "pdfUrl": "/uploads/Presentacion_Pptx_Embair_1770689706906.pdf",
+    "total": 3,
+    "sent": 3,
+    "opens": {},
+    "clicks": {}
+  }
+]

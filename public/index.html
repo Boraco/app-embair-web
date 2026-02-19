@@ -943,20 +943,18 @@
 
     // --- INITIALIZATION ---
     async function init() {
-      // 1. Load Cart
       try {
         const raw = localStorage.getItem("cart")
         if (raw) CART = JSON.parse(raw)
       } catch {}
       updateCartDrawer()
 
-      // 2. Load Products
       await loadProducts()
       
-      // 3. Sync from URL
       const params = new URLSearchParams(window.location.search)
       const catParam = params.get("category")
       const searchParam = params.get("q")
+      const isPortal = params.get("portal") === "1"
       
       if (catParam) {
         CURRENT_CAT = catParam
@@ -966,9 +964,280 @@
         searchProdEl.value = searchParam
       }
 
-      // 4. Render
       renderCatalog()
       setupHeroSlider()
+
+      const existingCustomer = typeof getCustomerData === "function" ? getCustomerData() : null
+
+      if (isPortal) {
+        const overlay = document.createElement("div")
+        overlay.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[70]"
+        const box = document.createElement("div")
+        box.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6"
+        box.innerHTML = `
+          <h2 class="text-xl font-bold text-slate-900 mb-2">Portal de clientes</h2>
+          <p class="text-sm text-slate-600 mb-4">
+            Ingresa con tu correo y clave o regístrate para acceder al catálogo mayorista.
+          </p>
+          <div class="space-y-3">
+            <button id="portal-login" class="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
+              Ya estoy registrado (Login)
+            </button>
+            <button id="portal-register" class="w-full py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
+              Registrarme por primera vez
+            </button>
+          </div>
+        `
+        overlay.appendChild(box)
+        document.body.appendChild(overlay)
+
+        const closeOverlay = () => {
+          if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay)
+          }
+        }
+
+        const openLoginModal = () => {
+          closeOverlay()
+          const o = document.createElement("div")
+          o.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[80]"
+          const m = document.createElement("div")
+          m.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6"
+          m.innerHTML = `
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Login de cliente</h3>
+            <p class="text-sm text-slate-600 mb-4">Ingresa el correo y clave que registraste con EMBAIR.</p>
+            <div class="space-y-3">
+              <input id="portal-login-email" type="email" placeholder="Correo" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-login-pass" type="password" placeholder="Clave" class="w-full border rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <p id="portal-login-error" class="text-xs text-red-600 mt-2 hidden"></p>
+            <div class="flex gap-2 mt-5">
+              <button id="portal-login-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 text-sm">Cancelar</button>
+              <button id="portal-login-confirm" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">Entrar</button>
+            </div>
+          `
+          o.appendChild(m)
+          document.body.appendChild(o)
+
+          const cancel = m.querySelector("#portal-login-cancel")
+          const confirm = m.querySelector("#portal-login-confirm")
+          const emailInput = m.querySelector("#portal-login-email")
+          const passInput = m.querySelector("#portal-login-pass")
+          const errEl = m.querySelector("#portal-login-error")
+
+          const close = () => {
+            if (o && o.parentNode) o.parentNode.removeChild(o)
+          }
+
+          if (cancel) {
+            cancel.addEventListener("click", () => {
+              close()
+              window.location.href = "/"
+            })
+          }
+
+          if (confirm) {
+            confirm.addEventListener("click", async () => {
+              const email = (emailInput.value || "").trim()
+              const password = (passInput.value || "").trim()
+              if (!email || !password) {
+                if (errEl) {
+                  errEl.textContent = "Ingresa correo y clave."
+                  errEl.classList.remove("hidden")
+                }
+                return
+              }
+              try {
+                confirm.disabled = true
+                const res = await fetch("/api/portal/login", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ email, password })
+                })
+                const data = await res.json()
+                if (!res.ok || !data.ok) {
+                  if (errEl) {
+                    errEl.textContent = data.error === "invalid_credentials"
+                      ? "Correo o clave incorrectos."
+                      : "No encontramos un cliente con ese correo."
+                    errEl.classList.remove("hidden")
+                  }
+                  confirm.disabled = false
+                  return
+                }
+                const c = data.client || {}
+                const customer = {
+                  nombre: c.nombre || "",
+                  apellido: c.apellido || "",
+                  cedula: "",
+                  direccion: "",
+                  celular: c.celular || "",
+                  tipo: c.tipo || "",
+                  entrega: "",
+                  email: c.email || ""
+                }
+                if (typeof saveCustomerData === "function") {
+                  saveCustomerData(customer)
+                }
+                close()
+              } catch {
+                if (errEl) {
+                  errEl.textContent = "Error de conexión. Intenta nuevamente."
+                  errEl.classList.remove("hidden")
+                }
+                confirm.disabled = false
+              }
+            })
+          }
+        }
+
+        const openRegisterModal = () => {
+          closeOverlay()
+          const o = document.createElement("div")
+          o.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[80]"
+          const m = document.createElement("div")
+          m.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
+          m.innerHTML = `
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Registro de cliente</h3>
+            <p class="text-sm text-slate-600 mb-4">Completa tus datos para acceder al catálogo mayorista.</p>
+            <div class="space-y-3">
+              <input id="portal-reg-nombre" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-reg-apellido" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-reg-email" type="email" placeholder="Correo" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-reg-phone" placeholder="Celular / WhatsApp" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-reg-zona" placeholder="Zona / ciudad" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <select id="portal-reg-tipo" class="w-full border rounded-lg px-3 py-2 text-sm">
+                <option value="">Tipo de cliente...</option>
+                <option value="Particular">Particular</option>
+                <option value="Instalador">Instalador</option>
+                <option value="Empresa">Empresa</option>
+                <option value="Revendedor">Revendedor</option>
+              </select>
+              <input id="portal-reg-pass" type="password" placeholder="Clave de acceso" class="w-full border rounded-lg px-3 py-2 text-sm" />
+              <input id="portal-reg-pass2" type="password" placeholder="Repite la clave" class="w-full border rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <p id="portal-reg-error" class="text-xs text-red-600 mt-2 hidden"></p>
+            <div class="flex gap-2 mt-5">
+              <button id="portal-reg-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 text-sm">Cancelar</button>
+              <button id="portal-reg-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Registrarme y entrar</button>
+            </div>
+          `
+          o.appendChild(m)
+          document.body.appendChild(o)
+
+          const cancel = m.querySelector("#portal-reg-cancel")
+          const confirm = m.querySelector("#portal-reg-confirm")
+          const errEl = m.querySelector("#portal-reg-error")
+
+          const close = () => {
+            if (o && o.parentNode) o.parentNode.removeChild(o)
+          }
+
+          if (cancel) {
+            cancel.addEventListener("click", () => {
+              close()
+              window.location.href = "/"
+            })
+          }
+
+          if (confirm) {
+            confirm.addEventListener("click", async () => {
+              const nombre = m.querySelector("#portal-reg-nombre").value.trim()
+              const apellido = m.querySelector("#portal-reg-apellido").value.trim()
+              const email = m.querySelector("#portal-reg-email").value.trim()
+              const celular = m.querySelector("#portal-reg-phone").value.trim()
+              const zona = m.querySelector("#portal-reg-zona").value.trim()
+              const tipo = m.querySelector("#portal-reg-tipo").value
+              const pass = m.querySelector("#portal-reg-pass").value
+              const pass2 = m.querySelector("#portal-reg-pass2").value
+
+              if (!nombre || !email || !celular || !pass || !pass2) {
+                if (errEl) {
+                  errEl.textContent = "Completa nombre, correo, celular y clave."
+                  errEl.classList.remove("hidden")
+                }
+                return
+              }
+              if (pass !== pass2) {
+                if (errEl) {
+                  errEl.textContent = "Las claves no coinciden."
+                  errEl.classList.remove("hidden")
+                }
+                return
+              }
+
+              try {
+                confirm.disabled = true
+                const res = await fetch("/api/portal/register", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email,
+                    password: pass,
+                    nombre,
+                    apellido,
+                    celular,
+                    zona,
+                    tipo
+                  })
+                })
+                const data = await res.json()
+                if (!res.ok || !data.ok) {
+                  if (errEl) {
+                    errEl.textContent = data.error === "email_taken"
+                      ? "Ese correo ya está registrado con otra clave."
+                      : "No se pudo completar el registro."
+                    errEl.classList.remove("hidden")
+                  }
+                  confirm.disabled = false
+                  return
+                }
+                const c = data.client || {}
+                const customer = {
+                  nombre: c.nombre || "",
+                  apellido: c.apellido || "",
+                  cedula: "",
+                  direccion: "",
+                  celular: c.celular || "",
+                  tipo: c.tipo || "",
+                  entrega: "",
+                  email: c.email || ""
+                }
+                if (typeof saveCustomerData === "function") {
+                  saveCustomerData(customer)
+                }
+                close()
+              } catch {
+                if (errEl) {
+                  errEl.textContent = "Error de conexión. Intenta nuevamente."
+                  errEl.classList.remove("hidden")
+                }
+                confirm.disabled = false
+              }
+            })
+          }
+        }
+
+        const loginBtn = box.querySelector("#portal-login")
+        if (loginBtn) {
+          loginBtn.addEventListener("click", () => {
+            openLoginModal()
+          })
+        }
+
+        const registerBtn = box.querySelector("#portal-register")
+        if (registerBtn) {
+          registerBtn.addEventListener("click", () => {
+            openRegisterModal()
+          })
+        }
+      } else {
+        if (!existingCustomer && typeof openCustomerModal === "function") {
+          openCustomerModal((customer) => {
+            upsertClientFromCustomer(customer)
+          })
+        }
+      }
     }
 
     // --- PRODUCTS ---

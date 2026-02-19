@@ -6,6 +6,7 @@ import { fileURLToPath } from "url"
 import fs from "fs"
 import multer from "multer"
 import nodemailer from "nodemailer"
+import crypto from "crypto"
 // DB y notificaciones deshabilitados para entorno de prueba de catálogo
 
 dotenv.config()
@@ -34,9 +35,13 @@ function requireAdmin(req, res, next) {
   return res.status(401).send("Unauthorized")
 }
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "landing.html"))
+})
+
 app.use(express.static(path.join(__dirname, "..", "public")))
 
-app.get("/", (req, res) => {
+app.get("/app", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"))
 })
 
@@ -67,6 +72,10 @@ function readData(file) {
 
 function writeData(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2))
+}
+
+function hashPassword(pwd) {
+  return crypto.createHash("sha256").update(String(pwd || "")).digest("hex")
 }
 
 const storage = multer.diskStorage({
@@ -305,6 +314,92 @@ app.post("/api/public/client", (req, res) => {
   }
   writeData(clientsFile, clients)
   res.json({ ok: true })
+})
+
+app.post("/api/portal/register", (req, res) => {
+  const { email, password, nombre, apellido, celular, zona, tipo } = req.body
+  if (!email || !password || !nombre || !celular) {
+    return res.status(400).json({ error: "missing_fields" })
+  }
+
+  const list = readData(clientsFile)
+  const now = new Date().toISOString()
+  const pwdHash = hashPassword(password)
+
+  let client = list.find(c => c.email && c.email.toLowerCase() === String(email).toLowerCase())
+
+  if (client && client.portalPasswordHash && client.portalPasswordHash !== pwdHash) {
+    return res.status(409).json({ error: "email_taken" })
+  }
+
+  if (!client) {
+    const newId = list.length ? Math.max(...list.map(x => x.id || 0)) + 1 : 1
+    client = { id: newId }
+    list.push(client)
+  }
+
+  client.email = email
+  client.nombre = nombre
+  client.apellido = apellido || client.apellido || ""
+  client.celular = celular
+  client.zona = zona || client.zona || ""
+  client.tipo = tipo || client.tipo || ""
+  client.portalPasswordHash = pwdHash
+  client.portalRegisteredAt = client.portalRegisteredAt || now
+  client.portalLoginCount = typeof client.portalLoginCount === "number" ? client.portalLoginCount : 0
+
+  writeData(clientsFile, list)
+
+  return res.json({
+    ok: true,
+    client: {
+      id: client.id,
+      email: client.email,
+      nombre: client.nombre,
+      apellido: client.apellido,
+      celular: client.celular,
+      zona: client.zona || "",
+      tipo: client.tipo || ""
+    }
+  })
+})
+
+app.post("/api/portal/login", (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) {
+    return res.status(400).json({ error: "missing_fields" })
+  }
+
+  const list = readData(clientsFile)
+  const client = list.find(c => c.email && c.email.toLowerCase() === String(email).toLowerCase())
+
+  if (!client || !client.portalPasswordHash) {
+    return res.status(404).json({ error: "not_found" })
+  }
+
+  const pwdHash = hashPassword(password)
+  if (client.portalPasswordHash !== pwdHash) {
+    return res.status(401).json({ error: "invalid_credentials" })
+  }
+
+  const now = new Date().toISOString()
+  client.portalLastLoginAt = now
+  client.portalLoginCount = typeof client.portalLoginCount === "number" ? client.portalLoginCount + 1 : 1
+
+  writeData(clientsFile, list)
+
+  return res.json({
+    ok: true,
+    client: {
+      id: client.id,
+      email: client.email,
+      nombre: client.nombre,
+      apellido: client.apellido,
+      celular: client.celular,
+      zona: client.zona || "",
+      tipo: client.tipo || ""
+    }
+  })
 })
 
 app.post("/api/campaign/public", requireAdmin, (req, res) => {

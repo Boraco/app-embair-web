@@ -977,7 +977,7 @@
         box.innerHTML = `
           <h2 class="text-xl font-bold text-slate-900 mb-2">Portal de clientes</h2>
           <p class="text-sm text-slate-600 mb-4">
-            Ingresa con tu correo y clave o regístrate para acceder al catálogo mayorista.
+            Si ya tienes usuario y clave asignados por EMBAIR, ingresa. Si es tu primera vez, solicita acceso.
           </p>
           <div class="space-y-3">
             <button id="portal-login" class="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
@@ -1113,13 +1113,14 @@
                 <option value="Empresa">Empresa</option>
                 <option value="Revendedor">Revendedor</option>
               </select>
-              <input id="portal-reg-pass" type="password" placeholder="Clave de acceso" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-reg-pass2" type="password" placeholder="Repite la clave" class="w-full border rounded-lg px-3 py-2 text-sm" />
             </div>
-            <p id="portal-reg-error" class="text-xs text-red-600 mt-2 hidden"></p>
+            <p class="text-xs text-slate-500 mt-2">
+              Recibirás tu usuario y clave por parte de nuestro equipo una vez aprobada tu solicitud.
+            </p>
+            <p id="portal-reg-error" class="text-xs text-red-600 mt-1 hidden"></p>
             <div class="flex gap-2 mt-5">
               <button id="portal-reg-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 text-sm">Cancelar</button>
-              <button id="portal-reg-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Registrarme y entrar</button>
+              <button id="portal-reg-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Enviar solicitud</button>
             </div>
           `
           o.appendChild(m)
@@ -1148,19 +1149,10 @@
               const celular = m.querySelector("#portal-reg-phone").value.trim()
               const zona = m.querySelector("#portal-reg-zona").value.trim()
               const tipo = m.querySelector("#portal-reg-tipo").value
-              const pass = m.querySelector("#portal-reg-pass").value
-              const pass2 = m.querySelector("#portal-reg-pass2").value
 
-              if (!nombre || !email || !celular || !pass || !pass2) {
+              if (!nombre || !email || !celular) {
                 if (errEl) {
-                  errEl.textContent = "Completa nombre, correo, celular y clave."
-                  errEl.classList.remove("hidden")
-                }
-                return
-              }
-              if (pass !== pass2) {
-                if (errEl) {
-                  errEl.textContent = "Las claves no coinciden."
+                  errEl.textContent = "Completa nombre, correo y celular."
                   errEl.classList.remove("hidden")
                 }
                 return
@@ -1173,7 +1165,6 @@
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     email,
-                    password: pass,
                     nombre,
                     apellido,
                     celular,
@@ -1184,29 +1175,15 @@
                 const data = await res.json()
                 if (!res.ok || !data.ok) {
                   if (errEl) {
-                    errEl.textContent = data.error === "email_taken"
-                      ? "Ese correo ya está registrado con otra clave."
-                      : "No se pudo completar el registro."
+                    errEl.textContent = "No se pudo completar la solicitud."
                     errEl.classList.remove("hidden")
                   }
                   confirm.disabled = false
                   return
                 }
-                const c = data.client || {}
-                const customer = {
-                  nombre: c.nombre || "",
-                  apellido: c.apellido || "",
-                  cedula: "",
-                  direccion: "",
-                  celular: c.celular || "",
-                  tipo: c.tipo || "",
-                  entrega: "",
-                  email: c.email || ""
-                }
-                if (typeof saveCustomerData === "function") {
-                  saveCustomerData(customer)
-                }
+                alert("Hemos recibido tu solicitud. Te enviaremos tu usuario y clave cuando sea aprobada.")
                 close()
+                window.location.href = "/"
               } catch {
                 if (errEl) {
                   errEl.textContent = "Error de conexión. Intenta nuevamente."

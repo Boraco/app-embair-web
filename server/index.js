@@ -317,20 +317,15 @@ app.post("/api/public/client", (req, res) => {
 })
 
 app.post("/api/portal/register", (req, res) => {
-  const { email, password, nombre, apellido, celular, zona, tipo } = req.body
-  if (!email || !password || !nombre || !celular) {
+  const { email, nombre, apellido, celular, zona, tipo } = req.body
+  if (!email || !nombre || !celular) {
     return res.status(400).json({ error: "missing_fields" })
   }
 
   const list = readData(clientsFile)
   const now = new Date().toISOString()
-  const pwdHash = hashPassword(password)
 
   let client = list.find(c => c.email && c.email.toLowerCase() === String(email).toLowerCase())
-
-  if (client && client.portalPasswordHash && client.portalPasswordHash !== pwdHash) {
-    return res.status(409).json({ error: "email_taken" })
-  }
 
   if (!client) {
     const newId = list.length ? Math.max(...list.map(x => x.id || 0)) + 1 : 1
@@ -344,24 +339,12 @@ app.post("/api/portal/register", (req, res) => {
   client.celular = celular
   client.zona = zona || client.zona || ""
   client.tipo = tipo || client.tipo || ""
-  client.portalPasswordHash = pwdHash
-  client.portalRegisteredAt = client.portalRegisteredAt || now
-  client.portalLoginCount = typeof client.portalLoginCount === "number" ? client.portalLoginCount : 0
+  client.portalRequestedAt = client.portalRequestedAt || now
+  client.portalApproved = typeof client.portalApproved === "boolean" ? client.portalApproved : false
 
   writeData(clientsFile, list)
 
-  return res.json({
-    ok: true,
-    client: {
-      id: client.id,
-      email: client.email,
-      nombre: client.nombre,
-      apellido: client.apellido,
-      celular: client.celular,
-      zona: client.zona || "",
-      tipo: client.tipo || ""
-    }
-  })
+  return res.json({ ok: true })
 })
 
 app.post("/api/portal/login", (req, res) => {

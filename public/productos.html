@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestión de Productos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
+          <img id="admin-logo" src="uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
+          <span>ME</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold">Gestión de Productos</h1>
+          <p class="text-xs text-gray-500">Carga individual, listado, importación y exportación de productos.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Panel principal</a>
+        <a href="/clientes.html" class="text-sm text-indigo-600 hover:text-indigo-800">Gestión de clientes</a>
+        <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">Productos</h2>
+      <div class="flex gap-3">
+        <button id="export-products" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar JSON</button>
+        <button id="export-products-csv" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar Excel</button>
+        <button id="import-toggle" class="border border-gray-300 rounded px-3 py-2 text-sm">Importar JSON/CSV</button>
+      </div>
+    </div>
+    <div id="import-box" class="hidden mb-4 p-4 bg-gray-50 border rounded-lg">
+      <div class="mb-2 text-sm text-gray-600">Carga masiva de productos (JSON o CSV). Los productos nuevos se agregarán al catálogo existente. No usar PDFs aquí.</div>
+      <div class="flex flex-col gap-2">
+        <input type="file" id="import-file" accept=".json,.csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
+        <textarea id="import-text" rows="4" class="w-full border rounded px-3 py-2 text-sm" placeholder="O pega aquí el JSON de productos..."></textarea>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button id="import-products" class="bg-indigo-600 text-white rounded px-3 py-2 text-sm">Importar / Agregar</button>
+        <button id="import-cancel" class="border border-gray-300 rounded px-3 py-2 text-sm">Cancelar</button>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <form id="product-form" class="grid sm:grid-cols-2 gap-4">
+        <input type="hidden" id="prod-id" />
+        <div>
+          <label class="block text-sm mb-1">Nombre</label>
+          <input id="prod-name" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Código</label>
+          <input id="prod-code" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Marca</label>
+          <input id="prod-brand" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">SKU</label>
+          <input id="prod-sku" class="w-full border rounded px-3 py-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Categoría</label>
+          <select id="prod-category" class="w-full border rounded px-3 py-2">
+            <option value="Electricidad">Materiales eléctricos</option>
+            <option value="Plomería">Artículos de plomería</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Subcategoría</label>
+          <input id="prod-subcategory" class="w-full border rounded px-3 py-2" placeholder="Ej: iluminación, grifería" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Material</label>
+          <input id="prod-material" class="w-full border rounded px-3 py-2" placeholder="Ej: PVC, Cobre, Acero" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Stock (% disponible)</label>
+          <input id="prod-stock" type="number" min="0" max="100" class="w-full border rounded px-3 py-2" placeholder="0 a 100 (porcentaje)" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Precio</label>
+          <input id="prod-price" type="number" min="0" class="w-full border rounded px-3 py-2" />
+          <label class="inline-flex items-center gap-2 text-sm mt-1"><input type="checkbox" id="prod-quote"> Solicitar cotización</label>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Disponibilidad</label>
+          <select id="prod-available" class="w-full border rounded px-3 py-2">
+            <option value="Disponible">Disponible</option>
+            <option value="Agotado">Agotado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Imagen producto (URL)</label>
+          <input id="prod-img" class="w-full border rounded px-3 py-2" />
+          <input type="file" id="prod-img-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Imagen empaque (URL)</label>
+          <input id="prod-pack" class="w-full border rounded px-3 py-2" />
+          <input type="file" id="prod-pack-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Empaque / Unidad</label>
+          <input id="prod-packinfo" class="w-full border rounded px-3 py-2" placeholder="Ej: caja x20, bolsa x10, unidad" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-1">Descripción</label>
+          <textarea id="prod-desc" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-1">Especificaciones (una por línea)</label>
+          <textarea id="prod-specs" rows="3" class="w-full border rounded px-3 py-2"></textarea>
+        </div>
+        <div class="sm:col-span-2 flex gap-3">
+          <button id="save-product" class="bg-indigo-600 text-white rounded px-4 py-2">Guardar producto</button>
+          <button id="reset-form" type="button" class="border border-gray-300 rounded px-4 py-2">Limpiar</button>
+        </div>
+      </form>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 mb-3">
+      <select id="prod-filter-category" class="border rounded px-3 py-2 text-sm">
+        <option value="">Todas las categorías</option>
+        <option value="Electricidad">Materiales eléctricos</option>
+        <option value="Plomería">Artículos de plomería</option>
+      </select>
+      <select id="prod-filter-status" class="border rounded px-3 py-2 text-sm">
+        <option value="">Todos los estados</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Stock medio">Stock medio</option>
+        <option value="Por agotar">Por agotar</option>
+        <option value="Agotado">Agotado</option>
+      </select>
+      <input id="prod-filter-search" class="border rounded px-3 py-2 text-sm flex-1 min-w-[160px]" placeholder="Buscar por nombre, código, marca, SKU..." />
+    </div>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="px-3 py-2">Nombre</th>
+            <th class="px-3 py-2">Categoría</th>
+            <th class="px-3 py-2">Precio</th>
+            <th class="px-3 py-2">Disponibilidad</th>
+            <th class="px-3 py-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="prod-rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const prodRows = document.getElementById("prod-rows")
+    const formEl = document.getElementById("product-form")
+    const idEl = document.getElementById("prod-id")
+    const nameEl = document.getElementById("prod-name")
+    const codeEl = document.getElementById("prod-code")
+    const brandEl = document.getElementById("prod-brand")
+    const skuEl = document.getElementById("prod-sku")
+    const catEl = document.getElementById("prod-category")
+    const subcatEl = document.getElementById("prod-subcategory")
+    const materialEl = document.getElementById("prod-material")
+    const stockEl = document.getElementById("prod-stock")
+    const priceEl = document.getElementById("prod-price")
+    const quoteEl = document.getElementById("prod-quote")
+    const availEl = document.getElementById("prod-available")
+    const imgEl = document.getElementById("prod-img")
+    const packEl = document.getElementById("prod-pack")
+    const imgFileEl = document.getElementById("prod-img-file")
+    const packFileEl = document.getElementById("prod-pack-file")
+    const packInfoEl = document.getElementById("prod-packinfo")
+    const descEl = document.getElementById("prod-desc")
+    const specsEl = document.getElementById("prod-specs")
+    const saveBtn = document.getElementById("save-product")
+    const resetBtn = document.getElementById("reset-form")
+    const exportBtn = document.getElementById("export-products")
+    const exportCsvBtn = document.getElementById("export-products-csv")
+    const importToggle = document.getElementById("import-toggle")
+    const importBox = document.getElementById("import-box")
+    const importText = document.getElementById("import-text")
+    const importBtn = document.getElementById("import-products")
+    const importCancel = document.getElementById("import-cancel")
+    const prodFilterCategoryEl = document.getElementById("prod-filter-category")
+    const prodFilterStatusEl = document.getElementById("prod-filter-status")
+    const prodFilterSearchEl = document.getElementById("prod-filter-search")
+
+    const SAMPLE = [
+      { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://picsum.photos/seed/cable/400/300", pack: "https://picsum.photos/seed/cablepack/400/300", desc: "Cable de cobre multipolar 2x1.5mm", specs: ["Voltaje 220V", "Norma IRAM"] },
+      { id: 2, name: "Interruptor simple", category: "Electricidad", subcategory: "Iluminación", material: "Plástico", price: 800, available: "Disponible", img: "https://picsum.photos/seed/switch/400/300", pack: "https://picsum.photos/seed/switchpack/400/300", desc: "Interruptor de pared de 10A", specs: ["Color blanco", "Montaje embutido"] }
+    ]
+
+    async function loadProducts() {
+      try {
+        const res = await fetch("/api/products")
+        if (res.ok) {
+          const arr = await res.json()
+          if (Array.isArray(arr) && arr.length > 0) {
+            PRODUCTS = arr
+            renderProducts()
+            return
+          }
+          const raw = localStorage.getItem("products")
+          if (raw) {
+            const local = JSON.parse(raw)
+            if (Array.isArray(local) && local.length > 0) {
+              PRODUCTS = local
+              saveProducts(local)
+              renderProducts()
+              return
+            }
+          }
+        }
+      } catch {}
+      try {
+        const raw = localStorage.getItem("products")
+        if (raw) {
+          PRODUCTS = JSON.parse(raw)
+          renderProducts()
+          return
+        }
+      } catch {}
+      PRODUCTS = SAMPLE
+      renderProducts()
+    }
+
+    async function saveProducts(list) {
+      localStorage.setItem("products", JSON.stringify(list))
+      try {
+        await fetch("/api/products", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa("admin:admin")
+          },
+          body: JSON.stringify(list)
+        })
+      } catch (e) {
+        console.error("Failed to sync products", e)
+      }
+    }
+
+    let PRODUCTS = []
+    loadProducts()
+
+    function stockStatus(p) {
+      const v = p.stock == null ? null : Number(p.stock)
+      if (v == null || Number.isNaN(v)) {
+        if (p.available === "Agotado") return { label: "Agotado", color: "bg-red-100 text-red-700" }
+        return { label: "Disponible", color: "bg-green-100 text-green-700" }
+      }
+      if (v <= 0) return { label: "Agotado", color: "bg-red-100 text-red-700" }
+      if (v <= 25) return { label: "Por agotar", color: "bg-orange-100 text-orange-700" }
+      if (v <= 60) return { label: "Stock medio", color: "bg-yellow-100 text-yellow-700" }
+      return { label: "Disponible", color: "bg-green-100 text-green-700" }
+    }
+
+    function renderProducts() {
+      prodRows.innerHTML = ""
+      const catFilter = prodFilterCategoryEl ? prodFilterCategoryEl.value : ""
+      const statusFilter = prodFilterStatusEl ? prodFilterStatusEl.value : ""
+      const q = (prodFilterSearchEl && prodFilterSearchEl.value ? prodFilterSearchEl.value : "").toLowerCase()
+      const items = PRODUCTS.filter(p => {
+        const okCat = catFilter ? p.category === catFilter : true
+        const st = stockStatus(p).label
+        const okStatus = statusFilter ? st === statusFilter : true
+        const text = `${p.name || ""} ${p.code || ""} ${p.brand || ""} ${p.sku || ""} ${p.subcategory || ""} ${p.material || ""}`.toLowerCase()
+        const okSearch = q ? text.includes(q) : true
+        return okCat && okStatus && okSearch
+      })
+      for (const p of items) {
+        const tr = document.createElement("tr")
+        const price = p.price == null ? "Cotizar" : "$" + Number(p.price).toLocaleString("es-AR")
+        const st = stockStatus(p)
+        const stockText = p.stock == null ? "" : ` (${p.stock}%)`
+        tr.innerHTML = `
+          <td class="px-3 py-2">
+            ${p.name}
+            <div class="text-xs text-gray-500">${p.brand || ""} ${p.sku ? "• "+p.sku : ""}</div>
+            <div class="text-xs text-gray-500">${p.code || ""}</div>
+          </td>
+          <td class="px-3 py-2">${p.category}</td>
+          <td class="px-3 py-2">${price}</td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium ${st.color}">
+              ${st.label}${stockText}
+            </span>
+            ${p.packInfo?` <span class="text-[11px] text-gray-500 ml-1">${p.packInfo}</span>`:""}
+            ${p.subcategory?` <span class="text-[11px] text-gray-500 ml-1">${p.subcategory}</span>`:""}
+            ${p.material?` <span class="text-[11px] text-gray-500 ml-1">${p.material}</span>`:""}
+          </td>
+          <td class="px-3 py-2">
+            <button data-id="${p.id}" data-action="edit" class="bg-indigo-600 text-white px-2 py-1 rounded mr-2">Editar</button>
+            <button data-id="${p.id}" data-action="del" class="bg-red-600 text-white px-2 py-1 rounded">Eliminar</button>
+          </td>
+        `
+        prodRows.appendChild(tr)
+      }
+      prodRows.querySelectorAll("button").forEach(b => {
+        b.addEventListener("click", () => {
+          const id = Number(b.getAttribute("data-id"))
+          const act = b.getAttribute("data-action")
+          if (act === "edit") {
+            const p = PRODUCTS.find(x => x.id === id)
+            if (!p) return
+            idEl.value = String(p.id)
+            nameEl.value = p.name
+            catEl.value = p.category
+            priceEl.value = p.price ?? ""
+            quoteEl.checked = p.price == null
+            availEl.value = p.available
+            stockEl.value = p.stock != null ? String(p.stock) : ""
+            imgEl.value = p.img
+            packEl.value = p.pack
+            codeEl.value = p.code || ""
+            brandEl.value = p.brand || ""
+            skuEl.value = p.sku || ""
+            packInfoEl.value = p.packInfo || ""
+            subcatEl.value = p.subcategory || ""
+            materialEl.value = p.material || ""
+            descEl.value = p.desc
+            specsEl.value = (p.specs || []).join("\n")
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          } else if (act === "del") {
+            PRODUCTS = PRODUCTS.filter(x => x.id !== id)
+            saveProducts(PRODUCTS)
+            renderProducts()
+          }
+        })
+      })
+    }
+
+    async function uploadFile(file) {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (data && data.ok && data.url) return data.url
+      throw new Error("upload failed")
+    }
+
+    saveBtn.addEventListener("click", async (e) => {
+      e.preventDefault()
+      const id = Number(idEl.value || 0)
+      const name = nameEl.value.trim()
+      const code = codeEl.value.trim()
+      const category = catEl.value
+      const subcategory = subcatEl.value.trim()
+      const material = materialEl.value.trim()
+      const stockRaw = stockEl.value.trim()
+      const stock = stockRaw === "" ? null : Number(stockRaw)
+      const price = quoteEl.checked ? null : Number(priceEl.value || 0)
+      const available = availEl.value
+      let img = imgEl.value.trim()
+      let pack = packEl.value.trim()
+      const packInfo = packInfoEl.value.trim()
+      const brand = brandEl.value.trim()
+      const sku = skuEl.value.trim()
+      if (imgFileEl.files && imgFileEl.files[0]) {
+        try { img = await uploadFile(imgFileEl.files[0]) } catch {}
+      }
+      if (packFileEl.files && packFileEl.files[0]) {
+        try { pack = await uploadFile(packFileEl.files[0]) } catch {}
+      }
+      img = img || "https://picsum.photos/seed/p"+Date.now()+"/400/300"
+      pack = pack || "https://picsum.photos/seed/pp"+Date.now()+"/400/300"
+      const desc = descEl.value.trim()
+      const specs = specsEl.value.split("\n").map(s => s.trim()).filter(Boolean)
+      if (!name) return
+      if (id) {
+        const idx = PRODUCTS.findIndex(x => x.id === id)
+        if (idx >= 0) PRODUCTS[idx] = { id, name, code, brand, sku, category, subcategory, material, stock, price, available, img, pack, packInfo, desc, specs }
+      } else {
+        const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x => x.id)) + 1 : 1
+        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, stock, price, available, img, pack, packInfo, desc, specs })
+      }
+      saveProducts(PRODUCTS)
+      renderProducts()
+      formEl.reset()
+      idEl.value = ""
+    })
+
+    resetBtn.addEventListener("click", () => {
+      formEl.reset()
+      idEl.value = ""
+    })
+
+    exportBtn.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(PRODUCTS, null, 2)], { type: "application/json" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "products.json"
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+
+    exportCsvBtn.addEventListener("click", () => {
+      const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Precio", "Disponibilidad", "Empaque"]
+      const lines = []
+      lines.push(headers.join(";"))
+      for (const p of PRODUCTS) {
+        const row = [
+          p.name || "",
+          p.code || "",
+          p.brand || "",
+          p.sku || "",
+          p.category || "",
+          p.subcategory || "",
+          p.material || "",
+          p.price == null ? "Cotizar" : String(p.price),
+          p.available || "",
+          p.packInfo || ""
+        ].map(v => {
+          const s = String(v).replace(/"/g, '""')
+          return `"${s}"`
+        })
+        lines.push(row.join(";"))
+      }
+      const csv = lines.join("\n")
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "productos.csv"
+      a.click()
+      URL.revokeObjectURL(url)
+    })
+
+    importToggle.addEventListener("click", () => {
+      importBox.classList.toggle("hidden")
+    })
+
+    importCancel.addEventListener("click", () => {
+      importBox.classList.add("hidden")
+      importText.value = ""
+      document.getElementById("import-file").value = ""
+    })
+
+    importBtn.addEventListener("click", async () => {
+      const fileInput = document.getElementById("import-file")
+      const file = fileInput.files[0]
+      let arr = []
+      try {
+        if (file) {
+          const text = await file.text()
+          if (file.name.toLowerCase().endsWith(".csv")) {
+            const lines = text.split("\n").filter(l => l.trim())
+            let start = 0
+            if (lines[0] && lines[0].includes("Nombre")) start = 1
+            for (let i = start; i < lines.length; i++) {
+              const cols = lines[i].split(";").map(c => c.replace(/^"|"$/g, "").replace(/""/g, '"').trim())
+              if (cols.length < 2) continue
+              const p = {
+                id: 0,
+                name: cols[0] || "Sin Nombre",
+                code: cols[1] || "",
+                brand: cols[2] || "",
+                sku: cols[3] || "",
+                category: cols[4] || "General",
+                subcategory: cols[5] || "",
+                material: cols[6] || "",
+                price: (cols[7] === "Cotizar" || !cols[7]) ? null : Number(cols[7]),
+                available: cols[8] || "Disponible",
+                packInfo: cols[9] || "",
+                img: "https://via.placeholder.com/400x300?text=Sin+Imagen"
+              }
+              arr.push(p)
+            }
+          } else {
+            arr = JSON.parse(text)
+          }
+        } else {
+          arr = JSON.parse(importText.value || "[]")
+        }
+        if (Array.isArray(arr) && arr.length > 0) {
+          let maxId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x => x.id)) : 0
+          let count = 0
+          for (const p of arr) {
+            if (!p.name) continue
+            p.id = ++maxId
+            PRODUCTS.push(p)
+            count++
+          }
+          saveProducts(PRODUCTS)
+          renderProducts()
+          importBox.classList.add("hidden")
+          importText.value = ""
+          fileInput.value = ""
+          alert(`Se agregaron ${count} productos al catálogo.`)
+        } else {
+          alert("No se encontraron datos válidos. Asegúrate de usar JSON o CSV, no PDF.")
+        }
+      } catch (e) {
+        console.error(e)
+        alert("Error al procesar el archivo: " + e.message)
+      }
+    })
+
+    if (prodFilterCategoryEl) {
+      prodFilterCategoryEl.addEventListener("change", renderProducts)
+    }
+    if (prodFilterStatusEl) {
+      prodFilterStatusEl.addEventListener("change", renderProducts)
+    }
+    if (prodFilterSearchEl) {
+      prodFilterSearchEl.addEventListener("input", renderProducts)
+    }
+
+    const logoUpload = document.getElementById("logo-upload")
+    const adminLogo = document.getElementById("admin-logo")
+    if (adminLogo) {
+      const customLogo = localStorage.getItem("company_logo")
+      if (customLogo) adminLogo.src = customLogo
+      adminLogo.onload = () => adminLogo.classList.remove("hidden")
+    }
+  </script>
+</body>
+</html>

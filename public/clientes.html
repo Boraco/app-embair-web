@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestión de Clientes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white shadow">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
+          <img id="admin-logo" src="uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
+          <span>ME</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold">Gestión de Clientes</h1>
+          <p class="text-xs text-gray-500">Altas, edición, listado y exportación de clientes.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Panel principal</a>
+        <a href="/productos.html" class="text-sm text-indigo-600 hover:text-indigo-800">Gestión de productos</a>
+        <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold">Clientes</h2>
+      <div class="flex items-center gap-3">
+        <select id="client-type-filter" class="border rounded px-3 py-2 text-sm">
+          <option value="">Todos los tipos</option>
+          <option value="Particular">Particular</option>
+          <option value="Instalador">Instalador</option>
+        </select>
+        <input id="client-search" placeholder="Buscar por nombre, cédula o teléfono" class="border rounded px-3 py-2 text-sm" />
+        <button id="export-clients" class="bg-gray-800 text-white rounded px-3 py-2 text-sm">Exportar clientes (Excel)</button>
+      </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <form id="client-form" class="grid sm:grid-cols-3 gap-4">
+        <input type="hidden" id="client-id" />
+        <div>
+          <label class="block text-sm mb-1">Nombre</label>
+          <input id="client-nombre" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Apellido</label>
+          <input id="client-apellido" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Cédula</label>
+          <input id="client-cedula" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Correo Electrónico</label>
+          <input id="client-email" type="email" class="w-full border rounded px-3 py-2 text-sm" placeholder="cliente@email.com" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Dirección</label>
+          <input id="client-direccion" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Zona / Sector</label>
+          <input id="client-zona" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ej: Centro, Norte, Sur" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Celular</label>
+          <input id="client-celular" class="w-full border rounded px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Tipo de cliente</label>
+          <select id="client-tipo" class="w-full border rounded px-3 py-2 text-sm">
+            <option value="">Selecciona tipo</option>
+            <option value="Particular">Particular</option>
+            <option value="Instalador">Instalador</option>
+          </select>
+        </div>
+        <div class="sm:col-span-3 flex gap-3 mt-2">
+          <button id="save-client" class="bg-indigo-600 text-white rounded px-4 py-2 text-sm">Guardar cliente</button>
+          <button id="reset-client" type="button" class="border border-gray-300 rounded px-4 py-2 text-sm">Limpiar</button>
+        </div>
+      </form>
+    </div>
+    <div class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="px-3 py-2">Nombre y apellido</th>
+            <th class="px-3 py-2">Cédula</th>
+            <th class="px-3 py-2">Tipo</th>
+            <th class="px-3 py-2">Celular</th>
+            <th class="px-3 py-2">Zona</th>
+            <th class="px-3 py-2">Dirección</th>
+            <th class="px-3 py-2">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="client-rows"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const clientRowsEl = document.getElementById("client-rows")
+    const clientFormEl = document.getElementById("client-form")
+    const clientIdEl = document.getElementById("client-id")
+    const clientNombreEl = document.getElementById("client-nombre")
+    const clientApellidoEl = document.getElementById("client-apellido")
+    const clientCedulaEl = document.getElementById("client-cedula")
+    const clientEmailEl = document.getElementById("client-email")
+    const clientDireccionEl = document.getElementById("client-direccion")
+    const clientZonaEl = document.getElementById("client-zona")
+    const clientCelularEl = document.getElementById("client-celular")
+    const clientTipoEl = document.getElementById("client-tipo")
+    const clientTypeFilterEl = document.getElementById("client-type-filter")
+    const clientSearchEl = document.getElementById("client-search")
+    const clientSaveBtn = document.getElementById("save-client")
+    const clientResetBtn = document.getElementById("reset-client")
+    const exportClientsBtn = document.getElementById("export-clients")
+
+    async function loadClients() {
+      try {
+        const res = await fetch("/api/clients")
+        if (res.ok) {
+          const arr = await res.json()
+          if (Array.isArray(arr) && arr.length > 0) {
+            return arr
+          }
+          const raw = localStorage.getItem("clients")
+          const local = raw ? JSON.parse(raw) : []
+          if (Array.isArray(local) && local.length > 0) {
+            saveClients(local)
+            return local
+          }
+          return []
+        }
+      } catch {}
+      try {
+        const raw = localStorage.getItem("clients")
+        const arr = raw ? JSON.parse(raw) : []
+        return Array.isArray(arr) ? arr : []
+      } catch {
+        return []
+      }
+    }
+
+    async function saveClients(list) {
+      localStorage.setItem("clients", JSON.stringify(list))
+      try {
+        await fetch("/api/clients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + btoa("admin:admin")
+          },
+          body: JSON.stringify(list)
+        })
+      } catch (e) {
+        console.error("Failed to sync clients", e)
+      }
+    }
+
+    let CLIENTS = []
+    loadClients().then(c => {
+      CLIENTS = c
+      renderClients()
+    })
+
+    function renderClients() {
+      const typeFilter = clientTypeFilterEl.value || ""
+      const q = (clientSearchEl.value || "").toLowerCase()
+      const items = CLIENTS.filter(c => {
+        const okType = typeFilter ? c.tipo === typeFilter : true
+        const text = `${c.nombre || ""} ${c.apellido || ""} ${c.cedula || ""} ${c.celular || ""} ${c.zona || ""}`.toLowerCase()
+        const okSearch = q ? text.includes(q) : true
+        return okType && okSearch
+      })
+      clientRowsEl.innerHTML = ""
+      for (const c of items) {
+        const tr = document.createElement("tr")
+        const nombre = `${c.nombre || ""} ${c.apellido || ""}`.trim()
+        tr.innerHTML = `
+          <td class="px-3 py-2">${nombre}</td>
+          <td class="px-3 py-2">${c.cedula || ""}</td>
+          <td class="px-3 py-2">${c.tipo || ""}</td>
+          <td class="px-3 py-2">${c.celular || ""}</td>
+          <td class="px-3 py-2">${c.zona || ""}</td>
+          <td class="px-3 py-2">${c.direccion || ""}</td>
+          <td class="px-3 py-2">
+            <button data-id="${c.id}" data-action="wa" class="bg-emerald-500 text-white px-2 py-1 rounded mr-2 text-xs">WhatsApp</button>
+            <button data-id="${c.id}" data-action="edit" class="bg-indigo-600 text-white px-2 py-1 rounded mr-2 text-xs">Editar</button>
+            <button data-id="${c.id}" data-action="del" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Eliminar</button>
+          </td>
+        `
+        clientRowsEl.appendChild(tr)
+      }
+      clientRowsEl.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.getAttribute("data-id"))
+          const action = btn.getAttribute("data-action")
+          if (action === "edit") {
+            const c = CLIENTS.find(x => x.id === id)
+            if (!c) return
+            clientIdEl.value = String(c.id)
+            clientNombreEl.value = c.nombre || ""
+            clientApellidoEl.value = c.apellido || ""
+            clientCedulaEl.value = c.cedula || ""
+            clientEmailEl.value = c.email || ""
+            clientDireccionEl.value = c.direccion || ""
+            clientCelularEl.value = c.celular || ""
+            clientZonaEl.value = c.zona || ""
+            clientTipoEl.value = c.tipo || ""
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          } else if (action === "wa") {
+            const c = CLIENTS.find(x => x.id === id)
+            if (c && c.celular) {
+              const num = c.celular.replace(/\D/g, "")
+              const text = encodeURIComponent(`Hola ${c.nombre}, te contactamos desde Materiales Eléctricos.`)
+              window.open(`https://wa.me/${num}?text=${text}`, "_blank")
+            } else {
+              alert("El cliente no tiene un número de celular válido.")
+            }
+          } else if (action === "del") {
+            CLIENTS = CLIENTS.filter(x => x.id !== id)
+            saveClients(CLIENTS)
+            renderClients()
+          }
+        })
+      })
+    }
+
+    clientSaveBtn.addEventListener("click", e => {
+      e.preventDefault()
+      const id = Number(clientIdEl.value || 0)
+      const nombre = clientNombreEl.value.trim()
+      const apellido = clientApellidoEl.value.trim()
+      const cedula = clientCedulaEl.value.trim()
+      const email = clientEmailEl.value.trim()
+      const direccion = clientDireccionEl.value.trim()
+      const celular = clientCelularEl.value.trim()
+      const tipo = clientTipoEl.value
+      const zona = clientZonaEl.value.trim()
+      if (!nombre || !apellido || !cedula || !celular || !tipo) {
+        alert("Completa al menos nombre, apellido, cédula, celular y tipo de cliente.")
+        return
+      }
+      if (id) {
+        const idx = CLIENTS.findIndex(x => x.id === id)
+        if (idx >= 0) {
+          const prev = CLIENTS[idx]
+          CLIENTS[idx] = {
+            id,
+            nombre,
+            apellido,
+            cedula,
+            email,
+            direccion,
+            celular,
+            tipo,
+            zona,
+            pedidos: typeof prev.pedidos === "number" ? prev.pedidos : 0,
+            interesado: prev.interesado === true
+          }
+        }
+      } else {
+        const newId = CLIENTS.length ? Math.max(...CLIENTS.map(x => x.id)) + 1 : 1
+        CLIENTS.push({ id: newId, nombre, apellido, cedula, email, direccion, celular, tipo, zona, pedidos: 0, interesado: true })
+      }
+      saveClients(CLIENTS)
+      renderClients()
+      clientFormEl.reset()
+      clientIdEl.value = ""
+    })
+
+    clientResetBtn.addEventListener("click", () => {
+      clientFormEl.reset()
+      clientIdEl.value = ""
+    })
+
+    clientTypeFilterEl.addEventListener("change", renderClients)
+    clientSearchEl.addEventListener("input", renderClients)
+
+    function exportClientsToCsv() {
+      const headers = ["Nombre", "Apellido", "Cédula", "Email", "Dirección", "Zona", "Celular", "Tipo", "Pedidos", "Estado"]
+      const lines = []
+      lines.push(headers.join(";"))
+      for (const c of CLIENTS) {
+        const row = [
+          c.nombre || "",
+          c.apellido || "",
+          c.cedula || "",
+          c.email || "",
+          c.direccion || "",
+          c.zona || "",
+          c.celular || "",
+          c.tipo || "",
+          typeof c.pedidos === "number" ? c.pedidos : 0,
+          c.pedidos && c.pedidos > 0 ? "Con pedidos" : (c.interesado ? "Interesado" : "Sin actividad")
+        ].map(v => {
+          const s = String(v).replace(/"/g, '""')
+          return `"${s}"`
+        })
+        lines.push(row.join(";"))
+      }
+      const csv = lines.join("\n")
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = "clientes.csv"
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+
+    exportClientsBtn.addEventListener("click", exportClientsToCsv)
+
+    const logoUpload = document.getElementById("logo-upload")
+    const adminLogo = document.getElementById("admin-logo")
+    if (adminLogo) {
+      const customLogo = localStorage.getItem("company_logo")
+      if (customLogo) adminLogo.src = customLogo
+      adminLogo.onload = () => adminLogo.classList.remove("hidden")
+    }
+  </script>
+</body>
+</html>
+

@@ -31,6 +31,10 @@ function requireAdmin(req, res, next) {
   const decoded = Buffer.from(token || "", "base64").toString()
   const [u, p] = decoded.split(":")
   if (u === user && p === pass) return next()
+  const isApi = req.path && req.path.startsWith("/api/")
+  if (isApi) {
+    return res.status(401).json({ error: "unauthorized" })
+  }
   res.setHeader("WWW-Authenticate", 'Basic realm="Admin"')
   return res.status(401).send("Unauthorized")
 }
@@ -59,6 +63,7 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true })
 
 const productsFile = path.join(dataDir, "products.json")
 const clientsFile = path.join(dataDir, "clients.json")
+const catalogsFile = path.join(dataDir, "catalogs.json")
 
 function readData(file) {
   try {
@@ -539,6 +544,192 @@ app.post("/api/clients", (req, res) => {
   
   writeData(clientsFile, list)
   res.json({ ok: true, id: found.id })
+})
+
+app.get("/api/catalogs", requireAdmin, (req, res) => {
+  const list = readData(catalogsFile)
+  res.json(list)
+})
+
+app.post("/api/catalogs", requireAdmin, (req, res) => {
+  const { id, title, url } = req.body || {}
+  if (!title || !url) {
+    return res.status(400).json({ error: "missing_fields" })
+  }
+  const list = readData(catalogsFile)
+  const now = new Date().toISOString()
+  let item = null
+  if (id) {
+    const numId = Number(id)
+    const idx = list.findIndex(c => Number(c.id) === numId)
+    if (idx >= 0) {
+      item = list[idx]
+      item.title = title
+      item.url = url
+      item.updatedAt = now
+    }
+  }
+  if (!item) {
+    const newId = list.length ? Math.max(...list.map(x => Number(x.id) || 0)) + 1 : 1
+    item = { id: newId, title, url, createdAt: now }
+    list.push(item)
+  }
+  writeData(catalogsFile, list)
+  res.json({ ok: true, item })
+})
+
+app.delete("/api/catalogs/:id", requireAdmin, (req, res) => {
+  const { id } = req.params
+  const list = readData(catalogsFile)
+  const numId = Number(id)
+  const filtered = list.filter(c => Number(c.id) !== numId)
+  writeData(catalogsFile, filtered)
+  res.json({ ok: true })
+})
+
+app.get("/api/public/catalogs", (req, res) => {
+  const list = readData(catalogsFile)
+  res.json(list)
+})
+
+function requireExternalApiKey(req, res, next) {
+  const expected = process.env.EXTERNAL_API_KEY
+  if (!expected) {
+    return res.status(500).json({ error: "api_key_not_configured" })
+  }
+  const provided = req.headers["x-api-key"]
+  if (!provided || String(provided) !== String(expected)) {
+    return res.status(401).json({ error: "unauthorized" })
+  }
+  next()
+}
+
+function findBestProductMatchForText(text, products) {
+  const q = String(text || "").toLowerCase()
+  const list = Array.isArray(products) ? products : []
+  let best = null
+  let bestScore = 0
+  for (const p of list) {
+    const name = String(p.name || "").toLowerCase()
+    const hay = `${p.name || ""} ${p.desc || ""}`.toLowerCase()
+    let score = 0
+    const words = q.split(/\s+/).filter(Boolean)
+    for (const w of words) {
+      if (!w) continue
+      if (name.includes(w)) score += 3
+      if (hay.includes(w)) score += 1
+    }
+    if (score > bestScore) {
+      bestScore = score
+      best = p
+    }
+  }
+  if (bestScore === 0) return null
+  return best
+}
+
+function recommendProductsForQueryText(query, products) {
+  const q = String(query || "").toLowerCase()
+  const words = q.split(/\s+/).filter(Boolean)
+  const list = Array.isArray(products) ? products : []
+  const filtered = []
+  for (const p of list) {
+    if (p.available && p.available !== "Disponible") continue
+    const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""}`.toLowerCase()
+    let score = 0
+    if (!words.length) score += 1
+    for (const w of words) {
+      if (hay.includes(w)) score += 3
+    }
+    if (/lámpara|lampara|iluminación|iluminacion|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
+    if (/tubo|agua|llave|grifo|grifería|griferia|sifón|sifon/.test(q) && p.category === "Plomería") score += 4
+    if (p.price != null) {
+      const val = Number(p.price)
+      if (!Number.isNaN(val)) score += Math.min(val / 1000, 5)
+    }
+    if (score > 0) {
+      filtered.push({ p, score })
+    }
+  }
+  filtered.sort((a, b) => b.score - a.score)
+  return filtered.slice(0, 4).map(x => x.p)
+}
+
+function buildAssistantReplyForWhatsApp(message, products) {
+  const text = String(message || "").trim()
+  if (!text) {
+    return "Hola, soy tu asistente de compras de EMBAIR. Cuéntame qué necesitas y buscaré productos en el catálogo mayorista para ayudarte."
+  }
+  const lower = text.toLowerCase()
+  if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
+    return "Para ayudarte mejor con tableros, indícame si lo necesitas empotrado o de superficie y para cuántos módulos aproximadamente."
+  }
+  const productsList = Array.isArray(products) ? products : []
+  if (!productsList.length) {
+    return "Por ahora no tengo productos cargados en el catálogo. Intenta de nuevo más tarde o contacta directamente con un asesor."
+  }
+  if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
+    const prod = findBestProductMatchForText(text, productsList)
+    if (prod) {
+      if (prod.available && prod.available !== "Disponible") {
+        const altQuery = `${prod.category || ""} ${prod.subcategory || ""}`
+        const recsAlt = recommendProductsForQueryText(altQuery, productsList)
+        let msg = `Ese producto figura como *agotado* en el catálogo: *${prod.name}*.\n`
+        if (recsAlt.length) {
+          msg += "\n*Opciones alternativas que podrían servirte:*\n"
+          for (const r of recsAlt) {
+            const parts = []
+            if (r.category) parts.push(r.category)
+            if (r.subcategory) parts.push(r.subcategory)
+            if (r.material) parts.push(r.material)
+            const desc = parts.length ? ` (${parts.join(" • ")})` : ""
+            let priceText = ""
+            if (r.price != null && !Number.isNaN(Number(r.price))) {
+              priceText = ` - Precio aprox: $${Number(r.price).toLocaleString("es-AR")}`
+            } else {
+              priceText = " - Precio: solicitar cotización"
+            }
+            msg += `• *${r.name}*${desc}${priceText}\n`
+          }
+        } else {
+          msg += "\nSi quieres puedo buscarte alternativas similares si me das más detalles."
+        }
+        return msg
+      }
+      return `Sí, en el catálogo figura como *disponible*: *${prod.name}*.\n\nPuedes buscarlo por nombre o código en la app mayorista o indicarme si quieres que te sugiera complementos.`
+    }
+  }
+  const recs = recommendProductsForQueryText(text, productsList)
+  if (!recs.length) {
+    return "Con lo que me cuentas no encontré algo claro en el catálogo. Prueba explicando qué ambiente o instalación quieres armar (por ejemplo: iluminación de sala, cambio de grifería de baño, tablero para apartamento)."
+  }
+  let msg = "*Te sugiero estos productos según lo que comentas:*\n\n"
+  for (const p of recs) {
+    const parts = []
+    if (p.category) parts.push(p.category)
+    if (p.subcategory) parts.push(p.subcategory)
+    if (p.material) parts.push(p.material)
+    const desc = parts.length ? ` (${parts.join(" • ")})` : ""
+    let priceText = ""
+    if (p.price != null && !Number.isNaN(Number(p.price))) {
+      priceText = ` - Precio aprox: $${Number(p.price).toLocaleString("es-AR")}`
+    } else {
+      priceText = " - Precio: solicitar cotización"
+    }
+    msg += `• *${p.name}*${desc}${priceText}\n`
+  }
+  msg += "\nSi te interesa alguno, responde con el nombre o código y te ayudo a afinar la lista."
+  return msg
+}
+
+app.post("/api/external/chat", requireExternalApiKey, (req, res) => {
+  const { mensaje, telefono } = req.body || {}
+  if (!mensaje) {
+    return res.status(400).json({ error: "missing_mensaje" })
+  }
+  const products = readData(productsFile)
+  const respuesta = buildAssistantReplyForWhatsApp(mensaje, products)
+  res.json({ respuesta_ia: respuesta })
 })
 
 import os from "os"

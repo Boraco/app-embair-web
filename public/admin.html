@@ -21,12 +21,14 @@
       <div class="flex items-center gap-4">
          <label for="logo-upload" class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-800 font-medium">Cambiar Logo</label>
          <input type="file" id="logo-upload" accept="image/*" class="hidden" />
+         <a href="/clientes.html" class="text-sm text-indigo-600 hover:text-indigo-800">Gestión de clientes</a>
+         <a href="/productos.html" class="text-sm text-indigo-600 hover:text-indigo-800">Gestión de productos</a>
          <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="max-w-6xl mx-auto px-4 py-8 hidden">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl font-semibold">Clientes</h2>
       <div class="flex items-center gap-3">
@@ -102,113 +104,18 @@
     </div>
   </main>
   <main class="max-w-6xl mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">Productos</h2>
-      <div class="flex gap-3">
-        <button id="export-products" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar JSON</button>
-        <button id="export-products-csv" class="border border-gray-300 rounded px-3 py-2 text-sm">Exportar Excel</button>
-        <button id="import-toggle" class="border border-gray-300 rounded px-3 py-2 text-sm">Importar JSON</button>
+    <section class="mt-2 mb-6">
+      <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h2 class="text-base md:text-lg font-semibold text-indigo-900">Gestión de catálogo</h2>
+          <p class="text-xs text-indigo-800 mt-1">Para cargar, editar e importar productos o clientes usa los módulos dedicados.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="/productos.html" class="inline-flex items-center bg-indigo-600 text-white px-3 py-2 rounded text-xs md:text-sm hover:bg-indigo-700">Ir a gestión de productos</a>
+          <a href="/clientes.html" class="inline-flex items-center bg-slate-800 text-white px-3 py-2 rounded text-xs md:text-sm hover:bg-slate-900">Ir a gestión de clientes</a>
+        </div>
       </div>
-    </div>
-    <div id="import-box" class="hidden mb-4 p-4 bg-gray-50 border rounded-lg">
-      <div class="mb-2 text-sm text-gray-600">Carga masiva de productos (JSON o CSV). Los productos nuevos se agregarán al catálogo existente.</div>
-      <div class="flex flex-col gap-2">
-        <input type="file" id="import-file" accept=".json,.csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"/>
-        <textarea id="import-text" rows="4" class="w-full border rounded px-3 py-2 text-sm" placeholder="O pega aquí el JSON de productos..."></textarea>
-      </div>
-      <div class="flex gap-3 mt-2">
-        <button id="import-products" class="bg-indigo-600 text-white rounded px-3 py-2 text-sm">Importar / Agregar</button>
-        <button id="import-cancel" class="border border-gray-300 rounded px-3 py-2 text-sm">Cancelar</button>
-      </div>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <form id="product-form" class="grid sm:grid-cols-2 gap-4">
-        <input type="hidden" id="prod-id" />
-        <div>
-          <label class="block text-sm mb-1">Nombre</label>
-          <input id="prod-name" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Código</label>
-          <input id="prod-code" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Marca</label>
-          <input id="prod-brand" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">SKU</label>
-          <input id="prod-sku" class="w-full border rounded px-3 py-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Categoría</label>
-          <select id="prod-category" class="w-full border rounded px-3 py-2">
-            <option value="Electricidad">Materiales eléctricos</option>
-            <option value="Plomería">Artículos de plomería</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Subcategoría</label>
-          <input id="prod-subcategory" class="w-full border rounded px-3 py-2" placeholder="Ej: iluminación, grifería" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Material</label>
-          <input id="prod-material" class="w-full border rounded px-3 py-2" placeholder="Ej: PVC, Cobre, Acero" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Precio</label>
-          <input id="prod-price" type="number" min="0" class="w-full border rounded px-3 py-2" />
-          <label class="inline-flex items-center gap-2 text-sm mt-1"><input type="checkbox" id="prod-quote"> Solicitar cotización</label>
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Disponibilidad</label>
-          <select id="prod-available" class="w-full border rounded px-3 py-2">
-            <option value="Disponible">Disponible</option>
-            <option value="Agotado">Agotado</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Imagen producto (URL)</label>
-          <input id="prod-img" class="w-full border rounded px-3 py-2" />
-          <input type="file" id="prod-img-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Imagen empaque (URL)</label>
-          <input id="prod-pack" class="w-full border rounded px-3 py-2" />
-          <input type="file" id="prod-pack-file" accept="image/*" class="w-full border rounded px-3 py-2 mt-2" />
-        </div>
-        <div>
-          <label class="block text-sm mb-1">Empaque / Unidad</label>
-          <input id="prod-packinfo" class="w-full border rounded px-3 py-2" placeholder="Ej: caja x20, bolsa x10, unidad" />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="block text-sm mb-1">Descripción</label>
-          <textarea id="prod-desc" rows="3" class="w-full border rounded px-3 py-2"></textarea>
-        </div>
-        <div class="sm:col-span-2">
-          <label class="block text-sm mb-1">Especificaciones (una por línea)</label>
-          <textarea id="prod-specs" rows="3" class="w-full border rounded px-3 py-2"></textarea>
-        </div>
-        <div class="sm:col-span-2 flex gap-3">
-          <button id="save-product" class="bg-indigo-600 text-white rounded px-4 py-2">Guardar producto</button>
-          <button id="reset-form" type="button" class="border border-gray-300 rounded px-4 py-2">Limpiar</button>
-        </div>
-      </form>
-    </div>
-    <div class="bg-white rounded-lg shadow overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead>
-          <tr class="bg-gray-100 text-left">
-            <th class="px-3 py-2">Nombre</th>
-            <th class="px-3 py-2">Categoría</th>
-            <th class="px-3 py-2">Precio</th>
-            <th class="px-3 py-2">Disponibilidad</th>
-            <th class="px-3 py-2">Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="prod-rows"></tbody>
-      </table>
-    </div>
+    </section>
     <section class="mt-10">
       <h2 class="text-xl font-semibold mb-4">Estadísticas de uso del catálogo</h2>
       <div class="grid md:grid-cols-3 gap-4">
@@ -248,7 +155,7 @@
       </div>
     </section>
 
-    <section id="email-campaigns" class="mt-10 mb-20">
+    <section id="email-campaigns" class="mt-10 mb-10">
       <h2 class="text-xl font-semibold mb-4">Campañas de Email (Listas de Precios)</h2>
       
       <!-- Public/QR Link Generator Section -->
@@ -364,6 +271,41 @@
             </table>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section id="download-catalogs" class="mt-10 mb-20">
+      <h2 class="text-xl font-semibold mb-4">Catálogos para Descarga</h2>
+      <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="grid md:grid-cols-3 gap-4 items-end">
+          <div class="md:col-span-1">
+            <label class="block text-sm font-medium mb-1">Nombre del catálogo</label>
+            <input id="catalog-name" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ej: Catálogo Mayorista 2026" />
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-sm font-medium mb-1">Archivo PDF</label>
+            <input type="file" id="catalog-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white file:text-indigo-700 hover:file:bg-indigo-50" />
+          </div>
+          <div class="md:col-span-1 flex md:justify-end">
+            <button id="catalog-upload" class="mt-4 md:mt-0 bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700">
+              Subir catálogo
+            </button>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-3">Estos catálogos quedarán disponibles para compartir con clientes desde una página pública de descargas.</p>
+      </div>
+      <div class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="bg-gray-100 text-left">
+              <th class="px-3 py-2">Nombre</th>
+              <th class="px-3 py-2">Enlace</th>
+              <th class="px-3 py-2">Creado</th>
+              <th class="px-3 py-2 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="catalog-rows"></tbody>
+        </table>
       </div>
     </section>
 
@@ -1063,6 +1005,156 @@
         })
     }
     // --- End QR Logic ---
+
+    const catalogNameEl = document.getElementById("catalog-name")
+    const catalogFileEl = document.getElementById("catalog-file")
+    const catalogUploadBtn = document.getElementById("catalog-upload")
+    const catalogRowsEl = document.getElementById("catalog-rows")
+    let CATALOGS = []
+
+    async function loadCatalogs() {
+      try {
+        const res = await fetch("/api/catalogs", {
+          headers: {
+            "Authorization": "Basic " + btoa("admin:admin")
+          }
+        })
+        const ct = res.headers.get("content-type") || ""
+        if (!ct.includes("application/json")) {
+          const text = await res.text()
+          console.error("Catálogos: respuesta no JSON", text.slice(0, 200))
+          return
+        }
+        if (res.ok) {
+          CATALOGS = await res.json()
+          renderCatalogs()
+        } else {
+          console.error("Error HTTP al cargar catálogos", res.status)
+        }
+      } catch (e) {
+        console.error("Error loading catalogs", e)
+      }
+    }
+
+    function renderCatalogs() {
+      if (!catalogRowsEl) return
+      if (!Array.isArray(CATALOGS) || CATALOGS.length === 0) {
+        catalogRowsEl.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-slate-400 text-sm">No hay catálogos cargados.</td></tr>`
+        return
+      }
+      catalogRowsEl.innerHTML = CATALOGS.map(c => {
+        const created = c.createdAt ? new Date(c.createdAt).toLocaleString() : ""
+        const url = c.url || ""
+        return `
+          <tr class="border-t hover:bg-gray-50">
+            <td class="px-3 py-2">${c.title || ""}</td>
+            <td class="px-3 py-2">
+              <a href="${url}" target="_blank" class="text-xs text-indigo-600 hover:underline break-all">${url}</a>
+            </td>
+            <td class="px-3 py-2 text-xs text-slate-500">${created}</td>
+            <td class="px-3 py-2 text-right">
+              <button data-id="${c.id}" data-action="copy" class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 mr-2">Copiar enlace</button>
+              <button data-id="${c.id}" data-action="delete" class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded hover:bg-red-100">Eliminar</button>
+            </td>
+          </tr>
+        `
+      }).join("")
+    }
+
+    if (catalogUploadBtn) {
+      catalogUploadBtn.addEventListener("click", async () => {
+        const name = catalogNameEl.value.trim()
+        const file = catalogFileEl.files[0]
+        if (!name || !file) {
+          alert("Ingresa un nombre y selecciona un archivo PDF.")
+          return
+        }
+        catalogUploadBtn.disabled = true
+        catalogUploadBtn.textContent = "Subiendo..."
+        try {
+          const fd = new FormData()
+          fd.append("file", file)
+          const upRes = await fetch("/api/upload", {
+            method: "POST",
+            headers: {
+              "Authorization": "Basic " + btoa("admin:admin")
+            },
+            body: fd
+          })
+          const ct = upRes.headers.get("content-type") || ""
+          let upData
+          if (ct.includes("application/json")) {
+            upData = await upRes.json()
+          } else {
+            const text = await upRes.text()
+            throw new Error("Respuesta no válida del servidor al subir PDF: " + text.slice(0, 200))
+          }
+          if (!upRes.ok || !upData.ok || !upData.url) throw new Error("Error subiendo PDF")
+          const res = await fetch("/api/catalogs", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Basic " + btoa("admin:admin")
+            },
+            body: JSON.stringify({ title: name, url: upData.url })
+          })
+          const ct2 = res.headers.get("content-type") || ""
+          let data
+          if (ct2.includes("application/json")) {
+            data = await res.json()
+          } else {
+            const text2 = await res.text()
+            throw new Error("Respuesta no válida del servidor al guardar catálogo: " + text2.slice(0, 200))
+          }
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || "Error guardando catálogo")
+          }
+          catalogNameEl.value = ""
+          catalogFileEl.value = ""
+          await loadCatalogs()
+          alert("Catálogo guardado correctamente.")
+        } catch (e) {
+          console.error(e)
+          alert("Ocurrió un error al subir el catálogo: " + e.message)
+        } finally {
+          catalogUploadBtn.disabled = false
+          catalogUploadBtn.textContent = "Subir catálogo"
+        }
+      })
+    }
+
+    if (catalogRowsEl) {
+      catalogRowsEl.addEventListener("click", async (e) => {
+        const btn = e.target
+        if (!btn || !btn.dataset) return
+        const id = btn.dataset.id
+        const action = btn.dataset.action
+        if (!id || !action) return
+        if (action === "copy") {
+          const item = CATALOGS.find(c => String(c.id) === String(id))
+          if (item && item.url) {
+            try {
+              await navigator.clipboard.writeText(item.url)
+              alert("Enlace copiado al portapapeles.")
+            } catch (err) {
+              alert("No se pudo copiar el enlace. Copia manualmente desde la columna de enlace.")
+            }
+          }
+        }
+        if (action === "delete") {
+          if (!confirm("¿Eliminar este catálogo? Esta acción no elimina el archivo físico, solo la entrada de la lista.")) return
+          try {
+            const res = await fetch(`/api/catalogs/${id}`, { method: "DELETE" })
+            const data = await res.json()
+            if (!res.ok || !data.ok) throw new Error(data.error || "Error eliminando catálogo")
+            await loadCatalogs()
+          } catch (err) {
+            console.error(err)
+            alert("No se pudo eliminar el catálogo: " + err.message)
+          }
+        }
+      })
+    }
 
     const SAMPLE = [
       { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://picsum.photos/seed/cable/400/300", pack: "https://picsum.photos/seed/cablepack/400/300", desc: "Cable de cobre multipolar 2x1.5mm", specs: ["Voltaje 220V", "Norma IRAM"] },

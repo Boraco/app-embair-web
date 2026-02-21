@@ -88,5 +88,480 @@
       <p class="text-xs uppercase tracking-widest">Sígannos en Instagram: @comercializadoraembair</p>
     </div>
   </footer>
+
+  <div id="assistant-root" class="fixed bottom-6 right-4 md:right-6 z-40">
+    <div id="assistant-panel" class="hidden w-80 md:w-[26rem] max-h-[75vh] bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <div class="text-sm font-semibold text-slate-900">Asistente EMBAIR</div>
+          <div class="text-[11px] text-slate-500">Te ayudo a filtrar materiales y preparar tu pedido.</div>
+        </div>
+        <button id="assistant-close" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+      </div>
+      <div id="assistant-messages" class="flex-1 px-3 py-3 space-y-2 overflow-y-auto text-sm bg-slate-50"></div>
+      <div class="border-t border-slate-200 p-3 bg-white">
+        <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none" placeholder="Contame qué materiales estás buscando para tu hogar u obra"></textarea>
+        <div class="flex justify-end mt-2">
+          <button id="assistant-send" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4 py-1.5 text-xs font-medium">Enviar</button>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-col items-end gap-2">
+      <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Abrir asistente virtual">
+        <span class="text-lg leading-none">💬</span>
+      </button>
+      <div class="px-4 py-1.5 rounded-full bg-indigo-500 text-white text-[11px] font-medium shadow">
+        Asistente virtual
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ASSISTANT_PRODUCTS = []
+
+    const assistantPanel = document.getElementById("assistant-panel")
+    const assistantToggle = document.getElementById("assistant-toggle")
+    const assistantClose = document.getElementById("assistant-close")
+    const assistantMessages = document.getElementById("assistant-messages")
+    const assistantInput = document.getElementById("assistant-input")
+    const assistantSend = document.getElementById("assistant-send")
+
+    function addAssistantMessage(sender, text) {
+      if (!assistantMessages) return
+      const wrap = document.createElement("div")
+      wrap.className = "flex " + (sender === "user" ? "justify-end" : "justify-start")
+      const bubble = document.createElement("div")
+      bubble.className = sender === "user"
+        ? "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-indigo-600 text-white rounded-br-none"
+        : "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-white text-slate-800 border border-slate-200 rounded-bl-none"
+      bubble.textContent = text
+      wrap.appendChild(bubble)
+      assistantMessages.appendChild(wrap)
+      assistantMessages.scrollTop = assistantMessages.scrollHeight
+    }
+
+    const leadState = {
+      name: "",
+      segment: "",
+      contact: "",
+      need: "",
+      stage: "welcome",
+      pending: "",
+      lastQuery: "",
+      cablePending: "",
+      cableQuery: ""
+    }
+
+    async function loadAssistantProducts() {
+      try {
+        const res = await fetch("/api/products")
+        if (!res.ok) return
+        const arr = await res.json()
+        if (Array.isArray(arr)) ASSISTANT_PRODUCTS = arr
+      } catch {}
+    }
+
+    function wordVariants(w) {
+      const base = String(w || "").toLowerCase()
+      const variants = [base]
+      if (base.endsWith("es")) variants.push(base.slice(0, -2))
+      if (base.endsWith("s")) variants.push(base.slice(0, -1))
+      return Array.from(new Set(variants.filter(Boolean)))
+    }
+
+    function findBestProductMatchForText(text) {
+      const q = String(text || "").toLowerCase()
+      const list = Array.isArray(ASSISTANT_PRODUCTS) ? ASSISTANT_PRODUCTS : []
+      let best = null
+      let bestScore = 0
+      for (const p of list) {
+        const name = String(p.name || "").toLowerCase()
+        const hay = `${p.name || ""} ${p.desc || ""}`.toLowerCase()
+        let score = 0
+        const words = q.split(/\s+/).filter(Boolean)
+        for (const w of words) {
+          if (!w) continue
+          const vars = wordVariants(w)
+          for (const v of vars) {
+            if (!v) continue
+            if (name.includes(v)) {
+              score += 3
+              break
+            }
+          }
+          for (const v of vars) {
+            if (!v) continue
+            if (hay.includes(v)) {
+              score += 1
+              break
+            }
+          }
+        }
+        if (score > bestScore) {
+          bestScore = score
+          best = p
+        }
+      }
+      if (bestScore === 0) return null
+      return best
+    }
+
+    function recommendProductsForQueryText(query) {
+      const q = String(query || "").toLowerCase()
+      const words = q.split(/\s+/).filter(Boolean)
+      const list = Array.isArray(ASSISTANT_PRODUCTS) ? ASSISTANT_PRODUCTS : []
+      const filtered = []
+      for (const p of list) {
+        if (p.available && p.available !== "Disponible") continue
+        const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""}`.toLowerCase()
+        let score = 0
+        if (!words.length) score += 1
+        for (const w of words) {
+          const vars = wordVariants(w)
+          for (const v of vars) {
+            if (!v) continue
+            if (hay.includes(v)) {
+              score += 3
+              break
+            }
+          }
+        }
+        if (/lámpara|lampara|iluminación|iluminacion|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
+        if (/tubo|agua|llave|grifo|grifería|griferia|sifón|sifon/.test(q) && p.category === "Plomería") score += 4
+        if (p.price != null) {
+          const val = Number(p.price)
+          if (!Number.isNaN(val)) score += Math.min(val / 1000, 5)
+        }
+        if (score > 0) {
+          filtered.push({ p, score })
+        }
+      }
+      filtered.sort((a, b) => b.score - a.score)
+      return filtered.slice(0, 4).map(x => x.p)
+    }
+
+    function describeProductShort(p) {
+      const parts = []
+      if (p.category) parts.push(p.category)
+      if (p.subcategory) parts.push(p.subcategory)
+      if (p.material) parts.push(p.material)
+      const extra = parts.length ? " (" + parts.join(" • ") + ")" : ""
+      let stockText = ""
+      if (p.available && p.available !== "Disponible") {
+        stockText = " – Actualmente figura como no disponible"
+      } else if (p.available === "Disponible") {
+        stockText = " – Figura como disponible en el catálogo"
+      }
+      return p.name + extra + stockText
+    }
+
+    function addProductCard(p) {
+      if (!assistantMessages) return
+      const row = document.createElement("div")
+      row.className = "flex gap-3 bg-white border border-slate-200 rounded-xl p-3 text-xs"
+      const imgWrap = document.createElement("div")
+      imgWrap.className = "w-14 h-14 rounded-md overflow-hidden bg-slate-100 flex-shrink-0"
+      if (p.img) {
+        const img = document.createElement("img")
+        img.src = p.img
+        img.alt = p.name || "Producto"
+        img.className = "w-full h-full object-cover"
+        imgWrap.appendChild(img)
+      } else {
+        imgWrap.className += " flex items-center justify-center text-[10px] text-slate-400"
+        imgWrap.textContent = "Sin foto"
+      }
+      const info = document.createElement("div")
+      info.className = "flex-1 min-w-0"
+      const title = document.createElement("div")
+      title.className = "font-semibold text-slate-900 truncate"
+      title.textContent = p.name || "Producto"
+      const meta = document.createElement("div")
+      meta.className = "text-[11px] text-slate-500 truncate"
+      meta.textContent = [p.category, p.subcategory, p.material].filter(Boolean).join(" • ")
+      const avail = document.createElement("div")
+      avail.className = "text-[11px] mt-1"
+      if (p.available && p.available !== "Disponible") {
+        avail.className += " text-red-600"
+        avail.textContent = "Actualmente figura como no disponible"
+      } else if (p.available === "Disponible") {
+        avail.className += " text-emerald-700"
+        avail.textContent = "Figura como disponible en el catálogo"
+      }
+      info.appendChild(title)
+      if (meta.textContent) info.appendChild(meta)
+      if (avail.textContent) info.appendChild(avail)
+      row.appendChild(imgWrap)
+      row.appendChild(info)
+      assistantMessages.appendChild(row)
+      assistantMessages.scrollTop = assistantMessages.scrollHeight
+    }
+
+    const FAMILY_PITCH = "En EMBAIR trabajamos Tableros, Cables, Tubería, Cajetines, Breakers, Luminarias, Tomacorrientes, entre otros artículos; la idea es que salgas con el paquete completo de materiales para tu instalación."
+
+    function getCableStockPromo(p) {
+      const v = p.stock == null ? null : Number(p.stock)
+      if (v == null || Number.isNaN(v)) return ""
+      if (v <= 10) return "Poco stock, ideal aprovecharlo en promo."
+      if (v <= 50) return "Stock intermedio, se mueve rápido."
+      return "Buen stock disponible para tu proyecto."
+    }
+
+    function extractCalibre(text) {
+      const lower = String(text || "").toLowerCase()
+      const m = lower.match(/#\s*(\d+)|calibre\s*(\d+)|(\d+)\s*mm2|(\d+)\s*mm²|awg\s*(\d+)/)
+      if (!m) return ""
+      for (let i = 1; i < m.length; i++) {
+        if (m[i]) return m[i]
+      }
+      return ""
+    }
+
+    function filterCableOptions(text) {
+      const recs = recommendProductsForQueryText(text)
+      const out = []
+      for (const p of recs) {
+        const name = String(p.name || "").toLowerCase()
+        const sub = String(p.subcategory || "").toLowerCase()
+        if (name.includes("cable") || sub.includes("cable")) {
+          out.push(p)
+        }
+      }
+      return out
+    }
+
+    function handleProductSuggestion(textRaw) {
+      const text = String(textRaw || "").trim()
+      const lower = text.toLowerCase()
+      if (!text) return
+
+      const hasProducts = Array.isArray(ASSISTANT_PRODUCTS) && ASSISTANT_PRODUCTS.length > 0
+
+      if (!hasProducts) {
+        addAssistantMessage("bot", "Estoy conectando con el catálogo interno. Si no ves sugerencias todavía, podés probar de nuevo en unos segundos o entrar al Portal Clientes para ver todos los productos.")
+        return
+      }
+
+      const wantsCable = /cable/.test(lower)
+
+      if (wantsCable || leadState.cablePending === "1") {
+        const calibre = extractCalibre(text)
+        if (!calibre && leadState.cablePending !== "1") {
+          leadState.cablePending = "1"
+          leadState.cableQuery = text
+          addAssistantMessage("bot", "Perfecto, trabajamos cables eléctricos. ¿Qué calibre necesitás (por ejemplo THHN #8, #10, #12 o en mm²) y para cuántos metros aproximadamente?")
+          return
+        }
+        const combined = (leadState.cableQuery || "") + " " + text
+        leadState.cablePending = ""
+        leadState.cableQuery = combined
+        const cableRecs = filterCableOptions(combined)
+        if (!cableRecs.length) {
+          addAssistantMessage("bot", "Para ese calibre puntual ahora mismo no veo stock disponible en el catálogo.")
+          const otros = filterCableOptions("cable")
+          if (otros.length) {
+            addAssistantMessage("bot", "Por el momento no lo tenemos, pero sí contamos con estos cables que podrían servirte:")
+            for (const p of otros) {
+              addProductCard(p)
+            }
+          }
+          addAssistantMessage("bot", FAMILY_PITCH + " Si me das algún detalle extra de la instalación, busco la combinación más conveniente para vos.")
+          return
+        }
+        const bestCable = cableRecs[0]
+        const promo = getCableStockPromo(bestCable)
+        let msg = "Para ese calibre veo disponible en catálogo: " + describeProductShort(bestCable) + "."
+        if (promo) msg += " " + promo
+        addAssistantMessage("bot", msg)
+        addAssistantMessage("bot", FAMILY_PITCH + " Si te parece, con este cable como base podemos sumar tubería, cajetines, tableros, breakers y tomas para que te lleves todo armado. Te dejo una referencia visual del tipo de cable que vemos en catálogo:")
+        addProductCard(bestCable)
+        return
+      }
+
+      if (leadState.pending === "tablero-detalle") {
+        const combined = (leadState.lastQuery || "") + " " + text
+        const recs = recommendProductsForQueryText(combined)
+        leadState.pending = ""
+        if (!recs.length) {
+          addAssistantMessage("bot", "Con esos datos no encuentro un tablero claro en el catálogo. Si podés, indicame si es para interior o exterior y aproximado de módulos, así afinamos mejor.")
+          return
+        }
+        addAssistantMessage("bot", "Perfecto, con lo que me contás veo estas opciones de tableros disponibles en el catálogo:")
+        for (const p of recs) {
+          addProductCard(p)
+        }
+        addAssistantMessage("bot", "Además de los tableros, también trabajamos breakers, cables, tubería, cajetines, tomacorrientes y luminarias para que salgas con el paquete completo. Si me contás cuántos circuitos o qué consumo vas a manejar, te ayudo a sumar esos materiales.")
+        return
+      }
+
+      if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
+        leadState.lastQuery = text
+        leadState.pending = "tablero-detalle"
+        addAssistantMessage("bot", "Para ayudarte mejor con tableros, indicame si lo necesitás empotrado o de superficie y para cuántos módulos aproximadamente.")
+        return
+      }
+
+      const wantsTuberia = /tuber[ií]a|tubo/.test(lower)
+      const wantsCajetin = /cajet[ií]n|cajetin/.test(lower)
+      const wantsBreaker = /breaker|termomagn|disyuntor/.test(lower)
+      const wantsLuz = /luminaria|l[aá]mpara|lampara|foco|bombillo/.test(lower)
+      const wantsToma = /tomacorriente|toma corriente|enchufe|interruptor|interruptores/.test(lower)
+
+      if (wantsTuberia || wantsCajetin || wantsBreaker || wantsLuz || wantsToma) {
+        const all = Array.isArray(ASSISTANT_PRODUCTS) ? ASSISTANT_PRODUCTS : []
+        const family = []
+        for (const p of all) {
+          if (p.available && p.available !== "Disponible") continue
+          const textProd = `${p.name || ""} ${p.subcategory || ""} ${p.category || ""}`.toLowerCase()
+          let ok = false
+          if (wantsTuberia && (textProd.includes("tubo") || textProd.includes("tuber"))) ok = true
+          if (wantsCajetin && textProd.includes("cajet")) ok = true
+          if (wantsBreaker && (textProd.includes("breaker") || textProd.includes("termo") || textProd.includes("disyuntor"))) ok = true
+          if (wantsToma && (textProd.includes("interruptor") || textProd.includes("toma") || textProd.includes("enchufe"))) ok = true
+          if (wantsLuz && (textProd.includes("luminaria") || textProd.includes("lampara") || textProd.includes("lámpara") || textProd.includes("foco") || textProd.includes("bombillo"))) ok = true
+          if (ok) family.push(p)
+        }
+        const recs = family.slice(0, 6)
+        if (recs.length) {
+          addAssistantMessage("bot", "Sí, tenemos opciones disponibles en esa línea. Mirá algunos de los productos que veo ahora en el catálogo:")
+          for (const p of recs) {
+            addProductCard(p)
+          }
+          addAssistantMessage("bot", FAMILY_PITCH + " Si me contás un poco más del tramo o ambiente que querés resolver, te ayudo a cerrar la lista completa de materiales.")
+        } else {
+          addAssistantMessage("bot", "En este momento no veo productos cargados para ese tipo de material en el catálogo.")
+          addAssistantMessage("bot", FAMILY_PITCH + " Si querés, podés decirme otra necesidad y vemos qué más podemos ofrecerte.")
+        }
+        return
+      }
+
+      if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
+        const prod = findBestProductMatchForText(text)
+        if (prod) {
+          if (prod.available && prod.available !== "Disponible") {
+            const altQuery = `${prod.category || ""} ${prod.subcategory || ""}`.trim()
+            const recsAlt = altQuery ? recommendProductsForQueryText(altQuery) : []
+            let msg = "Ese producto en particular figura como agotado en el catálogo: " + prod.name + "."
+            addAssistantMessage("bot", msg)
+            if (recsAlt.length) {
+              addAssistantMessage("bot", "Te dejo algunas alternativas que podrían servirte según lo que trabajamos:")
+              for (const r of recsAlt) {
+                addAssistantMessage("bot", "• " + describeProductShort(r))
+              }
+            } else {
+              addAssistantMessage("bot", "Si me das algún detalle extra de la instalación, intento buscar otra opción similar.")
+            }
+            return
+          }
+          addAssistantMessage("bot", "Sí, en el catálogo interno figura como disponible: " + describeProductShort(prod) + ".")
+          addAssistantMessage("bot", FAMILY_PITCH + " Si te parece, con este producto como base podemos sumar los complementos que te falten y dejar armado el pedido.")
+          return
+        }
+      }
+
+      const recs = recommendProductsForQueryText(text)
+      if (!recs.length) {
+        addAssistantMessage("bot", "Con lo que me contás no encontré algo claro en el catálogo. Probá diciéndome qué ambiente o instalación querés armar (por ejemplo: tablero para casa, acometida de servicio, cambio de grifería de baño).")
+        return
+      }
+      addAssistantMessage("bot", "Según lo que me decís, estas opciones podrían encajar bien:")
+      for (const p of recs) {
+        addProductCard(p)
+      }
+      addAssistantMessage("bot", FAMILY_PITCH + " Si me contás un poco más de la instalación (distancias, cantidad de puntos, tipo de ambiente), te ayudo a completar el pedido y dejar todo listo para la cotización.")
+    }
+
+    function handleAssistantFlow(textRaw) {
+      const text = String(textRaw || "").trim()
+      const lower = text.toLowerCase()
+      if (!text) return
+
+      if (leadState.stage === "welcome") {
+        leadState.name = text
+        leadState.stage = "segment"
+        addAssistantMessage("bot", "Un gusto, " + leadState.name + ". ¿Buscas materiales para tu hogar o para un proyecto/obra?")
+        return
+      }
+
+      if (leadState.stage === "segment") {
+        if (lower.includes("obra") || lower.includes("proyecto") || lower.includes("empresa")) {
+          leadState.segment = "obra"
+        } else {
+          leadState.segment = "hogar"
+        }
+        leadState.stage = "contact"
+        addAssistantMessage("bot", "Perfecto, " + (leadState.segment === "obra" ? "proyecto/obra" : "hogar") + ". ¿Me compartís un número de contacto o correo para asociar tu cotización?")
+        return
+      }
+
+      if (leadState.stage === "contact") {
+        leadState.contact = text
+        leadState.stage = "needs"
+        addAssistantMessage("bot", "Listo " + leadState.name + ", ya tengo tus datos. Contame ahora qué materiales estás buscando y te ayudo a filtrarlos (electricidad, plomería, ferretería o algo específico).")
+        return
+      }
+
+      if (leadState.stage === "needs") {
+        leadState.need = text
+        const base = "He registrado tu solicitud. Nombre: " + leadState.name + ". Segmento: " + (leadState.segment || "no especificado") + ". Contacto: " + leadState.contact + ". Necesidad: " + text + "."
+        addAssistantMessage("bot", base + " Con esta información ya podemos avanzar con tu cotización interna y al mismo tiempo revisar qué tenemos disponible en el catálogo.")
+        leadState.stage = "assist"
+        handleProductSuggestion(text)
+        return
+      }
+
+      if (leadState.stage === "assist") {
+        handleProductSuggestion(text)
+        return
+      }
+    }
+
+    function handleAssistantSend() {
+      const text = (assistantInput.value || "").trim()
+      if (!text) return
+      assistantInput.value = ""
+      addAssistantMessage("user", text)
+      handleAssistantFlow(text)
+    }
+
+    if (assistantToggle && assistantPanel) {
+      assistantToggle.addEventListener("click", () => {
+        assistantPanel.classList.remove("hidden")
+        assistantToggle.classList.add("hidden")
+        if (assistantMessages && !assistantMessages.dataset.init) {
+          addAssistantMessage("bot", "Hola, soy el asistente virtual de EMBAIR. Para ayudarte con materiales y cotización, empecemos por tu nombre.")
+          assistantMessages.dataset.init = "1"
+        }
+        assistantInput.focus()
+      })
+    }
+
+    if (assistantClose && assistantPanel && assistantToggle) {
+      assistantClose.addEventListener("click", () => {
+        assistantPanel.classList.add("hidden")
+        assistantToggle.classList.remove("hidden")
+      })
+    }
+
+    if (assistantSend) {
+      assistantSend.addEventListener("click", handleAssistantSend)
+    }
+
+    if (assistantInput) {
+      assistantInput.addEventListener("keydown", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault()
+          handleAssistantSend()
+        }
+      })
+    }
+
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("assistant") === "1" && assistantToggle) {
+      assistantToggle.click()
+    }
+
+    loadAssistantProducts()
+  </script>
 </body>
 </html>

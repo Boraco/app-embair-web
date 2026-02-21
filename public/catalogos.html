@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogos para Descarga</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50">
+  <div class="min-h-screen flex flex-col">
+    <header class="bg-indigo-700 text-white">
+      <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+        <h1 class="text-lg md:text-2xl font-semibold">Catálogos para Descarga</h1>
+        <a href="/landing.html" class="text-xs md:text-sm underline">Volver al inicio</a>
+      </div>
+    </header>
+    <main class="flex-1 max-w-5xl mx-auto px-4 py-6">
+      <p class="text-sm text-slate-600 mb-4">Aquí encontrarás los catálogos disponibles para descargar en formato PDF.</p>
+      <div id="catalog-list-container" class="bg-white rounded-lg shadow overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="bg-gray-100 text-left">
+              <th class="px-3 py-2">Nombre</th>
+              <th class="px-3 py-2">Descarga</th>
+            </tr>
+          </thead>
+          <tbody id="catalog-list-rows">
+            <tr>
+              <td colspan="2" class="px-3 py-4 text-center text-slate-400 text-sm">Cargando catálogos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+    <footer class="bg-slate-100 text-slate-500 text-xs text-center py-4 mt-8">
+      Catálogos EMBAIR
+    </footer>
+  </div>
+  <script>
+    const catalogListRows = document.getElementById("catalog-list-rows")
+    async function loadPublicCatalogs() {
+      try {
+        const res = await fetch("/api/public/catalogs")
+        if (!res.ok) throw new Error("Error de conexión")
+        const list = await res.json()
+        renderPublicCatalogs(list)
+      } catch (e) {
+        catalogListRows.innerHTML = `<tr><td colspan="2" class="px-3 py-4 text-center text-red-500 text-sm">No se pudieron cargar los catálogos. Intenta más tarde.</td></tr>`
+      }
+    }
+    function renderPublicCatalogs(list) {
+      if (!Array.isArray(list) || list.length === 0) {
+        catalogListRows.innerHTML = `<tr><td colspan="2" class="px-3 py-4 text-center text-slate-400 text-sm">Por ahora no hay catálogos disponibles.</td></tr>`
+        return
+      }
+      catalogListRows.innerHTML = list.map(c => {
+        const name = c.title || "Catálogo"
+        const url = c.url || "#"
+        return `
+          <tr class="border-t hover:bg-gray-50">
+            <td class="px-3 py-2">${name}</td>
+            <td class="px-3 py-2">
+              <a href="${url}" target="_blank" class="inline-flex items-center bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700">
+                Descargar
+              </a>
+            </td>
+          </tr>
+        `
+      }).join("")
+    }
+    loadPublicCatalogs()
+  </script>
+</body>
+</html>
+

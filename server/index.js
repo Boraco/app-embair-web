@@ -21,7 +21,8 @@ app.use(express.json())
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 60
+  max: 60,
+  validate: { xForwardedForHeader: false } // Deshabilita validación estricta de proxy
 })
 app.use(limiter)
 

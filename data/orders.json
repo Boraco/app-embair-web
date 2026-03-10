@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1772502290219",
+    "createdAt": "2026-03-03T01:44:50.219Z",
+    "updatedAt": "2026-03-03T02:12:47.750Z",
+    "status": "new",
+    "client": {
+      "name": "Juan Perez",
+      "phone": "123456789",
+      "email": "juan@test.com"
+    },
+    "items": [
+      {
+        "id": "1",
+        "name": "Producto Prueba",
+        "qty": 2,
+        "price": 100
+      }
+    ],
+    "total": 200,
+    "source": "whatsapp",
+    "paymentMethod": "",
+    "deliveryMethod": "Delivery",
+    "notes": "Pedido de prueba"
+  }
+]

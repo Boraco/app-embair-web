@@ -1,0 +1,2955 @@
+[
+  {
+    "id": "1773112933194",
+    "createdAt": "2026-03-10T03:22:13.194Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773106609963",
+    "createdAt": "2026-03-10T01:36:49.963Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/app"
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1773104786416",
+    "createdAt": "2026-03-10T01:06:26.416Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773099909676",
+    "createdAt": "2026-03-09T23:45:09.676Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/app"
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1773098675923",
+    "createdAt": "2026-03-09T23:24:35.923Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098675826",
+    "createdAt": "2026-03-09T23:24:35.826Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098550973",
+    "createdAt": "2026-03-09T23:22:30.973Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098550880",
+    "createdAt": "2026-03-09T23:22:30.880Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098545400",
+    "createdAt": "2026-03-09T23:22:25.400Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773098177046",
+    "createdAt": "2026-03-09T23:16:17.046Z",
+    "type": "catalogos_view",
+    "meta": {
+      "path": "/catalogos.html"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098175129",
+    "createdAt": "2026-03-09T23:16:15.129Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098175036",
+    "createdAt": "2026-03-09T23:16:15.036Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098151203",
+    "createdAt": "2026-03-09T23:15:51.203Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098151075",
+    "createdAt": "2026-03-09T23:15:51.075Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098126252",
+    "createdAt": "2026-03-09T23:15:26.252Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773098126178",
+    "createdAt": "2026-03-09T23:15:26.178Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773097347791",
+    "createdAt": "2026-03-09T23:02:27.791Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773097347690",
+    "createdAt": "2026-03-09T23:02:27.690Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773096922823",
+    "createdAt": "2026-03-09T22:55:22.823Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1773096922738",
+    "createdAt": "2026-03-09T22:55:22.738Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1773095682259",
+    "createdAt": "2026-03-09T22:34:42.259Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095682189",
+    "createdAt": "2026-03-09T22:34:42.189Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095666718",
+    "createdAt": "2026-03-09T22:34:26.718Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095666612",
+    "createdAt": "2026-03-09T22:34:26.612Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095622829",
+    "createdAt": "2026-03-09T22:33:42.829Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095613339",
+    "createdAt": "2026-03-09T22:33:33.339Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095348844",
+    "createdAt": "2026-03-09T22:29:08.845Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095328045",
+    "createdAt": "2026-03-09T22:28:48.045Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095317893",
+    "createdAt": "2026-03-09T22:28:37.893Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773095315154",
+    "createdAt": "2026-03-09T22:28:35.154Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093313679",
+    "createdAt": "2026-03-09T21:55:13.679Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093311437",
+    "createdAt": "2026-03-09T21:55:11.437Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093309383",
+    "createdAt": "2026-03-09T21:55:09.383Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093307236",
+    "createdAt": "2026-03-09T21:55:07.236Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093185933",
+    "createdAt": "2026-03-09T21:53:05.933Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773093181992",
+    "createdAt": "2026-03-09T21:53:01.992Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092799028",
+    "createdAt": "2026-03-09T21:46:39.028Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092777097",
+    "createdAt": "2026-03-09T21:46:17.097Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092774835",
+    "createdAt": "2026-03-09T21:46:14.835Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092765874",
+    "createdAt": "2026-03-09T21:46:05.874Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773092756330",
+    "createdAt": "2026-03-09T21:45:56.330Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092647970",
+    "createdAt": "2026-03-09T21:44:07.970Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092641795",
+    "createdAt": "2026-03-09T21:44:01.795Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092628545",
+    "createdAt": "2026-03-09T21:43:48.545Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092624301",
+    "createdAt": "2026-03-09T21:43:44.301Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092621447",
+    "createdAt": "2026-03-09T21:43:41.447Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092619314",
+    "createdAt": "2026-03-09T21:43:39.314Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092616566",
+    "createdAt": "2026-03-09T21:43:36.566Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092531321",
+    "createdAt": "2026-03-09T21:42:11.321Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092528506",
+    "createdAt": "2026-03-09T21:42:08.506Z",
+    "type": "catalogos_view",
+    "meta": {
+      "path": "/catalogos.html"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092520275",
+    "createdAt": "2026-03-09T21:42:00.276Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092512611",
+    "createdAt": "2026-03-09T21:41:52.611Z",
+    "type": "catalogos_view",
+    "meta": {
+      "path": "/catalogos.html"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092497347",
+    "createdAt": "2026-03-09T21:41:37.347Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092439266",
+    "createdAt": "2026-03-09T21:40:39.266Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092297323",
+    "createdAt": "2026-03-09T21:38:17.323Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092294248",
+    "createdAt": "2026-03-09T21:38:14.248Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092148085",
+    "createdAt": "2026-03-09T21:35:48.085Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773092148073",
+    "createdAt": "2026-03-09T21:35:48.073Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773091996782",
+    "createdAt": "2026-03-09T21:33:16.782Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773091996742",
+    "createdAt": "2026-03-09T21:33:16.742Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773091962981",
+    "createdAt": "2026-03-09T21:32:42.981Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773091962957",
+    "createdAt": "2026-03-09T21:32:42.957Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1773090229788",
+    "createdAt": "2026-03-09T21:03:49.788Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773090229750",
+    "createdAt": "2026-03-09T21:03:49.750Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773080859365",
+    "createdAt": "2026-03-09T18:27:39.365Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773078747795",
+    "createdAt": "2026-03-09T17:52:27.795Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1773078747735",
+    "createdAt": "2026-03-09T17:52:27.736Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772754474813",
+    "createdAt": "2026-03-05T23:47:54.813Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772754474674",
+    "createdAt": "2026-03-05T23:47:54.674Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772747707639",
+    "createdAt": "2026-03-05T21:55:07.639Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/app"
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1772746392637",
+    "createdAt": "2026-03-05T21:33:12.637Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1772729454788",
+    "createdAt": "2026-03-05T16:50:54.788Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772729454763",
+    "createdAt": "2026-03-05T16:50:54.763Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772678275970",
+    "createdAt": "2026-03-05T02:37:55.970Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1772678275940",
+    "createdAt": "2026-03-05T02:37:55.940Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.101"
+  },
+  {
+    "id": "1772670741137",
+    "createdAt": "2026-03-05T00:32:21.137Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772670741072",
+    "createdAt": "2026-03-05T00:32:21.072Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772669094374",
+    "createdAt": "2026-03-05T00:04:54.374Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1772669094277",
+    "createdAt": "2026-03-05T00:04:54.277Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.0.106"
+  },
+  {
+    "id": "1772668879970",
+    "createdAt": "2026-03-05T00:01:19.970Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772668879866",
+    "createdAt": "2026-03-05T00:01:19.866Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772668870125",
+    "createdAt": "2026-03-05T00:01:10.125Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772668870083",
+    "createdAt": "2026-03-05T00:01:10.083Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/landing.html"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580284926",
+    "createdAt": "2026-03-03T23:24:44.926Z",
+    "type": "assistant_open",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580281156",
+    "createdAt": "2026-03-03T23:24:41.156Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580270895",
+    "createdAt": "2026-03-03T23:24:30.895Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "product_search",
+      "segmentType": "ubicacion"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580267157",
+    "createdAt": "2026-03-03T23:24:27.157Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "ubicacion"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580262823",
+    "createdAt": "2026-03-03T23:24:22.823Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "need_ask",
+      "segmentType": "ubicacion"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580259169",
+    "createdAt": "2026-03-03T23:24:19.169Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "zone_ask",
+      "segmentType": "ubicacion"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580255288",
+    "createdAt": "2026-03-03T23:24:15.288Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "segment",
+      "segmentType": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580250853",
+    "createdAt": "2026-03-03T23:24:10.853Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580247199",
+    "createdAt": "2026-03-03T23:24:07.199Z",
+    "type": "assistant_open",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772580242510",
+    "createdAt": "2026-03-03T23:24:02.510Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772579627677",
+    "createdAt": "2026-03-03T23:13:47.677Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "product_search",
+      "segmentType": "Particular"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772579621430",
+    "createdAt": "2026-03-03T23:13:41.430Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Particular"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772579602732",
+    "createdAt": "2026-03-03T23:13:22.732Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772579593711",
+    "createdAt": "2026-03-03T23:13:13.711Z",
+    "type": "assistant_open",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772579590875",
+    "createdAt": "2026-03-03T23:13:10.875Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772544628756",
+    "createdAt": "2026-03-03T13:30:28.756Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772544628645",
+    "createdAt": "2026-03-03T13:30:28.645Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772544609810",
+    "createdAt": "2026-03-03T13:30:09.810Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772544609562",
+    "createdAt": "2026-03-03T13:30:09.562Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543979689",
+    "createdAt": "2026-03-03T13:19:39.689Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543979629",
+    "createdAt": "2026-03-03T13:19:39.629Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543789150",
+    "createdAt": "2026-03-03T13:16:29.150Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543789045",
+    "createdAt": "2026-03-03T13:16:29.045Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543581809",
+    "createdAt": "2026-03-03T13:13:01.809Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543581683",
+    "createdAt": "2026-03-03T13:13:01.683Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543363034",
+    "createdAt": "2026-03-03T13:09:23.034Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772543362842",
+    "createdAt": "2026-03-03T13:09:22.842Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772542832309",
+    "createdAt": "2026-03-03T13:00:32.309Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772542832179",
+    "createdAt": "2026-03-03T13:00:32.179Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772542029780",
+    "createdAt": "2026-03-03T12:47:09.780Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772542029623",
+    "createdAt": "2026-03-03T12:47:09.623Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772541627417",
+    "createdAt": "2026-03-03T12:40:27.417Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772541627323",
+    "createdAt": "2026-03-03T12:40:27.323Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "192.168.101.101"
+  },
+  {
+    "id": "1772541592872",
+    "createdAt": "2026-03-03T12:39:52.872Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772541592855",
+    "createdAt": "2026-03-03T12:39:52.855Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772508740887",
+    "createdAt": "2026-03-03T03:32:20.887Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772508294192",
+    "createdAt": "2026-03-03T03:24:54.192Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772506204063",
+    "createdAt": "2026-03-03T02:50:04.063Z",
+    "type": "assistant_message",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772506195912",
+    "createdAt": "2026-03-03T02:49:55.912Z",
+    "type": "assistant_open",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772506193575",
+    "createdAt": "2026-03-03T02:49:53.575Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772501342622",
+    "createdAt": "2026-03-03T01:29:02.622Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772501128740",
+    "createdAt": "2026-03-03T01:25:28.740Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772501128719",
+    "createdAt": "2026-03-03T01:25:28.719Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772496440299",
+    "createdAt": "2026-03-03T00:07:20.300Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772492248044",
+    "createdAt": "2026-03-02T22:57:28.044Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772492247961",
+    "createdAt": "2026-03-02T22:57:27.961Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772486189502",
+    "createdAt": "2026-03-02T21:16:29.502Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772486189426",
+    "createdAt": "2026-03-02T21:16:29.426Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772486164262",
+    "createdAt": "2026-03-02T21:16:04.262Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1772486164243",
+    "createdAt": "2026-03-02T21:16:04.243Z",
+    "type": "landing_visit",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": 1771888485470,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:14:45.470Z"
+  },
+  {
+    "id": 1771888489044,
+    "type": "landing_visit",
+    "sessionId": "sess_zbbvz1dsgwdmlzjt64o",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:14:49.044Z"
+  },
+  {
+    "id": 1771888490099,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-23T23:14:50.099Z"
+  },
+  {
+    "id": 1771888499035,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-23T23:14:59.035Z"
+  },
+  {
+    "id": 1771888515081,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zone",
+      "segmentType": "Ferretería"
+    },
+    "createdAt": "2026-02-23T23:15:15.081Z"
+  },
+  {
+    "id": 1771888523292,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "businessName",
+      "segmentType": "Ferretería"
+    },
+    "createdAt": "2026-02-23T23:15:23.292Z"
+  },
+  {
+    "id": 1771888536159,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Ferretería"
+    },
+    "createdAt": "2026-02-23T23:15:36.159Z"
+  },
+  {
+    "id": 1771888536164,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "lospiloncitos@gmail.com",
+    "meta": {
+      "zona": "Catia",
+      "tipo": "Ferretería",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-23T23:15:36.162Z"
+  },
+  {
+    "id": 1771888544595,
+    "type": "catalogos_view",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/catalogos.html"
+    },
+    "createdAt": "2026-02-23T23:15:44.595Z"
+  },
+  {
+    "id": 1771888589795,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:16:29.795Z"
+  },
+  {
+    "id": 1771889908380,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:38:28.380Z"
+  },
+  {
+    "id": 1771889910292,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-23T23:38:30.292Z"
+  },
+  {
+    "id": 1771889923267,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-23T23:38:43.267Z"
+  },
+  {
+    "id": 1771889932678,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zone",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:38:52.678Z"
+  },
+  {
+    "id": 1771889941217,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:39:01.217Z"
+  },
+  {
+    "id": 1771889941228,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "zona": "Centro",
+      "tipo": "Particular",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-23T23:39:01.224Z"
+  },
+  {
+    "id": 1771889947575,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "needs",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:39:07.575Z"
+  },
+  {
+    "id": 1771890468594,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:47:48.594Z"
+  },
+  {
+    "id": 1771890469684,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-23T23:47:49.684Z"
+  },
+  {
+    "id": 1771890473298,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-23T23:47:53.298Z"
+  },
+  {
+    "id": 1771890480127,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zone",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:48:00.127Z"
+  },
+  {
+    "id": 1771890483977,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:48:03.977Z"
+  },
+  {
+    "id": 1771890483981,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "zona": "Norte",
+      "tipo": "Particular",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-23T23:48:03.979Z"
+  },
+  {
+    "id": 1771890492027,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "needs",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-23T23:48:12.027Z"
+  },
+  {
+    "id": 1771891113232,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-23T23:58:33.232Z"
+  },
+  {
+    "id": 1771891118740,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-23T23:58:38.740Z"
+  },
+  {
+    "id": 1771891122566,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-23T23:58:42.566Z"
+  },
+  {
+    "id": 1771891130989,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zone",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-23T23:58:50.989Z"
+  },
+  {
+    "id": 1771891141531,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "businessName",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-23T23:59:01.531Z"
+  },
+  {
+    "id": 1771891151428,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-23T23:59:11.428Z"
+  },
+  {
+    "id": 1771891151438,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "zona": "Norte",
+      "tipo": "Revendedor",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-23T23:59:11.434Z"
+  },
+  {
+    "id": 1771891186398,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "needs",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-23T23:59:46.398Z"
+  },
+  {
+    "id": 1771891223979,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-24T00:00:23.979Z"
+  },
+  {
+    "id": 1771891226766,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Revendedor"
+    },
+    "createdAt": "2026-02-24T00:00:26.766Z"
+  },
+  {
+    "id": 1771891383555,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T00:03:03.555Z"
+  },
+  {
+    "id": 1771891386350,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T00:03:06.350Z"
+  },
+  {
+    "id": 1771891389281,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-24T00:03:09.281Z"
+  },
+  {
+    "id": 1771891394284,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zone",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T00:03:14.284Z"
+  },
+  {
+    "id": 1771891400770,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T00:03:20.770Z"
+  },
+  {
+    "id": 1771891400781,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "zona": "Cantro",
+      "tipo": "Particular",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-24T00:03:20.776Z"
+  },
+  {
+    "id": 1771891414524,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "needs",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T00:03:34.524Z"
+  },
+  {
+    "id": 1771891433819,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T00:03:53.819Z"
+  },
+  {
+    "id": 1771891437959,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T00:03:57.959Z"
+  },
+  {
+    "id": 1771891880342,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T00:11:20.342Z"
+  },
+  {
+    "id": 1771893303683,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T00:35:03.683Z"
+  },
+  {
+    "id": 1771893306566,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T00:35:06.566Z"
+  },
+  {
+    "id": 1771893318448,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T00:35:18.448Z"
+  },
+  {
+    "id": 1771893321247,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-24T00:35:21.247Z"
+  },
+  {
+    "id": 1771893920028,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T00:45:20.028Z"
+  },
+  {
+    "id": 1771893922671,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T00:45:22.671Z"
+  },
+  {
+    "id": 1771893926200,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-24T00:45:26.200Z"
+  },
+  {
+    "id": 1771895174196,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:06:14.196Z"
+  },
+  {
+    "id": 1771897172391,
+    "type": "assistant_open",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T01:39:32.391Z"
+  },
+  {
+    "id": 1771897177438,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "welcome",
+      "segmentType": ""
+    },
+    "createdAt": "2026-02-24T01:39:37.438Z"
+  },
+  {
+    "id": 1771897188090,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "zoneCaracas",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:39:48.090Z"
+  },
+  {
+    "id": 1771897195794,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "contact",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:39:55.794Z"
+  },
+  {
+    "id": 1771897195806,
+    "type": "assistant_lead",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "zona": "Gran Caracas - Caricuao",
+      "tipo": "Particular",
+      "source": "assistant_landing"
+    },
+    "createdAt": "2026-02-24T01:39:55.801Z"
+  },
+  {
+    "id": 1771897212809,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "needs",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:40:12.809Z"
+  },
+  {
+    "id": 1771897220167,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:40:20.167Z"
+  },
+  {
+    "id": 1771897231276,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:40:31.276Z"
+  },
+  {
+    "id": 1771897246383,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/landing.html",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:40:46.383Z"
+  },
+  {
+    "id": 1771897370869,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:42:50.869Z"
+  },
+  {
+    "id": 1771897372163,
+    "type": "assistant_message",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "stage": "assist",
+      "segmentType": "Particular"
+    },
+    "createdAt": "2026-02-24T01:42:52.163Z"
+  },
+  {
+    "id": 1771897544707,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:45:44.707Z"
+  },
+  {
+    "id": 1771897563506,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:46:03.506Z"
+  },
+  {
+    "id": 1771897930054,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:52:10.054Z"
+  },
+  {
+    "id": 1771897931648,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:52:11.648Z"
+  },
+  {
+    "id": 1771897945962,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:52:25.962Z"
+  },
+  {
+    "id": 1771897996283,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:53:16.283Z"
+  },
+  {
+    "id": 1771898010214,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T01:53:30.214Z"
+  },
+  {
+    "id": 1771898858506,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:07:38.506Z"
+  },
+  {
+    "id": 1771898884499,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:08:04.499Z"
+  },
+  {
+    "id": 1771898903590,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:08:23.590Z"
+  },
+  {
+    "id": 1771898921040,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:08:41.040Z"
+  },
+  {
+    "id": 1771899424058,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:17:04.058Z"
+  },
+  {
+    "id": 1771899453837,
+    "type": "portal_register",
+    "sessionId": "",
+    "email": "Carlosp@gmail.com",
+    "meta": {
+      "zona": "Catia",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:17:33.832Z"
+  },
+  {
+    "id": 1771899464116,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:17:44.116Z"
+  },
+  {
+    "id": 1771900080408,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:28:00.408Z"
+  },
+  {
+    "id": 1771900132333,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T02:28:52.333Z"
+  },
+  {
+    "id": 1771900138415,
+    "type": "portal_approved",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "clientId": 1
+    },
+    "createdAt": "2026-02-24T02:28:58.414Z"
+  },
+  {
+    "id": 1771900216247,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:30:16.245Z"
+  },
+  {
+    "id": 1771900919166,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:41:59.165Z"
+  },
+  {
+    "id": 1771901144775,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:45:44.773Z"
+  },
+  {
+    "id": 1771901446340,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:50:46.338Z"
+  },
+  {
+    "id": 1771901562792,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T02:52:42.791Z"
+  },
+  {
+    "id": 1771902357073,
+    "type": "landing_visit",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T03:05:57.073Z"
+  },
+  {
+    "id": 1771902368918,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:06:08.915Z"
+  },
+  {
+    "id": 1771902601005,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:10:01.004Z"
+  },
+  {
+    "id": 1771902632880,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:10:32.879Z"
+  },
+  {
+    "id": 1771902997701,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:16:37.699Z"
+  },
+  {
+    "id": 1771903034284,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:17:14.281Z"
+  },
+  {
+    "id": 1771903225125,
+    "type": "landing_visit",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T03:20:25.125Z"
+  },
+  {
+    "id": 1771903230620,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:20:30.618Z"
+  },
+  {
+    "id": 1771903294499,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:21:34.497Z"
+  },
+  {
+    "id": 1771903773122,
+    "type": "landing_visit",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T03:29:33.122Z"
+  },
+  {
+    "id": 1771903781501,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:29:41.500Z"
+  },
+  {
+    "id": 1771903795299,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 441.20000000000005,
+      "orderNumber": 1,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 1
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:29:55.299Z"
+  },
+  {
+    "id": 1771903796278,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 443.20000000000005,
+      "orderNumber": null,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 1
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        },
+        {
+          "id": 3,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:29:56.278Z"
+  },
+  {
+    "id": 1771903809544,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 441.20000000000005,
+      "orderNumber": 3,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 1
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:30:09.544Z"
+  },
+  {
+    "id": 1771903809602,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 443.20000000000005,
+      "orderNumber": null,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 1
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        },
+        {
+          "id": 3,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:30:09.602Z"
+  },
+  {
+    "id": 1771904233744,
+    "type": "landing_visit",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T03:37:13.744Z"
+  },
+  {
+    "id": 1771904240110,
+    "type": "landing_visit",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T03:37:20.110Z"
+  },
+  {
+    "id": 1771904306534,
+    "type": "portal_login",
+    "sessionId": "",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "zona": "Hogar",
+      "tipo": "Particular"
+    },
+    "createdAt": "2026-02-24T03:38:26.533Z"
+  },
+  {
+    "id": 1771904311794,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 443.20000000000005,
+      "orderNumber": 5,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 1
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        },
+        {
+          "id": 3,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:38:31.794Z"
+  },
+  {
+    "id": 1771904311878,
+    "type": "order_sent",
+    "sessionId": "sess_4uo5vma76w6mm00wx8b",
+    "email": "melgonza88@gmail.com",
+    "meta": {
+      "origin": "portal",
+      "zona": "",
+      "tipo": "Particular",
+      "total": 570.2,
+      "orderNumber": null,
+      "items": [
+        {
+          "id": 2,
+          "qty": 4
+        },
+        {
+          "id": 1,
+          "qty": 2
+        },
+        {
+          "id": 11,
+          "qty": 1
+        },
+        {
+          "id": 5,
+          "qty": 4
+        },
+        {
+          "id": 6,
+          "qty": 1
+        },
+        {
+          "id": 10,
+          "qty": 1
+        },
+        {
+          "id": 3,
+          "qty": 1
+        }
+      ]
+    },
+    "createdAt": "2026-02-24T03:38:31.877Z"
+  },
+  {
+    "id": 1771949991667,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:19:51.667Z"
+  },
+  {
+    "id": 1771950041176,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:20:41.176Z"
+  },
+  {
+    "id": 1771950368276,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:26:08.276Z"
+  },
+  {
+    "id": 1771950375129,
+    "type": "landing_visit",
+    "sessionId": "sess_2w32atayh1mmlzjtguf",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:26:15.129Z"
+  },
+  {
+    "id": 1771950401438,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:26:41.438Z"
+  },
+  {
+    "id": 1771950476191,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:27:56.191Z"
+  },
+  {
+    "id": 1771950504425,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:28:24.425Z"
+  },
+  {
+    "id": 1771950521928,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:28:41.928Z"
+  },
+  {
+    "id": 1771950545396,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:29:05.396Z"
+  },
+  {
+    "id": 1771950697333,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:31:37.333Z"
+  },
+  {
+    "id": 1771950785187,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:33:05.187Z"
+  },
+  {
+    "id": 1771950838821,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:33:58.821Z"
+  },
+  {
+    "id": 1771950862024,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:34:22.024Z"
+  },
+  {
+    "id": 1771950970919,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:36:10.919Z"
+  },
+  {
+    "id": 1771951077777,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:37:57.777Z"
+  },
+  {
+    "id": 1771951138865,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:38:58.865Z"
+  },
+  {
+    "id": 1771951188212,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:39:48.212Z"
+  },
+  {
+    "id": 1771951443749,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:44:03.749Z"
+  },
+  {
+    "id": 1771951453114,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:44:13.114Z"
+  },
+  {
+    "id": 1771951483619,
+    "type": "landing_visit",
+    "sessionId": "sess_98z4q5a0mxfmm0u5v3v",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:44:43.619Z"
+  },
+  {
+    "id": 1771951510311,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T16:45:10.311Z"
+  },
+  {
+    "id": 1771955708178,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T17:55:08.178Z"
+  },
+  {
+    "id": 1771955709875,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T17:55:09.875Z"
+  },
+  {
+    "id": 1771955709901,
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T17:55:09.901Z"
+  },
+  {
+    "id": 1771955711283,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T17:55:11.283Z"
+  },
+  {
+    "id": 1771955718435,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T17:55:18.435Z"
+  },
+  {
+    "id": 1771955862450,
+    "type": "landing_visit",
+    "sessionId": "sess_nmutwpv9ztjmm0tax6h",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T17:57:42.450Z"
+  },
+  {
+    "id": 1771955862589,
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "meta": {
+      "path": "/"
+    },
+    "createdAt": "2026-02-24T17:57:42.589Z"
+  },
+  {
+    "id": 1771965153418,
+    "type": "landing_visit",
+    "sessionId": "sess_75f0tznmijomm0u6fqc",
+    "email": "",
+    "meta": {
+      "path": "/",
+      "query": ""
+    },
+    "createdAt": "2026-02-24T20:32:33.418Z"
+  },
+  {
+    "id": "1772502290221",
+    "type": "new_order",
+    "meta": {
+      "orderId": "1772502290219",
+      "total": 200
+    },
+    "createdAt": "2026-03-03T01:44:50.219Z",
+    "ip": "127.0.0.1"
+  }
+]

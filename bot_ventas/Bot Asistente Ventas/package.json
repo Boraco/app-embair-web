@@ -1,0 +1,23 @@
+{
+  "name": "bot-asistente-ventas",
+  "version": "1.0.0",
+  "description": "Bot de Ventas integrado con App Ecommerce",
+  "main": "whatsapp_bot.js",
+  "scripts": {
+    "start": "node whatsapp_bot.js",
+    "wa": "node whatsapp_bot.js",
+    "mp": "node marketplace_bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "puppeteer": "^24.37.5",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.6",
+    "xlsx": "^0.18.5"
+  }
+}

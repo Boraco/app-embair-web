@@ -1,0 +1,16 @@
+{
+  "keywords": [],
+  "prompts": [],
+  "faqs": [
+    {
+      "id": "faq_location",
+      "question": "¿Dónde están ubicados?",
+      "answer": "Estamos ubicados en Av. Intercomunal La Boyera, El Hatillo, Caracas 1083, Miranda. ¡Te esperamos!"
+    },
+    {
+      "id": "faq_schedule",
+      "question": "¿Cuál es su horario?",
+      "answer": "Nuestro horario de atención es de Lunes a Viernes de 8:00 AM a 5:00 PM."
+    }
+  ]
+}

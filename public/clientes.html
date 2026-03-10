@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gestión de Clientes</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
   <header class="bg-white shadow">
     <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="relative w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
-          <img id="admin-logo" src="uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
+        <div class="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
+          <img id="admin-logo" src="/uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
           <span>ME</span>
         </div>
         <div>
@@ -21,7 +22,7 @@
       </div>
       <div class="flex items-center gap-3">
         <a href="/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Panel principal</a>
-        <a href="/productos.html" class="text-sm text-indigo-600 hover:text-indigo-800">Gestión de productos</a>
+        <a href="/productos.html" class="text-sm text-blue-600 hover:text-blue-800">Gestión de productos</a>
         <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
       </div>
     </div>
@@ -79,8 +80,16 @@
             <option value="Instalador">Instalador</option>
           </select>
         </div>
+        <div>
+          <label class="block text-sm mb-1">Clave portal (solo EMBAIR)</label>
+          <div class="flex gap-2">
+            <input id="client-portal-pass" type="text" autocomplete="off" class="flex-1 border rounded px-3 py-2 text-sm" placeholder="Dejar vacío para no cambiar" />
+            <button id="generate-portal-pass" type="button" class="border border-gray-300 rounded px-3 py-2 text-xs whitespace-nowrap">Generar</button>
+            <button id="portal-pass-pdf" type="button" class="border border-gray-300 rounded px-3 py-2 text-xs whitespace-nowrap">Recibo PDF</button>
+          </div>
+        </div>
         <div class="sm:col-span-3 flex gap-3 mt-2">
-          <button id="save-client" class="bg-indigo-600 text-white rounded px-4 py-2 text-sm">Guardar cliente</button>
+          <button id="save-client" class="bg-blue-600 text-white rounded px-4 py-2 text-sm">Guardar cliente</button>
           <button id="reset-client" type="button" class="border border-gray-300 rounded px-4 py-2 text-sm">Limpiar</button>
         </div>
       </form>
@@ -95,6 +104,7 @@
             <th class="px-3 py-2">Celular</th>
             <th class="px-3 py-2">Zona</th>
             <th class="px-3 py-2">Dirección</th>
+            <th class="px-3 py-2">Portal</th>
             <th class="px-3 py-2">Acciones</th>
           </tr>
         </thead>
@@ -115,6 +125,119 @@
     const clientZonaEl = document.getElementById("client-zona")
     const clientCelularEl = document.getElementById("client-celular")
     const clientTipoEl = document.getElementById("client-tipo")
+    const clientPortalPassEl = document.getElementById("client-portal-pass")
+    const generatePortalPassBtn = document.getElementById("generate-portal-pass")
+    const portalPassPdfBtn = document.getElementById("portal-pass-pdf")
+
+    function generatePortalPassword() {
+      const base = Math.random().toString(36).toUpperCase().replace(/[^A-Z0-9]/g, "")
+      const part1 = base.slice(0, 4) || "EMBA"
+      const part2 = base.slice(4, 8) || "1234"
+      return part1 + "-" + part2
+    }
+
+    function getNextPortalReceiptNumber() {
+      try {
+        const raw = localStorage.getItem("portalReceiptCounter") || "0"
+        let n = parseInt(raw, 10)
+        if (!Number.isFinite(n) || n < 0) n = 0
+        n += 1
+        localStorage.setItem("portalReceiptCounter", String(n))
+        return n
+      } catch {
+        return Date.now()
+      }
+    }
+
+    if (generatePortalPassBtn && clientPortalPassEl) {
+      generatePortalPassBtn.addEventListener("click", () => {
+        clientPortalPassEl.value = generatePortalPassword()
+      })
+    }
+    function generatePortalAccessPdf() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("No se pudo cargar el generador de PDF.")
+        return
+      }
+      const pass = clientPortalPassEl ? clientPortalPassEl.value.trim() : ""
+      if (!pass) {
+        alert("Primero genera o escribe una clave de portal.")
+        return
+      }
+      const nombre = clientNombreEl.value.trim()
+      const apellido = clientApellidoEl.value.trim()
+      const cedula = clientCedulaEl.value.trim()
+      const email = clientEmailEl.value.trim()
+      const celular = clientCelularEl.value.trim()
+      const zona = clientZonaEl.value.trim()
+      const tipo = clientTipoEl.value
+      const receiptNumber = getNextPortalReceiptNumber()
+      const receiptCode = ("00000" + receiptNumber).slice(-5)
+      const doc = new window.jspdf.jsPDF()
+      let y = 15
+      doc.setFontSize(14)
+      doc.text("Acceso al Portal de Clientes EMBAIR", 10, y)
+      y += 8
+      doc.setFontSize(11)
+      doc.text("Recibo N\u00b0 " + receiptCode, 10, y)
+      y += 7
+      doc.setFontSize(10)
+      const nowStr = new Date().toLocaleString()
+      doc.text("Fecha: " + nowStr, 10, y)
+      y += 6
+      const nombreLinea = "Cliente: " + (nombre || "") + " " + (apellido || "")
+      doc.text(nombreLinea.trim(), 10, y)
+      y += 5
+      if (cedula) {
+        doc.text("Cédula: " + cedula, 10, y)
+        y += 5
+      }
+      if (celular) {
+        doc.text("Celular / WhatsApp: " + celular, 10, y)
+        y += 5
+      }
+      if (zona) {
+        doc.text("Zona: " + zona, 10, y)
+        y += 5
+      }
+      if (tipo) {
+        doc.text("Tipo de cliente: " + tipo, 10, y)
+        y += 6
+      } else {
+        y += 4
+      }
+      const portalUrl = window.location.origin + "/app?portal=1"
+      doc.text("URL de acceso al portal:", 10, y)
+      y += 5
+      doc.text(portalUrl, 10, y)
+      y += 6
+      if (email) {
+        doc.text("Usuario (correo): " + email, 10, y)
+        y += 5
+      }
+      doc.text("Clave de acceso: " + pass, 10, y)
+      y += 8
+      doc.text("Guarda este recibo en un lugar seguro.", 10, y)
+      y += 5
+      doc.text("Si tienes problemas para ingresar, cont\u00e1ctanos por WhatsApp.", 10, y)
+      const fileName = "Recibo_Portal_EMBAIR_" + receiptCode + "_" + (cedula || Date.now()) + ".pdf"
+      doc.save(fileName)
+      alert("Se gener\u00f3 el recibo PDF de acceso (" + fileName + "). Ahora se abrir\u00e1 WhatsApp para que lo env\u00edes adjunto.")
+      if (celular) {
+        const num = celular.replace(/\D/g, "")
+        const saludo = nombre ? "Hola " + nombre + ", " : "Hola, "
+        const texto = saludo + "te estamos enviando tu acceso al Portal de Clientes EMBAIR en un recibo PDF. Por favor revisa el archivo adjunto para ver tu usuario y clave."
+        const url = "https://wa.me/" + num + "?text=" + encodeURIComponent(texto)
+        window.open(url, "_blank")
+      } else {
+        alert("No hay un n\u00famero de WhatsApp en el formulario. El PDF se gener\u00f3 correctamente; adj\u00fantalo al chat manualmente.")
+      }
+    }
+    if (portalPassPdfBtn) {
+      portalPassPdfBtn.addEventListener("click", () => {
+        generatePortalAccessPdf()
+      })
+    }
     const clientTypeFilterEl = document.getElementById("client-type-filter")
     const clientSearchEl = document.getElementById("client-search")
     const clientSaveBtn = document.getElementById("save-client")
@@ -182,6 +305,15 @@
       for (const c of items) {
         const tr = document.createElement("tr")
         const nombre = `${c.nombre || ""} ${c.apellido || ""}`.trim()
+        let portalLabel = "Sin portal"
+        if (c.portalApproved) {
+          portalLabel = "Aprobado"
+          if (typeof c.portalLoginCount === "number" && c.portalLoginCount > 0) {
+            portalLabel += ` (${c.portalLoginCount} login${c.portalLoginCount > 1 ? "s" : ""})`
+          }
+        } else if (c.portalRequestedAt) {
+          portalLabel = "Pendiente"
+        }
         tr.innerHTML = `
           <td class="px-3 py-2">${nombre}</td>
           <td class="px-3 py-2">${c.cedula || ""}</td>
@@ -189,9 +321,10 @@
           <td class="px-3 py-2">${c.celular || ""}</td>
           <td class="px-3 py-2">${c.zona || ""}</td>
           <td class="px-3 py-2">${c.direccion || ""}</td>
+          <td class="px-3 py-2">${portalLabel}</td>
           <td class="px-3 py-2">
             <button data-id="${c.id}" data-action="wa" class="bg-emerald-500 text-white px-2 py-1 rounded mr-2 text-xs">WhatsApp</button>
-            <button data-id="${c.id}" data-action="edit" class="bg-indigo-600 text-white px-2 py-1 rounded mr-2 text-xs">Editar</button>
+            <button data-id="${c.id}" data-action="edit" class="bg-blue-600 text-white px-2 py-1 rounded mr-2 text-xs">Editar</button>
             <button data-id="${c.id}" data-action="del" class="bg-red-600 text-white px-2 py-1 rounded text-xs">Eliminar</button>
           </td>
         `
@@ -213,13 +346,16 @@
             clientCelularEl.value = c.celular || ""
             clientZonaEl.value = c.zona || ""
             clientTipoEl.value = c.tipo || ""
+            if (clientPortalPassEl) clientPortalPassEl.value = ""
             window.scrollTo({ top: 0, behavior: "smooth" })
           } else if (action === "wa") {
             const c = CLIENTS.find(x => x.id === id)
             if (c && c.celular) {
               const num = c.celular.replace(/\D/g, "")
-              const text = encodeURIComponent(`Hola ${c.nombre}, te contactamos desde Materiales Eléctricos.`)
-              window.open(`https://wa.me/${num}?text=${text}`, "_blank")
+              const saludo = c.nombre ? `Hola ${c.nombre}, ` : "Hola, "
+              const texto = saludo + "te estamos enviando tu acceso al Portal de Clientes EMBAIR en un recibo PDF. Por favor revisa el archivo adjunto para ver tu usuario y clave."
+              const url = `https://wa.me/${num}?text=${encodeURIComponent(texto)}`
+              window.open(url, "_blank")
             } else {
               alert("El cliente no tiene un número de celular válido.")
             }
@@ -242,11 +378,13 @@
       const direccion = clientDireccionEl.value.trim()
       const celular = clientCelularEl.value.trim()
       const tipo = clientTipoEl.value
+      const portalPass = clientPortalPassEl ? clientPortalPassEl.value : ""
       const zona = clientZonaEl.value.trim()
       if (!nombre || !apellido || !cedula || !celular || !tipo) {
         alert("Completa al menos nombre, apellido, cédula, celular y tipo de cliente.")
         return
       }
+      let finalId = id
       if (id) {
         const idx = CLIENTS.findIndex(x => x.id === id)
         if (idx >= 0) {
@@ -267,9 +405,28 @@
         }
       } else {
         const newId = CLIENTS.length ? Math.max(...CLIENTS.map(x => x.id)) + 1 : 1
+        finalId = newId
         CLIENTS.push({ id: newId, nombre, apellido, cedula, email, direccion, celular, tipo, zona, pedidos: 0, interesado: true })
       }
       saveClients(CLIENTS)
+      if (finalId && portalPass) {
+        try {
+          fetch("/api/portal/admin/set-password", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Basic " + btoa("admin:admin")
+            },
+            body: JSON.stringify({ clientId: finalId, password: portalPass })
+          }).then(r => r.json()).then(data => {
+            if (!data || !data.ok) {
+              alert("No se pudo actualizar la clave del portal para este cliente.")
+            }
+          }).catch(() => {
+            alert("Error de red al actualizar la clave del portal.")
+          })
+        } catch {}
+      }
       renderClients()
       clientFormEl.reset()
       clientIdEl.value = ""
@@ -284,10 +441,19 @@
     clientSearchEl.addEventListener("input", renderClients)
 
     function exportClientsToCsv() {
-      const headers = ["Nombre", "Apellido", "Cédula", "Email", "Dirección", "Zona", "Celular", "Tipo", "Pedidos", "Estado"]
+      const headers = ["Nombre", "Apellido", "Cédula", "Email", "Dirección", "Zona", "Celular", "Tipo", "Pedidos", "Estado", "Portal"]
       const lines = []
       lines.push(headers.join(";"))
       for (const c of CLIENTS) {
+        let portalLabel = "Sin portal"
+        if (c.portalApproved) {
+          portalLabel = "Aprobado"
+          if (typeof c.portalLoginCount === "number" && c.portalLoginCount > 0) {
+            portalLabel += ` (${c.portalLoginCount} login${c.portalLoginCount > 1 ? "s" : ""})`
+          }
+        } else if (c.portalRequestedAt) {
+          portalLabel = "Pendiente"
+        }
         const row = [
           c.nombre || "",
           c.apellido || "",
@@ -298,7 +464,8 @@
           c.celular || "",
           c.tipo || "",
           typeof c.pedidos === "number" ? c.pedidos : 0,
-          c.pedidos && c.pedidos > 0 ? "Con pedidos" : (c.interesado ? "Interesado" : "Sin actividad")
+          c.pedidos && c.pedidos > 0 ? "Con pedidos" : (c.interesado ? "Interesado" : "Sin actividad"),
+          portalLabel
         ].map(v => {
           const s = String(v).replace(/"/g, '""')
           return `"${s}"`
@@ -327,4 +494,3 @@
   </script>
 </body>
 </html>
-

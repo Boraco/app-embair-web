@@ -8,7 +8,7 @@
 </head>
 <body class="bg-slate-50">
   <div class="min-h-screen flex flex-col">
-    <header class="bg-indigo-700 text-white">
+    <header class="bg-blue-700 text-white">
       <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
         <h1 class="text-lg md:text-2xl font-semibold">Catálogos para Descarga</h1>
         <a href="/landing.html" class="text-xs md:text-sm underline">Volver al inicio</a>
@@ -38,6 +38,33 @@
   </div>
   <script>
     const catalogListRows = document.getElementById("catalog-list-rows")
+    const SESSION_KEY = "embair_session_id"
+
+    function getSessionId() {
+      try {
+        const existing = localStorage.getItem(SESSION_KEY)
+        if (existing) return existing
+        const id = "sess_" + Math.random().toString(36).slice(2) + Date.now().toString(36)
+        localStorage.setItem(SESSION_KEY, id)
+        return id
+      } catch {
+        return ""
+      }
+    }
+
+    async function trackEvent(type, meta) {
+      try {
+        await fetch("/api/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type,
+            sessionId: getSessionId(),
+            meta: meta || {}
+          })
+        })
+      } catch {}
+    }
     async function loadPublicCatalogs() {
       try {
         const res = await fetch("/api/public/catalogs")
@@ -56,11 +83,14 @@
       catalogListRows.innerHTML = list.map(c => {
         const name = c.title || "Catálogo"
         const url = c.url || "#"
+        const href = `/download.html?pdf=${encodeURIComponent(url)}&catalogId=${encodeURIComponent(c.id)}`
         return `
           <tr class="border-t hover:bg-gray-50">
             <td class="px-3 py-2">${name}</td>
             <td class="px-3 py-2">
-              <a href="${url}" target="_blank" class="inline-flex items-center bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700">
+              <a href="${href}" class="inline-flex items-center bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700" onclick="window.trackCatalogClick && window.trackCatalogClick(${JSON.stringify(
+                String(c.id)
+              )})">
                 Descargar
               </a>
             </td>
@@ -68,8 +98,12 @@
         `
       }).join("")
     }
+    window.trackCatalogClick = (id) => {
+      trackEvent("catalog_link_click", { catalogId: id })
+    }
+    trackEvent("catalogos_view", { path: window.location.pathname })
     loadPublicCatalogs()
   </script>
+  <script src="/js/config-loader.js"></script>
 </body>
 </html>
-

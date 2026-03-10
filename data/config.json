@@ -1,0 +1,64 @@
+{
+  "storeName": "COMERCIALIZADORA EMBAIR, C.A",
+  "heroTitle": "Brindamos soluciones Integrales en la compra de Materiales Eléctricos, Plomería y Ferretería",
+  "heroSubtitle": "Tenemos mas de 10 años impulsando proyectos de construcción y remodelaciones a nivel nacional. Somos el alíado estratégico que tu proyecto u obra civil necesita con precios competitivos al mayor. ",
+  "whatsapp": "+584242240909",
+  "logoUrl": "/uploads/version_malu_Definitivo_Comercizlizadora_Embair_10_1771950988319.png",
+  "primaryColor": "#010c4e",
+  "secondaryColor": "#fd5120",
+  "slides": [
+    {
+      "title": "Brindamos soluciones Integrales en la compra de Materiales Eléctricos, Plomería y Ferretería",
+      "subtitle": "Tenemos mas de 10 años impulsando proyectos de construcción y remodelaciones a nivel nacional. Somos el alíado estratégico que tu proyecto u obra civil necesita con precios competitivos al mayor. ",
+      "link": "dice que enlace opcional",
+      "img": "/uploads/6_1771950856280.png"
+    },
+    {
+      "title": "Tu inventario siempre listo: Somos el mayorista de confianza para tu proyecto u obra.",
+      "subtitle": "Abastecemos a constructoras, ferreteria y profesionales del área con insumos de alta calidad. Catálogo actualizado, atención personalizada, y despacho eficiente para que tu proyecto nunca se detenga.",
+      "link": "",
+      "img": "/uploads/Gemini_Generated_Image_8db39h8db39h8db3_1772544602164.png"
+    }
+  ],
+  "sections": [
+    {
+      "type": "text",
+      "title": "Expertos en Materiales eléctricos, Plomería e insumos ferreteros.",
+      "content": "Calidad certificada y stock permanente para profesionales del ramo. Descarga nuestro catálogo y optimiza tus costos con el respaldo de una década de experiencia. ",
+      "img": "",
+      "layout": "left"
+    },
+    {
+      "type": "image-text",
+      "title": "MATERIALES ELECTRICOS",
+      "content": "¿Buscas materiales que no fallen en el momento crítico? Entendemos que para un contratista o instalador, la calidad del insumo es su firma personal. Por eso, nuestra selección de materiales eléctricos está diseñada para resistir las condiciones más exigentes de la obra civil e industrial.\n\nCertificación Garantizada: Todos nuestros productos cumplen con las normas técnicas vigentes (NOM/RETIE/IEC), asegurando la aprobación de tus inspecciones.\n\nStock para Entrega Inmediata: Sabemos que en la construcción, el tiempo es dinero. Contamos con inventario real para que tu obra no se detenga.\n\nDurabilidad Comprobada: Trabajamos con marcas que garantizan una larga vida útil, reduciendo costos de mantenimiento y reposición.\n\n¿Tienes un listado de materiales? No pierdas tiempo buscando precios por separado. Sube tu archivo o envíanos un mensaje y recibe una cotización personalizada en tiempo récord.",
+      "img": "/uploads/Gemini_Generated_Image_vsg2g7vsg2g7vsg2_1773092437533.png",
+      "layout": "left"
+    },
+    {
+      "type": "image-text",
+      "title": "MATERIALES PLOMERIA",
+      "content": "Soluciones de Plomería de Alta Resistencia: Cero Filtraciones, Máximo Rendimiento.\n\nEn Comercializadora Embair, suministramos sistemas integrales para conducción de agua y drenaje que garantizan la integridad de tus proyectos.\n\nUna instalación hidráulica es el sistema circulatorio de cualquier edificación. No hay margen para el error. Por eso, nuestra categoría de plomería está seleccionada bajo criterios estrictos de resistencia a la presión, flexibilidad y durabilidad térmica.\n\nYa sea que gestiones una obra residencial o un mantenimiento industrial complejo, en Embair te ofrecemos:\n\nTecnología en Materiales: Desde PVC y CPVC hasta tubería de polipropileno (PPR) de termofusión para uniones moleculares inseparables.\n\nResistencia Certificada: Productos diseñados para soportar golpes de ariete y variaciones de temperatura sin fisuras.\n\nComplementos Especializados: Válvulas, grifería técnica, selladores y conexiones que aseguran un sellado hermético permanente.\n\n¿Evitando fugas en tu presupuesto? Optimiza tus costos sin sacrificar la calidad técnica. Envíanos tu plano o lista de materiales y recibe una propuesta técnica-comercial hoy mismo.",
+      "img": "/uploads/Gemini_Generated_Image_llebs5llebs5lleb_1773092748840.png",
+      "layout": "right"
+    }
+  ],
+  "seoTitle": "COMERCIALIZADORA EMBAR, C.A",
+  "seoDescription": "Venta mayor y detal de Materiales Eléctricos, Plomería e insumos Ferreteros. Somos una empresa donde nuestro principal objetivo es prestarles el mejor servicio al mejor precios. Tenemos servicio de flete y delivery en toda Venezuela  ",
+  "seoFavicon": "/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png",
+  "seoOgImage": "/uploads/version_malu_Definitivo_Comercizlizadora_Embair_01_1771955713725.png",
+  "portalSlides": [],
+  "useLandingSlidesOnPortal": false,
+  "marqueeEnabled": false,
+  "marqueeText": "",
+  "marqueeLink": "",
+  "marqueeSpeed": "20",
+  "marqueeBgColor": "#0f172a",
+  "marqueeTextColor": "#ffffff",
+  "portalHeroTitle": "",
+  "portalHeroSubtitle": "",
+  "address": "Caracas-Venezuela\nMunicpio Baruta",
+  "phone": "+584242240909",
+  "email": "ventas.embair@gmail.com",
+  "mapUrl": ""
+}

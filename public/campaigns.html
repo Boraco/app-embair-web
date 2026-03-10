@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Campañas de Email - Panel de Administración</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white shadow mb-8">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
+             <img id="admin-logo" src="/uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
+             <span>ME</span>
+        </div>
+        <h1 class="text-2xl font-semibold">Campañas de Email</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/admin.html" class="text-sm font-medium text-blue-600 hover:text-blue-800">← Volver al Panel</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 pb-12">
+    
+    <section id="email-campaigns" class="mb-10">
+      
+      <!-- Public/QR Link Generator Section -->
+      <div class="mb-6 bg-gradient-to-r from-blue-50 to-blue-50 rounded-lg border border-blue-100 p-4">
+        <div class="flex flex-col md:flex-row items-center gap-4">
+            <div class="flex-1">
+                <h3 class="font-bold text-blue-900">Generador de Enlace Público y QR</h3>
+                <p class="text-xs text-blue-700 mt-1">Sube un PDF para generar un enlace único que cualquiera pueda descargar escaneando un QR o visitando el link. Los datos se capturarán igual que en las campañas.</p>
+            </div>
+            <div class="flex-1 w-full flex flex-col gap-2">
+                <input id="qr-subject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Nombre (ej: Catálogo público febrero)" />
+                <input id="qr-public-url" class="w-full border rounded px-3 py-2 text-sm" placeholder="URL pública de tu dominio (opcional) - Ej: https://tutienda.com" />
+                <input type="file" id="qr-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white file:text-blue-700 hover:file:bg-blue-50" />
+            </div>
+            <button id="generate-qr-btn" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 text-sm whitespace-nowrap">
+                Generar Link
+            </button>
+        </div>
+        <!-- Result Container -->
+        <div id="qr-result" class="hidden mt-4 pt-4 border-t border-blue-200 flex flex-col md:flex-row gap-6 items-center justify-center bg-white p-4 rounded">
+            <div id="qr-code-display"></div>
+            <div class="flex-1 text-center md:text-left">
+                <p class="text-sm font-bold text-gray-700 mb-1">Enlace Público:</p>
+                <div class="flex gap-2">
+                    <input id="qr-link-output" readonly class="flex-1 border bg-gray-50 rounded px-2 py-1 text-xs text-gray-600 font-mono" />
+                    <button id="copy-qr-link" class="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300">Copiar</button>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-2">Comparte este enlace o el código QR. Los usuarios deberán ingresar sus datos para descargar.</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- New Campaign Form -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-semibold mb-4">Nueva Campaña de Email</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm mb-1 font-medium">Asunto del Correo</label>
+              <input id="camp-subject" class="w-full border rounded px-3 py-2 text-sm" placeholder="Ej: Nueva Lista de Precios - Febrero" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 font-medium">Archivo PDF (Lista de Precios)</label>
+              <input type="file" id="camp-file" accept="application/pdf" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1 font-medium">Destinatarios (Uno por línea)</label>
+              <textarea id="camp-emails" rows="5" class="w-full border rounded px-3 py-2 text-sm" placeholder="cliente1@ejemplo.com&#10;cliente2@ejemplo.com"></textarea>
+            </div>
+            
+            <details class="border rounded p-2">
+              <summary class="cursor-pointer text-sm font-medium text-blue-600">Configuración Avanzada (SMTP / Ngrok)</summary>
+              <div class="mt-2 space-y-2 text-sm">
+                
+                <div class="mb-3">
+                  <label class="block text-xs font-semibold mb-1">URL pública (dominio) opcional</label>
+                  <input id="public-url" class="w-full border rounded px-2 py-1" placeholder="Ej: https://tutienda.com" />
+                  <p class="text-[10px] text-gray-500 mt-1">Si tu dominio ya está apuntando a este servidor, puedes dejar este campo vacío. Si quieres forzar otro dominio/base de URL, escríbelo aquí.</p>
+                </div>
+
+                <div class="border-t pt-2 mt-2">
+                    <p class="font-semibold text-xs mb-2">Configuración de Correo (SMTP)</p>
+                    <div class="bg-blue-50 text-blue-800 p-3 rounded text-xs mb-2">
+                        <strong>¡Atención Gmail!</strong> Para enviar correos debes:
+                        <ol class="list-decimal ml-4 mt-1 space-y-1">
+                            <li>Activar la <a href="https://myaccount.google.com/signinoptions/two-step-verification" target="_blank" class="underline font-bold">Verificación en 2 pasos</a> en tu cuenta Google.</li>
+                            <li>Crear una <a href="https://myaccount.google.com/apppasswords" target="_blank" class="underline font-bold">Contraseña de Aplicación</a>.</li>
+                            <li>Usar esa contraseña de 16 letras aquí (sin espacios).</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="flex gap-2 mb-2">
+                        <button type="button" id="fill-gmail" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">Usar Gmail</button>
+                        <button type="button" id="fill-outlook" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">Usar Outlook</button>
+                    </div>
+
+                    <input id="smtp-host" class="w-full border rounded px-2 py-1" placeholder="Host (ej: smtp.gmail.com)" />
+                    <div class="flex gap-2">
+                    <input id="smtp-port" class="w-full border rounded px-2 py-1" placeholder="Puerto (ej: 587)" />
+                    <input id="smtp-user" class="w-full border rounded px-2 py-1" placeholder="Usuario (tu correo)" />
+                    </div>
+                    <input id="smtp-pass" type="password" class="w-full border rounded px-2 py-1" placeholder="Contraseña de Aplicación" />
+                    <button id="test-smtp" type="button" class="mt-2 w-full text-xs bg-gray-100 border text-gray-700 rounded px-2 py-1 hover:bg-gray-200">Probar Conexión</button>
+                </div>
+              </div>
+            </details>
+
+            <button id="send-campaign" class="w-full bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition">Enviar Campaña</button>
+          </div>
+        </div>
+
+        <!-- Campaign History -->
+        <div class="bg-white rounded-lg shadow p-6 overflow-hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold">Historial y Estadísticas</h3>
+            <button id="refresh-campaigns" class="text-blue-600 text-sm hover:underline">Actualizar</button>
+          </div>
+          <div class="overflow-y-auto max-h-[500px]">
+            <table class="w-full text-sm">
+              <thead class="bg-gray-50 sticky top-0">
+                <tr>
+                  <th class="px-2 py-2 text-left">Fecha</th>
+                  <th class="px-2 py-2 text-left">Asunto</th>
+                  <th class="px-2 py-2 text-center">Enviados</th>
+                  <th class="px-2 py-2 text-center">Abiertos</th>
+                  <th class="px-2 py-2 text-center">Clics</th>
+                  <th class="px-2 py-2 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="campaign-rows" class="divide-y">
+                <!-- Rows injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal Reporte Campaña -->
+    <dialog id="camp-report-modal" class="p-0 rounded-lg shadow-xl w-full max-w-4xl backdrop:bg-gray-900/50">
+        <div class="bg-white flex flex-col max-h-[80vh]">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="font-semibold text-lg" id="camp-report-title">Reporte de Campaña</h3>
+                <button onclick="document.getElementById('camp-report-modal').close()" class="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-3 py-2">Cliente</th>
+                            <th class="px-3 py-2">Email</th>
+                            <th class="px-3 py-2">Zona / Tipo</th>
+                            <th class="px-3 py-2 text-center">Estado</th>
+                            <th class="px-3 py-2 text-right">Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody id="camp-report-rows" class="divide-y">
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t bg-gray-50 text-right">
+                <button onclick="document.getElementById('camp-report-modal').close()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded text-sm font-medium hover:bg-gray-300">Cerrar</button>
+            </div>
+        </div>
+    </dialog>
+
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // --- Data Loading for CLIENTS (needed for report) ---
+    let CLIENTS = []
+    async function loadClients() {
+        try {
+            const res = await fetch("/api/clients", {
+                headers: { "Authorization": "Basic " + btoa("admin:admin") }
+            })
+            if (res.ok) CLIENTS = await res.json()
+        } catch {}
+    }
+    loadClients()
+
+    // --- EMAIL CAMPAIGN LOGIC ---
+    const campSubjectEl = document.getElementById("camp-subject")
+    const campFileEl = document.getElementById("camp-file")
+    const campEmailsEl = document.getElementById("camp-emails")
+    const sendCampBtn = document.getElementById("send-campaign")
+    const refreshCampBtn = document.getElementById("refresh-campaigns")
+    const campRowsEl = document.getElementById("campaign-rows")
+    const smtpHostEl = document.getElementById("smtp-host")
+    const smtpPortEl = document.getElementById("smtp-port")
+    const smtpUserEl = document.getElementById("smtp-user")
+    const smtpPassEl = document.getElementById("smtp-pass")
+
+    document.getElementById("fill-gmail")?.addEventListener("click", () => {
+        smtpHostEl.value = "smtp.gmail.com"
+        smtpPortEl.value = "587"
+        alert("Configurado para Gmail. Recuerda:\n1. El usuario es tu correo completo.\n2. La contraseña debe ser una 'Contraseña de Aplicación' (creada en tu cuenta de Google > Seguridad > Verificación en 2 pasos).")
+    })
+
+    document.getElementById("fill-outlook")?.addEventListener("click", () => {
+        smtpHostEl.value = "smtp.office365.com"
+        smtpPortEl.value = "587"
+        alert("Configurado para Outlook/Hotmail.")
+    })
+
+    document.getElementById("test-smtp")?.addEventListener("click", async () => {
+        const btn = document.getElementById("test-smtp")
+        const host = smtpHostEl.value
+        const port = smtpPortEl.value
+        const user = smtpUserEl.value
+        const pass = smtpPassEl.value
+
+        if (!host || !user || !pass) {
+            alert("Por favor completa Host, Usuario y Contraseña para probar.")
+            return
+        }
+
+        btn.disabled = true
+        btn.textContent = "Probando..."
+        
+        try {
+            const res = await fetch("/api/smtp/test", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    smtpConfig: { host, port: Number(port) || 587, user, pass }
+                })
+            })
+            
+            const data = await res.json()
+            if (res.ok) {
+                alert("✅ ¡Conexión Exitosa!\nTus credenciales son correctas. Ya puedes enviar campañas.")
+            } else {
+                if (data.error === "smtp_error") {
+                     alert(`❌ Error de conexión:\n${data.details}\n\nSi usas Gmail, recuerda:\n1. Activa "Verificación en 2 pasos".\n2. Crea y usa una "Contraseña de Aplicación".`)
+                } else {
+                     alert("❌ Error: " + (data.error || "Desconocido"))
+                }
+            }
+        } catch (e) {
+            alert("Error de red: " + e.message)
+        } finally {
+            btn.disabled = false
+            btn.textContent = "Probar Conexión"
+        }
+    })
+
+    let CAMPAIGNS = []
+    async function loadCampaigns() {
+      try {
+        const res = await fetch("/api/campaigns")
+        if (res.ok) {
+          CAMPAIGNS = await res.json()
+          renderCampaigns(CAMPAIGNS)
+        }
+      } catch (e) {
+        console.error("Error loading campaigns", e)
+      }
+    }
+
+    function renderCampaigns(list) {
+      if (!campRowsEl) return
+      campRowsEl.innerHTML = list.map(c => {
+        const sent = c.sent || 0
+        const opens = Object.keys(c.opens || {}).length
+        const clicks = Object.keys(c.clicks || {}).length
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-2 py-2 text-gray-600">${new Date(c.date).toLocaleDateString()} ${new Date(c.date).toLocaleTimeString()}</td>
+            <td class="px-2 py-2 font-medium text-blue-600">${c.subject}</td>
+            <td class="px-2 py-2 text-center">${sent} / ${c.total}</td>
+            <td class="px-2 py-2 text-center text-green-600 font-bold">${opens}</td>
+            <td class="px-2 py-2 text-center text-blue-600 font-bold">${clicks}</td>
+            <td class="px-2 py-2 text-right">
+                <button onclick='showCampReport("${c.id}")' class="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 font-medium">Ver Reporte</button>
+            </td>
+          </tr>
+        `
+      }).join("")
+    }
+
+    // --- Export Campaign Data ---
+    function exportCampaignData(c) {
+        // Find clients related to this campaign
+        let relatedClients = []
+        
+        // 1. From clicks
+        if (c.clicks) {
+            Object.keys(c.clicks).forEach(email => {
+                const client = CLIENTS.find(cl => cl.email && cl.email.toLowerCase() === email.toLowerCase())
+                if (client && !relatedClients.includes(client)) {
+                    relatedClients.push(client)
+                }
+            })
+        }
+        
+        // 2. From client.campaigns array (for public/QR links)
+        CLIENTS.forEach(client => {
+            if (client.campaigns && client.campaigns.includes(c.id)) {
+                if (!relatedClients.includes(client)) {
+                    relatedClients.push(client)
+                }
+            }
+        })
+        
+        if (relatedClients.length === 0) {
+            alert("No hay datos de clientes registrados para esta campaña.")
+            return
+        }
+        
+        // Generate CSV
+        const headers = ["Nombre", "Apellido", "Email", "Celular", "Zona", "Tipo", "Direccion", "Fecha Registro"]
+        const rows = relatedClients.map(cl => [
+            cl.nombre || "",
+            cl.apellido || "",
+            cl.email || "",
+            cl.celular || "",
+            cl.zona || "",
+            cl.tipo || "",
+            cl.direccion || "",
+            cl.created_at || ""
+        ])
+        
+        const csvContent = [
+            headers.join(","),
+            ...rows.map(r => r.join(","))
+        ].join("\n")
+        
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.setAttribute("href", url)
+        link.setAttribute("download", `reporte_campana_${c.id}.csv`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+    }
+
+    window.showCampReport = (id) => {
+        const c = CAMPAIGNS.find(x => x.id === id)
+        if (!c) return
+        
+        const modal = document.getElementById("camp-report-modal")
+        const title = document.getElementById("camp-report-title")
+        const rows = document.getElementById("camp-report-rows")
+        
+        title.textContent = `Reporte: ${c.subject}`
+
+        // Add Export Button to Modal Title
+        const existingBtn = document.getElementById("export-camp-btn")
+        if (existingBtn) existingBtn.remove()
+        
+        const exportBtn = document.createElement("button")
+        exportBtn.id = "export-camp-btn"
+        exportBtn.textContent = "Descargar CSV"
+        exportBtn.className = "ml-4 text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+        exportBtn.onclick = () => exportCampaignData(c)
+        title.appendChild(exportBtn)
+        
+        // Merge interactions
+        const interactions = []
+        
+        // 1. Process Opens
+        if (c.opens) {
+            Object.entries(c.opens).forEach(([email, ts]) => {
+                interactions.push({ email, type: "open", ts, label: "Abierto" })
+            })
+        }
+        
+        // 2. Process Clicks
+        if (c.clicks) {
+            Object.entries(c.clicks).forEach(([email, ts]) => {
+                interactions.push({ email, type: "click", ts, label: "Clic en PDF" })
+            })
+        }
+
+        // 3. Process Public Signups (for QR campaigns)
+        CLIENTS.forEach(client => {
+            if (client.campaigns && client.campaigns.includes(c.id)) {
+                 interactions.push({ 
+                     email: client.email, 
+                     type: "signup", 
+                     ts: client.updated_at || client.created_at || new Date().toISOString(), 
+                     label: "Registro QR/Link" 
+                 })
+            }
+        })
+        
+        // Sort by time desc
+        interactions.sort((a, b) => new Date(b.ts) - new Date(a.ts))
+        
+        if (interactions.length === 0) {
+            rows.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Aún no hay interacciones registradas.</td></tr>`
+        } else {
+            rows.innerHTML = interactions.map(i => {
+                // Find client
+                const client = CLIENTS.find(cl => cl.email && cl.email.toLowerCase().trim() === i.email.toLowerCase().trim())
+                
+                const name = client ? `${client.nombre || ""} ${client.apellido || ""}` : "Desconocido"
+                const zona = client ? `${client.zona || "-"} / ${client.tipo || "-"}` : "-"
+                const phone = client ? (client.celular || "") : ""
+                
+                let badgeClass = "bg-gray-100 text-gray-800"
+                if (i.type === "open") badgeClass = "bg-green-100 text-green-800"
+                if (i.type === "click") badgeClass = "bg-blue-100 text-blue-800"
+                if (i.type === "signup") badgeClass = "bg-orange-100 text-orange-800"
+                
+                return `
+                    <tr class="hover:bg-gray-50 border-b last:border-0">
+                        <td class="px-3 py-2">
+                            <div class="font-medium text-gray-900">${name}</div>
+                            ${phone ? `<div class="text-xs text-gray-500">Tel: ${phone}</div>` : ""}
+                        </td>
+                        <td class="px-3 py-2 text-gray-600">${i.email}</td>
+                        <td class="px-3 py-2 text-gray-500 text-xs">${zona}</td>
+                        <td class="px-3 py-2 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${badgeClass}">
+                                ${i.label}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2 text-right text-xs text-gray-500">
+                            ${new Date(i.ts).toLocaleString()}
+                        </td>
+                    </tr>
+                `
+            }).join("")
+        }
+        
+        modal.showModal()
+    }
+
+    if (sendCampBtn) {
+      sendCampBtn.addEventListener("click", async () => {
+        const subject = campSubjectEl.value.trim()
+        const emailsText = campEmailsEl.value.trim()
+        const file = campFileEl.files[0]
+
+        if (!subject || !emailsText || !file) {
+          alert("Por favor completa el asunto, selecciona un PDF y agrega destinatarios.")
+          return
+        }
+
+        const emails = emailsText.split("\n").map(e => e.trim()).filter(e => e.includes("@"))
+        if (emails.length === 0) {
+          alert("No hay correos válidos.")
+          return
+        }
+
+        sendCampBtn.disabled = true
+        sendCampBtn.textContent = "Subiendo archivo..."
+
+        try {
+          // 1. Upload PDF
+          const fd = new FormData()
+          fd.append("file", file)
+          const upRes = await fetch("/api/upload", { method: "POST", body: fd })
+          const upData = await upRes.json()
+          
+          if (!upData.ok || !upData.url) throw new Error("Error subiendo PDF")
+
+          // 2. Send Campaign
+          sendCampBtn.textContent = "Enviando correos..."
+          
+          const payload = {
+            subject,
+            pdfUrl: upData.url,
+            emails,
+            publicUrl: document.getElementById("public-url").value.trim(),
+            smtpConfig: smtpHostEl.value ? {
+              host: smtpHostEl.value,
+              port: Number(smtpPortEl.value) || 587,
+              user: smtpUserEl.value,
+              pass: smtpPassEl.value
+            } : null
+          }
+
+          const campRes = await fetch("/api/campaign/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          })
+
+          if (campRes.ok) {
+            alert("Campaña iniciada correctamente. Los correos se enviarán en segundo plano.")
+            campSubjectEl.value = ""
+            campEmailsEl.value = ""
+            campFileEl.value = ""
+            loadCampaigns()
+          } else {
+            const errData = await campRes.json().catch(() => ({}))
+            if (errData.error === "smtp_error") {
+                alert(`Error de conexión SMTP:\n${errData.details}\n\nSUGERENCIAS:\n1. Si usas Gmail, NO uses tu contraseña normal. Debes crear una "Contraseña de Aplicación".\n2. Verifica que no haya espacios en la contraseña.\n3. Revisa el puerto (587 suele ser correcto).`)
+            } else {
+                alert("Error al iniciar campaña: " + (errData.error || "Desconocido"))
+            }
+          }
+
+        } catch (e) {
+          console.error(e)
+          alert("Ocurrió un error: " + e.message)
+        } finally {
+          sendCampBtn.disabled = false
+          sendCampBtn.textContent = "Enviar Campaña"
+        }
+      })
+    }
+
+    if (refreshCampBtn) {
+      refreshCampBtn.addEventListener("click", loadCampaigns)
+    }
+
+    // Init
+    loadCampaigns()
+  </script>
+</body>
+</html>

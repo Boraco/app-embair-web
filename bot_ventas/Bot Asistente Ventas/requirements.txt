@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+openpyxl
+pdfplumber
+python-multipart
+python-dotenv
+requests
+pydantic-settings
+jinja2
+openai

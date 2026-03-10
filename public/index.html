@@ -4,7 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Catálogo | Materiales Eléctricos y Plomería</title>
+  <meta name="description" content="Catálogo online de materiales eléctricos, plomería y herramientas. Realiza tu pedido por WhatsApp fácilmente.">
+  <meta name="keywords" content="electricidad, plomería, herramientas, ferretería, construcción, catálogo online">
+  <meta property="og:title" content="Catálogo de Materiales Eléctricos y Plomería">
+  <meta property="og:description" content="Explora nuestro catálogo y realiza tu pedido por WhatsApp. Precios y stock actualizados.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/uploads/logo.png">
+  <meta property="og:image" content="/uploads/share-card.png">
+  <meta property="og:image:alt" content="Catálogo Digital">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Catálogo de Materiales Eléctricos y Plomería">
+  <meta name="twitter:description" content="Explora nuestro catálogo y realiza tu pedido por WhatsApp. Precios y stock actualizados.">
+  <meta name="twitter:image" content="/uploads/share-card.png">
+  <meta name="theme-color" content="#1e40af">
+  <!-- EDITABLE: Puedes cambiar el color de la barra de navegación aquí si es necesario -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/config-loader.js" defer></script>
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -17,12 +33,14 @@
   <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
     <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="relative w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden border border-slate-200">
+        <!-- EDITABLE: Logo de la tienda -->
+        <div class="relative w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden border border-slate-200">
            <img id="app-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Logo" class="absolute inset-0 w-full h-full object-contain bg-white hidden">
            <span id="app-logo-fallback">ME</span>
         </div>
         <div>
-          <h1 class="text-lg md:text-2xl font-semibold leading-tight">Tienda online de materiales eléctricos y plomería</h1>
+          <!-- EDITABLE: Título y subtítulo de la cabecera -->
+          <h1 class="store-name text-sm md:text-2xl font-semibold leading-tight line-clamp-2">Tienda online de materiales eléctricos y plomería</h1>
           <p class="text-[10px] md:text-sm text-slate-500 hidden sm:block">Explora el catálogo, arma tu pedido y envíalo directo desde tu dominio.</p>
         </div>
       </div>
@@ -31,22 +49,23 @@
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span class="text-xs text-slate-600">Tienda activa en tu dominio</span>
         </div>
-        <input id="store-wa" placeholder="WhatsApp tienda..." class="w-32 md:w-auto border border-slate-300 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white" />
-        <button id="share-store" class="hidden md:block bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">Compartir</button>
+        <input id="store-wa" placeholder="WhatsApp tienda..." class="w-28 md:w-auto border border-slate-300 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+        <button id="share-store" class="hidden md:block bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">Compartir</button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-10">
+  <main class="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-24 md:pb-10">
     <section class="mb-12" id="hero">
-      <div class="grid md:grid-cols-2 gap-8 items-center bg-gradient-to-r from-indigo-600 to-sky-500 text-white rounded-2xl px-6 md:px-10 py-10 shadow-xl relative overflow-hidden">
+      <div class="grid md:grid-cols-2 gap-8 items-center bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-2xl px-6 md:px-10 py-10 shadow-xl relative overflow-hidden">
         <div>
-          <h2 class="text-3xl md:text-4xl font-bold mb-3">Materiales eléctricos y plomería, ordenados y listos para tu cliente</h2>
-          <p class="text-sm md:text-base text-indigo-100 mb-6 max-w-xl">Explora el catálogo, arma el pedido y envíalo por WhatsApp en segundos. Pensado para mostrar precios, fotos y disponibilidad de forma clara.</p>
+          <!-- EDITABLE: Texto del banner principal (Hero) -->
+          <h2 id="hero-title" class="text-2xl md:text-4xl font-bold mb-3 leading-tight">Materiales eléctricos y plomería, ordenados y listos para tu cliente</h2>
+          <p id="hero-subtitle" class="text-xs md:text-base text-blue-100 mb-6 max-w-xl">Explora el catálogo, arma el pedido y envíalo por WhatsApp en segundos. Pensado para mostrar precios, fotos y disponibilidad de forma clara.</p>
           <div class="flex flex-wrap gap-3">
-            <a id="cta-wa" href="https://wa.me/584242240909" target="_blank" rel="noopener" class="bg-white text-indigo-700 hover:bg-indigo-50 rounded-full px-5 py-3 text-sm font-medium shadow-sm">Escribir por WhatsApp</a>
-            <div class="flex items-center gap-2 text-xs md:text-sm text-indigo-100">
-              <span class="w-6 h-px bg-indigo-100/60"></span>
+            <a id="cta-wa" href="https://wa.me/584242240909" target="_blank" rel="noopener" class="bg-white text-blue-700 hover:bg-blue-50 rounded-full px-4 py-2 md:px-5 md:py-3 text-sm font-medium shadow-sm transition-colors">Escribir por WhatsApp</a>
+            <div class="flex items-center gap-2 text-xs md:text-sm text-blue-100">
+              <span class="w-6 h-px bg-blue-100/60"></span>
               <span>Catálogo actualizado y fácil de compartir</span>
             </div>
           </div>
@@ -59,24 +78,53 @@
         </div>
       </div>
     </section>
-    <section id="catalogo" class="mb-10 mt-4">
-      <div class="sticky top-[72px] z-20 bg-slate-50/95 backdrop-blur py-3 border-b border-slate-200 mb-6 -mx-4 px-4 overflow-x-auto flex gap-3 no-scrollbar" id="category-chips">
-        <button class="filter-chip active px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="">Todo</button>
-        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Electricidad">Electricidad</button>
-        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Plomería">Plomería</button>
-        <button class="filter-chip px-4 py-1.5 rounded-full bg-white border border-slate-300 text-slate-600 text-sm font-medium shadow-sm" data-cat="Herramientas">Herramientas</button>
+
+    <!-- Marquee Section -->
+    <div id="marquee-container" class="mb-12 hidden">
+       <!-- Marquee injected by JS -->
+    </div>
+
+    <!-- Dynamic Sections Container -->
+    <div id="dynamic-sections" class="space-y-16 mb-16 container mx-auto px-4"></div>
+
+    <!-- Featured / Offers Section -->
+    <section id="featured-section" class="mb-12 hidden">
+      <div class="flex items-center gap-3 mb-6">
+        <h3 class="text-2xl font-bold text-slate-900">Ofertas y Novedades</h3>
+        <span class="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>
       </div>
-      
-      <div class="mb-6 relative">
-        <input id="search-prod" placeholder="🔍 Buscar productos..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 pl-11 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        <span class="absolute left-4 top-3.5 text-slate-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-        </span>
+      <div id="featured-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Featured items injected here -->
+      </div>
+    </section>
+
+    <section id="catalogo" class="mb-10 mt-4">
+      <!-- Toolbar -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex-1 relative">
+            <input id="search-prod" placeholder="Buscar por nombre o código..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors" />
+            <span class="absolute left-3 top-3 text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+          </div>
+          <div class="w-full md:w-64">
+            <select id="category-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors appearance-none cursor-pointer">
+              <option value="">Todas las categorías</option>
+              <option value="Electricidad">Materiales eléctricos</option>
+              <option value="Iluminación">Iluminación</option>
+              <option value="Plomería">Artículos de plomería</option>
+              <option value="Construcción">Construcción</option>
+              <option value="Herramientas">Herramientas</option>
+              <option value="General">General</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div id="prod-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
       <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
         <p>Cargando productos...</p>
       </div>
     </div>
@@ -103,7 +151,7 @@
       <div class="p-4 border-t border-slate-100 bg-slate-50">
         <div class="flex items-center justify-between mb-4">
           <span class="text-slate-600">Total estimado</span>
-          <span id="drawer-total" class="text-xl font-bold text-indigo-700">$0</span>
+          <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
         </div>
         <button id="send-wa-drawer" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3.5 font-semibold shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2">
           <span>Enviar pedido por WhatsApp</span>
@@ -112,11 +160,11 @@
       </div>
     </div>
     <nav id="mobile-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-30 md:hidden pb-safe">
-      <button class="flex flex-col items-center text-indigo-600 w-full h-full justify-center" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+      <button class="flex flex-col items-center text-blue-600 w-full h-full justify-center" onclick="window.scrollTo({top:0, behavior:'smooth'})">
         <span class="text-xl mb-0.5">🏠</span>
         <span class="text-[10px] font-medium">Inicio</span>
       </button>
-      <button class="flex flex-col items-center text-slate-500 hover:text-indigo-600 w-full h-full justify-center relative" id="open-cart-mobile">
+      <button class="flex flex-col items-center text-slate-500 hover:text-blue-600 w-full h-full justify-center relative" id="open-cart-mobile">
         <div class="relative">
           <span class="text-xl mb-0.5">🛒</span>
           <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full hidden">0</span>
@@ -140,17 +188,17 @@
         </div>
         <div id="assistant-messages" class="flex-1 px-3 py-3 space-y-2 overflow-y-auto text-sm bg-slate-50"></div>
         <div class="border-t border-slate-200 p-3 bg-white">
-          <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none" placeholder="Ej: Necesito todo para instalar una lámpara en el comedor"></textarea>
+          <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Ej: Necesito todo para instalar una lámpara en el comedor"></textarea>
           <div class="flex justify-end mt-2">
-            <button id="assistant-send" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4 py-1.5 text-xs font-medium">Enviar</button>
+            <button id="assistant-send" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1.5 text-xs font-medium">Enviar</button>
           </div>
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
-        <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" aria-label="Abrir asistente virtual">
+        <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="Abrir asistente virtual">
           <span class="text-lg leading-none">💬</span>
         </button>
-        <div class="px-4 py-1.5 rounded-full bg-indigo-500 text-white text-[11px] font-medium shadow">
+        <div class="px-4 py-1.5 rounded-full bg-blue-500 text-white text-[11px] font-medium shadow">
           Asistente virtual
         </div>
       </div>
@@ -162,33 +210,118 @@
         <div class="bg-white rounded-lg shadow p-5">
           <div class="text-lg font-medium mb-1">Instalaciones eléctricas</div>
           <div class="text-gray-600 mb-3">Asesoría en selección de cables, tableros y protecciones.</div>
-          <div class="text-indigo-700 font-semibold">Consulta por WhatsApp</div>
+          <div class="text-blue-700 font-semibold">Consulta por WhatsApp</div>
         </div>
         <div class="bg-white rounded-lg shadow p-5">
           <div class="text-lg font-medium mb-1">Proyectos de obra</div>
           <div class="text-gray-600 mb-3">Apoyo para listas de materiales en obras nuevas o remodelaciones.</div>
-          <div class="text-indigo-700 font-semibold">Armamos tu lista completa</div>
+          <div class="text-blue-700 font-semibold">Armamos tu lista completa</div>
         </div>
         <div class="bg-white rounded-lg shadow p-5">
           <div class="text-lg font-medium mb-1">Plomería y agua</div>
           <div class="text-gray-600 mb-3">Tuberías, fittings y soluciones para redes de agua.</div>
-          <div class="text-indigo-700 font-semibold">Stock y alternativas</div>
+          <div class="text-blue-700 font-semibold">Stock y alternativas</div>
         </div>
       </div>
     </section>
 
   </main>
 
-  <footer class="border-t">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-sm text-gray-600">© Todos los derechos reservados</div>
+  <footer class="bg-slate-900 text-slate-300 py-12 border-t border-slate-800 mt-12">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Col 1: NAP & Contact -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4 store-name">COMERCIALIZADORA EMBAIR</h3>
+          <address class="not-italic mb-4 text-sm leading-relaxed">
+            <p class="mb-2"><strong class="text-blue-400">Dirección:</strong> <span id="footer-address">Av. Intercomunal La Boyera, El Hatillo, Caracas 1083, Miranda.</span></p>
+            <p class="mb-2"><strong class="text-blue-400">Teléfono:</strong> <a id="footer-phone" href="tel:+584120000000" class="hover:text-white transition">+58 412-000-0000</a></p>
+            <p class="mb-2"><strong class="text-blue-400">Email:</strong> <span id="footer-email">contacto@embair.com</span></p>
+          </address>
+        </div>
+  
+        <!-- Col 2: Local SEO Keywords -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Nuestros Servicios</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span><strong>Ferretería en El Hatillo</strong></span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span><strong>Materiales eléctricos La Boyera</strong></span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span><strong>Remodelaciones en Caracas</strong></span>
+            </li>
+          </ul>
+        </div>
+  
+        <!-- Col 3: Map -->
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Ubicación</h3>
+          <div class="w-full h-32 bg-slate-800 rounded-lg overflow-hidden shadow-lg border border-slate-700">
+            <iframe id="footer-map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.633554462947!2d-66.8329606241477!3d10.45053798967916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c2a58adcd824807%3A0x93dd2f50a45b770!2sLa%20Boyera%2C%20Caracas%201083%2C%20Miranda!5e0!3m2!1ses!2sve!4v1708790000000!5m2!1ses!2sve" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+      </div>
+  
+      <div class="border-t border-slate-800 mt-8 pt-6 text-center text-sm text-slate-500">
+        <p>© 2026 COMERCIALIZADORA EMBAIR. Todos los derechos reservados.</p>
+      </div>
+    </div>
   </footer>
+
+  <!-- Product Detail Modal -->
+    <div id="product-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeProductDetail()"></div>
+      <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+          <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-slate-200">
+            <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-20">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="bg-white px-6 pb-6 pt-8 sm:p-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 relative group">
+                  <img id="pm-img" src="" alt="" class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                </div>
+                <div class="flex flex-col h-full">
+                  <div class="mb-auto">
+                    <span id="pm-cat" class="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded mb-2"></span>
+                    <h3 class="text-2xl font-bold leading-tight text-slate-900 mb-2" id="pm-title"></h3>
+                    <p class="text-3xl font-bold text-blue-600 mb-4" id="pm-price"></p>
+                    <div class="prose prose-sm text-slate-500 mb-6">
+                      <p id="pm-desc"></p>
+                    </div>
+                    <div id="pm-specs-container" class="mb-6 hidden">
+                      <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Especificaciones</h4>
+                      <ul class="space-y-1 text-sm text-slate-600" id="pm-specs"></ul>
+                    </div>
+                  </div>
+                  
+                  <div class="pt-6 border-t border-slate-100 mt-4">
+                      <button id="pm-add-btn" class="w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white px-4 py-3.5 font-bold shadow-lg shadow-orange-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+                          <span>Agregar al Carrito</span>
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                      </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
   <script>
     (function(){
       // --- DOM Elements ---
       const grid = document.getElementById("prod-grid")
       const searchInput = document.getElementById("search-prod")
-      const categoryChipsContainer = document.getElementById("category-chips")
+      const categorySelect = document.getElementById("category-select")
       
       const cartDrawer = document.getElementById("cart-drawer")
       const cartOverlay = document.getElementById("cart-drawer-overlay")
@@ -204,7 +337,6 @@
       // --- State ---
       let PRODUCTS = []
       let CART = []
-      let activeCategory = ""
 
       // --- 1. Data Fetching ---
       const PRODUCTS_SAMPLE = [
@@ -249,30 +381,9 @@
       }
 
       // --- 3. Render Grid ---
-      function renderGrid() {
-        const q = (searchInput.value || "").toLowerCase()
-        
-        const filtered = PRODUCTS.filter(p => {
-          const okQ = q ? (p.name.toLowerCase().includes(q) || (p.desc && p.desc.toLowerCase().includes(q))) : true
-          const okC = activeCategory ? p.category === activeCategory : true
-          return okQ && okC
-        })
-
-        grid.innerHTML = ""
-        
-        if (filtered.length === 0) {
-          grid.innerHTML = `
-            <div class="col-span-full text-center py-10 text-slate-500">
-              <p>No encontramos productos con esos filtros.</p>
-              <button class="mt-2 text-indigo-600 font-medium" onclick="document.getElementById('search-prod').value=''; document.querySelector('.filter-chip[data-cat=\\'\\']').click()">Ver todo</button>
-            </div>
-          `
-          return
-        }
-
-        for (const p of filtered) {
+      function createProductCard(p) {
           const card = document.createElement("div")
-          card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow"
+          card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow relative"
           
           const imgContainer = document.createElement("div")
           imgContainer.className = "relative aspect-square overflow-hidden bg-slate-100"
@@ -281,25 +392,57 @@
           img.src = p.img
           img.alt = p.name
           img.className = "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          img.onerror = () => { img.style.display = 'none' }
           imgContainer.appendChild(img)
           
+          // Stock Badge
+          let badgeText = "DISPONIBLE"
+          let badgeColor = "bg-green-500"
+          const stock = p.stock == null ? null : Number(p.stock)
+
           if (p.available === "Agotado") {
-            const badge = document.createElement("div")
-            badge.className = "absolute top-2 right-2 bg-slate-800/80 text-white text-[10px] px-2 py-1 rounded font-medium backdrop-blur-sm"
-            badge.textContent = "AGOTADO"
-            imgContainer.appendChild(badge)
+             badgeText = "AGOTADO"
+             badgeColor = "bg-red-500"
+          } else if (stock !== null) {
+            if (stock <= 0) {
+              badgeText = "AGOTADO"
+              badgeColor = "bg-red-500"
+            } else if (stock <= 3) {
+              badgeText = "POCAS UNIDADES"
+              badgeColor = "bg-orange-500"
+            }
+          }
+          
+          const badge = document.createElement("div")
+          badge.className = `absolute top-2 right-2 text-white text-[10px] px-2 py-1 rounded font-bold backdrop-blur-sm shadow-sm ${badgeColor}`
+          badge.textContent = badgeText
+          imgContainer.appendChild(badge)
+
+          // Label Badge (New)
+          if (p.label && p.label !== "Ninguna") {
+            const labelBadge = document.createElement("div")
+            let labelColor = "bg-blue-600"
+            if (p.label === "Oferta") labelColor = "bg-red-600"
+            if (p.label === "Destacado") labelColor = "bg-purple-600"
+            
+            labelBadge.className = `absolute top-2 left-2 text-white text-[10px] px-2 py-1 rounded font-bold shadow-sm ${labelColor}`
+            labelBadge.textContent = p.label
+            imgContainer.appendChild(labelBadge)
           }
 
           const body = document.createElement("div")
-          body.className = "p-3 md:p-4 flex-1 flex flex-col"
-          
-          const categoryLabel = document.createElement("div")
-          categoryLabel.className = "text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1"
-          categoryLabel.textContent = p.category
+          body.className = "p-2 md:p-4 flex-1 flex flex-col"
           
           const title = document.createElement("h3")
-          title.className = "font-medium text-slate-900 text-sm md:text-base mb-1 line-clamp-2 leading-snug min-h-[2.5em]"
+          title.className = "font-medium text-slate-900 text-xs sm:text-sm md:text-base mb-1 line-clamp-2 leading-snug min-h-[2.5em]"
           title.textContent = p.name
+
+          if (p.code) {
+             const codeLabel = document.createElement("div")
+             codeLabel.className = "text-xs text-slate-500 mb-2"
+             codeLabel.textContent = "Cód: " + p.code
+             body.appendChild(codeLabel)
+          }
           
           const priceRow = document.createElement("div")
           priceRow.className = "mt-auto flex items-center justify-between pt-2"
@@ -309,28 +452,88 @@
           price.textContent = formatPrice(p.price)
           
           const addBtn = document.createElement("button")
-          addBtn.className = "w-8 h-8 rounded-full bg-slate-100 hover:bg-indigo-600 hover:text-white flex items-center justify-center text-slate-600 transition-colors"
+          addBtn.className = "w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white flex items-center justify-center text-slate-600 transition-colors"
           addBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>'
-          addBtn.onclick = () => addToCart(p)
-
-          priceRow.appendChild(price)
-          if (p.available !== "Agotado") {
-            priceRow.appendChild(addBtn)
+          
+          if (badgeText === "AGOTADO") {
+             addBtn.disabled = true
+             addBtn.className = "w-8 h-8 rounded-full bg-slate-100 text-slate-300 cursor-not-allowed flex items-center justify-center"
+          } else {
+             addBtn.onclick = () => addToCart(p)
           }
 
-          body.appendChild(categoryLabel)
+          priceRow.appendChild(price)
+          priceRow.appendChild(addBtn)
+
           body.appendChild(title)
           body.appendChild(priceRow)
           
           card.appendChild(imgContainer)
           card.appendChild(body)
-          grid.appendChild(card)
+          return card
+      }
+
+      function renderFeatured() {
+        const container = document.getElementById("featured-section")
+        const grid = document.getElementById("featured-grid")
+        if (!container || !grid) return
+
+        const featured = PRODUCTS.filter(p => p.label && p.label !== "Ninguna")
+        
+        if (featured.length === 0) {
+          container.classList.add("hidden")
+          return
+        }
+        
+        container.classList.remove("hidden")
+        grid.innerHTML = ""
+        featured.forEach(p => {
+          grid.appendChild(createProductCard(p))
+        })
+      }
+
+      function renderGrid() {
+        const q = (searchInput.value || "").trim().toLowerCase()
+        const cat = categorySelect.value
+        
+        let filtered = PRODUCTS.filter(p => {
+          const text = (p.name + " " + (p.code || "")).toLowerCase()
+          const okQ = q ? text.includes(q) : true
+          const okC = cat ? p.category === cat : true
+          return okQ && okC
+        })
+
+        // Sort by Priority (Order)
+        filtered.sort((a, b) => {
+           const orderA = a.order !== undefined && a.order !== null ? Number(a.order) : 999
+           const orderB = b.order !== undefined && b.order !== null ? Number(b.order) : 999
+           return orderA - orderB
+        })
+
+        grid.innerHTML = ""
+        
+        if (filtered.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-10 text-slate-500">
+              <p>No encontramos productos con esos filtros.</p>
+              <button class="mt-2 text-blue-600 font-medium" onclick="document.getElementById('search-prod').value=''; document.getElementById('category-select').value=''; renderGrid()">Ver todo</button>
+            </div>
+          `
+          return
+        }
+
+        for (const p of filtered) {
+          grid.appendChild(createProductCard(p))
         }
       }
 
       // --- 4. Cart Logic ---
       function loadCart() {
         try {
+          // Capture UTM Source
+          const utm = new URLSearchParams(window.location.search).get("utm_source")
+          if (utm) localStorage.setItem("embair_utm_source", utm)
+
           const raw = localStorage.getItem("cart")
           if (raw) CART = JSON.parse(raw)
         } catch {}
@@ -388,7 +591,7 @@
             <div class="text-center py-10 text-slate-400">
               <div class="text-4xl mb-3">🛒</div>
               <p>Tu carrito está vacío</p>
-              <button onclick="document.getElementById('close-drawer').click()" class="mt-4 text-indigo-600 font-medium text-sm">Seguir comprando</button>
+              <button onclick="document.getElementById('close-drawer').click()" class="mt-4 text-blue-600 font-medium text-sm">Seguir comprando</button>
             </div>
           `
         } else {
@@ -456,11 +659,62 @@
       }
 
       // --- 5. Customer & Checkout Logic ---
+      const SESSION_KEY = "embair_session_id"
+      function getSessionId() {
+        try {
+          let id = localStorage.getItem(SESSION_KEY)
+          if (!id) {
+            id = "sess_" + Math.random().toString(36).slice(2) + Date.now().toString(36)
+            localStorage.setItem(SESSION_KEY, id)
+          }
+          return id
+        } catch {
+          return ""
+        }
+      }
+      async function trackOrderEvent(customer, cart, origin, orderNumber) {
+        try {
+          const total = cart.reduce((acc, item) => {
+            const price = item.price || 0
+            const qty = item.qty || 0
+            return acc + price * qty
+          }, 0)
+          await fetch("/api/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "order_sent",
+              sessionId: getSessionId(),
+              email: customer && customer.email ? customer.email : "",
+              meta: {
+                origin: origin || "",
+                zona: customer && customer.zona ? customer.zona : "",
+                tipo: customer && customer.tipo ? customer.tipo : "",
+                total,
+                orderNumber: typeof orderNumber === "number" ? orderNumber : null,
+                items: cart.map(i => ({ id: i.id, qty: i.qty || 0 }))
+              }
+            })
+          })
+        } catch {}
+      }
       function getCustomerData() {
         try { return JSON.parse(localStorage.getItem("customerData")) } catch { return null }
       }
       function saveCustomerData(data) {
         localStorage.setItem("customerData", JSON.stringify(data))
+      }
+      function getNextOrderNumber() {
+        try {
+          const raw = localStorage.getItem("orderCounter") || "0"
+          let n = parseInt(raw, 10)
+          if (!Number.isFinite(n) || n < 0) n = 0
+          n += 1
+          localStorage.setItem("orderCounter", String(n))
+          return n
+        } catch {
+          return Date.now()
+        }
       }
       function upsertClientFromCustomer(customer) {
         // Send to server logic (simplified)
@@ -470,91 +724,355 @@
           body: JSON.stringify({ ...customer, pedidos: 1 })
         }).catch(console.error)
       }
-      function logOrder(cart) {
+      function logOrder(cart, orderNumber) {
         try {
-            const list = JSON.parse(localStorage.getItem("orderLogs") || "[]")
-            list.push({ ts: Date.now(), items: cart.map(i=>({id:i.id, qty:i.qty})) })
-            localStorage.setItem("orderLogs", JSON.stringify(list))
+          const list = JSON.parse(localStorage.getItem("orderLogs") || "[]")
+          list.push({
+            ts: Date.now(),
+            orderNumber: typeof orderNumber === "number" ? orderNumber : null,
+            items: cart.map(i => ({ id: i.id, qty: i.qty }))
+          })
+          localStorage.setItem("orderLogs", JSON.stringify(list))
         } catch {}
       }
 
-      function openCustomerModal(onConfirm) {
+      function generateOrderPdf(customer, cart, orderNumber) {
+        try {
+          if (!window.jspdf || !window.jspdf.jsPDF) return
+          const doc = new window.jspdf.jsPDF()
+          let y = 12
+          doc.setFontSize(14)
+          const orderCode = typeof orderNumber === "number"
+            ? ("00000" + orderNumber).slice(-5)
+            : ""
+          const title = orderCode
+            ? "Nota de Pedido N° " + orderCode
+            : "Nota de Pedido"
+          doc.text(title, 10, y)
+          y += 8
+          doc.setFontSize(10)
+          const nowStr = new Date().toLocaleString()
+          doc.text("Fecha: " + nowStr, 10, y)
+          y += 6
+          doc.text("Cliente: " + (customer.nombre || "") + " " + (customer.apellido || ""), 10, y)
+          y += 5
+          if (customer.cedula) {
+            doc.text("Cédula: " + customer.cedula, 10, y)
+            y += 5
+          }
+          if (customer.celular) {
+            doc.text("Teléfono: " + customer.celular, 10, y)
+            y += 5
+          }
+          if (customer.direccion) {
+            doc.text("Dirección: " + customer.direccion, 10, y)
+            y += 6
+          }
+          if (customer.entrega) {
+            doc.text("Entrega: " + customer.entrega, 10, y)
+            y += 8
+          } else {
+            y += 6
+          }
+          doc.setFontSize(11)
+          doc.text("Detalle del pedido", 10, y)
+          y += 6
+          doc.setFontSize(9)
+          doc.text("Código", 10, y)
+          doc.text("Producto", 35, y)
+          doc.text("Cant", 120, y)
+          doc.text("Precio", 140, y)
+          doc.text("Subtotal", 170, y)
+          y += 3
+          doc.line(10, y, 200, y)
+          y += 5
+          let total = 0
+          cart.forEach(item => {
+            const price = item.price || 0
+            const qty = item.qty || 0
+            const sub = price * qty
+            total += sub
+            if (y > 270) {
+              doc.addPage()
+              y = 12
+            }
+            const code = item.code || item.sku || String(item.id || "")
+            if (code) doc.text(String(code), 10, y)
+            const name = item.name || ""
+            const nameLines = doc.splitTextToSize(name, 72)
+            doc.text(nameLines, 35, y)
+            doc.text(String(qty), 120, y)
+            if (price) doc.text("$" + price.toLocaleString("es-AR"), 140, y)
+            if (sub) doc.text("$" + sub.toLocaleString("es-AR"), 170, y)
+            y += 5 + (nameLines.length - 1) * 4
+          })
+          y += 4
+          doc.line(120, y, 200, y)
+          y += 7
+          doc.setFontSize(11)
+          doc.text("Total: $" + total.toLocaleString("es-AR"), 140, y)
+          const fileName = orderCode
+            ? "nota-pedido-embair-" + orderCode + ".pdf"
+            : "nota-pedido-embair-" + Date.now() + ".pdf"
+          doc.save(fileName)
+          alert("Se descargó el PDF del pedido (" + fileName + "). Revisa tu carpeta de descargas para adjuntarlo en WhatsApp o correo.")
+        } catch {}
+      }
+
+      function openCustomerModal(onConfirm, force = false) {
         const existing = getCustomerData() || {}
+        
+        // Create Modal Elements
         const overlay = document.createElement("div")
         overlay.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+        
         const modal = document.createElement("div")
-        modal.className = "bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 animate-fade-in"
-        modal.innerHTML = `
-          <h3 class="text-lg font-bold text-slate-900 mb-2">Datos de Envío</h3>
-          <p class="text-sm text-slate-500 mb-4">Ingresa tus datos para completar el pedido por WhatsApp.</p>
-          <div class="space-y-3">
-            <input id="c-name" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.nombre||''}">
-            <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.apellido||''}">
-            <input id="c-id" placeholder="Cédula" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.cedula||''}">
-            <input id="c-addr" placeholder="Dirección exacta" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.direccion||''}">
-            <input id="c-phone" placeholder="Celular" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.celular||''}">
-            <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="">Tipo de cliente...</option>
-                <option value="Particular" ${existing.tipo==='Particular'?'selected':''}>Particular</option>
-                <option value="Instalador" ${existing.tipo==='Instalador'?'selected':''}>Instalador</option>
-            </select>
-            <select id="c-ship" class="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="">Entrega...</option>
-                <option value="Delivery" ${existing.entrega==='Delivery'?'selected':''}>Delivery</option>
-                <option value="Pick up" ${existing.entrega==='Pick up'?'selected':''}>Retiro en oficina</option>
-            </select>
-          </div>
-          <div class="flex gap-2 mt-6">
-            <button id="c-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium text-sm">Cancelar</button>
-            <button id="c-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg font-medium text-sm hover:bg-indigo-700">Enviar Pedido</button>
+        modal.className = "bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 animate-fade-in relative overflow-hidden"
+        
+        // Views
+        const viewPhone = `
+          <div id="view-phone">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Bienvenido al Portal</h3>
+            <p class="text-sm text-slate-500 mb-4">Ingresa tu número de celular para verificar tu cuenta.</p>
+            <div class="space-y-3">
+              <input id="auth-phone" type="tel" placeholder="Ej: 04241234567" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" value="${existing.celular || ''}">
+              <p id="auth-error" class="text-xs text-red-500 hidden"></p>
+            </div>
+            <div class="flex gap-2 mt-6">
+              <button id="btn-check-phone" class="w-full py-2.5 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors flex justify-center items-center">
+                <span>Continuar</span>
+                <div class="loader hidden ml-2 w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              </button>
+            </div>
+             ${!force ? '<button id="btn-cancel-auth" class="mt-3 w-full py-2 text-slate-400 text-xs hover:text-slate-600">Cancelar</button>' : ''}
           </div>
         `
+        
+        const viewRegister = `
+          <div id="view-register" class="hidden">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Completa tus datos</h3>
+            <p class="text-sm text-slate-500 mb-4">No encontramos tu número. Regístrate para continuar.</p>
+            <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+              <input id="c-name" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.nombre||''}">
+              <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.apellido||''}">
+              <input id="c-email" placeholder="Email" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.email||''}">
+              <input id="c-id" placeholder="Cédula / RIF" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.cedula||''}">
+              <input id="c-addr" placeholder="Dirección exacta" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.direccion||''}">
+              <input id="c-zone" placeholder="Zona (Ej: Norte, Centro...)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.zona||''}">
+              <input id="c-phone-reg" placeholder="Celular" class="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" readonly>
+              <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
+                  <option value="">Tipo de cliente...</option>
+                  <option value="Particular" ${existing.tipo==='Particular'?'selected':''}>Particular</option>
+                  <option value="Instalador" ${existing.tipo==='Instalador'?'selected':''}>Instalador</option>
+                  <option value="Empresa" ${existing.tipo==='Empresa'?'selected':''}>Empresa</option>
+              </select>
+              <select id="c-ship" class="w-full border rounded-lg px-3 py-2 text-sm">
+                  <option value="">Preferencia de Entrega...</option>
+                  <option value="Delivery" ${existing.entrega==='Delivery'?'selected':''}>Delivery</option>
+                  <option value="Pick up" ${existing.entrega==='Pick up'?'selected':''}>Retiro en oficina</option>
+              </select>
+            </div>
+            <div class="flex gap-2 mt-6">
+              ${!force ? '<button id="c-back" class="px-4 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium text-sm">Atrás</button>' : ''}
+              <button id="c-confirm" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700">Registrar y Continuar</button>
+            </div>
+          </div>
+        `
+
+        modal.innerHTML = viewPhone + viewRegister
         document.body.appendChild(overlay)
         
-        modal.querySelector("#c-cancel").onclick = () => document.body.removeChild(overlay)
-        modal.querySelector("#c-confirm").onclick = () => {
+        // Logic
+        const vPhone = modal.querySelector("#view-phone")
+        const vReg = modal.querySelector("#view-register")
+        const btnCheck = modal.querySelector("#btn-check-phone")
+        const inputPhone = modal.querySelector("#auth-phone")
+        const errorMsg = modal.querySelector("#auth-error")
+        const loader = btnCheck.querySelector(".loader")
+        const btnCancel = modal.querySelector("#btn-cancel-auth")
+        
+        // Register inputs
+        const regPhone = modal.querySelector("#c-phone-reg")
+        const btnConfirm = modal.querySelector("#c-confirm")
+        const btnBack = modal.querySelector("#c-back")
+
+        // Focus phone
+        setTimeout(() => inputPhone.focus(), 100)
+
+        // Handlers
+        if (btnCancel) btnCancel.onclick = () => document.body.removeChild(overlay)
+        
+        btnCheck.onclick = async () => {
+            const phone = inputPhone.value.trim()
+            if(phone.length < 7) {
+                errorMsg.textContent = "Ingresa un número válido"
+                errorMsg.classList.remove("hidden")
+                return
+            }
+            
+            // UI Loading
+            btnCheck.disabled = true
+            loader.classList.remove("hidden")
+            errorMsg.classList.add("hidden")
+            
+            try {
+                const res = await fetch("/api/auth/check", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone })
+                })
+                const data = await res.json()
+                
+                if (data.exists && data.data) {
+                    // Client Found! Update local and finish
+                    const client = data.data
+                    saveCustomerData(client)
+                    
+                    // Show success brief
+                    vPhone.innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-4xl mb-2">👋</div>
+                            <h3 class="text-xl font-bold text-slate-900">¡Hola ${client.nombre}!</h3>
+                            <p class="text-slate-500">Tus datos han sido verificados.</p>
+                        </div>
+                    `
+                    setTimeout(() => {
+                        document.body.removeChild(overlay)
+                        onConfirm(client)
+                    }, 1500)
+                } else {
+                    // Not found -> Go to Register
+                    vPhone.classList.add("hidden")
+                    vReg.classList.remove("hidden")
+                    regPhone.value = phone
+                }
+            } catch (e) {
+                errorMsg.textContent = "Error de conexión. Intenta de nuevo."
+                errorMsg.classList.remove("hidden")
+            } finally {
+                btnCheck.disabled = false
+                loader.classList.add("hidden")
+            }
+        }
+        
+        // Enter key on phone
+        inputPhone.addEventListener("keyup", (e) => {
+            if(e.key === "Enter") btnCheck.click()
+        })
+        
+        btnBack.onclick = () => {
+            vReg.classList.add("hidden")
+            vPhone.classList.remove("hidden")
+        }
+        
+        btnConfirm.onclick = () => {
             const data = {
                 nombre: modal.querySelector("#c-name").value.trim(),
                 apellido: modal.querySelector("#c-last").value.trim(),
+                email: modal.querySelector("#c-email").value.trim(),
                 cedula: modal.querySelector("#c-id").value.trim(),
                 direccion: modal.querySelector("#c-addr").value.trim(),
-                celular: modal.querySelector("#c-phone").value.trim(),
+                zona: modal.querySelector("#c-zone").value.trim(),
+                celular: regPhone.value.trim(),
                 tipo: modal.querySelector("#c-type").value,
                 entrega: modal.querySelector("#c-ship").value
             }
-            if(!Object.values(data).every(Boolean)) return alert("Por favor completa todos los campos")
+            
+            if(!data.nombre || !data.celular || !data.email) {
+                return alert("Nombre, Email y Celular son obligatorios para el registro")
+            }
             
             saveCustomerData(data)
+            upsertClientFromCustomer(data) // Send to server
+            
             document.body.removeChild(overlay)
             onConfirm(data)
         }
       }
 
+      function processOrder(customer, origin) {
+        if (!customer) return
+
+        // --- CRM Sync ---
+        try {
+          const source = localStorage.getItem("embair_utm_source") || origin || "web"
+          const crmOrder = {
+              client: {
+                  name: `${customer.nombre || ""} ${customer.apellido || ""}`.trim(),
+                  phone: customer.celular || "",
+                  email: customer.email || "",
+                  address: customer.direccion || "",
+                  zona: customer.zona || ""
+              },
+              items: CART.map(i => ({
+                  id: String(i.id),
+                  code: i.code || "",
+                  name: i.name || "",
+                  qty: i.qty || 0,
+                  price: i.price || 0
+              })),
+              total: CART.reduce((sum, i) => sum + (i.price||0)*i.qty, 0),
+              source: source,
+              paymentMethod: "A convenir",
+              deliveryMethod: customer.entrega || "A convenir",
+              notes: "Pedido iniciado desde WhatsApp"
+          }
+          
+          fetch("/api/crm/orders", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(crmOrder)
+          }).catch(e => console.error("CRM Sync Error", e))
+        } catch(e) { console.error("CRM Error", e) }
+        // --- End CRM Sync ---
+
+        const orderNumber = getNextOrderNumber()
+        const orderCode = typeof orderNumber === "number"
+          ? ("00000" + orderNumber).slice(-5)
+          : ""
+        let msg = orderCode
+          ? `¡Hola! Te envío la Nota de Pedido N° ${orderCode}:\n\n`
+          : "¡Hola! Quiero realizar el siguiente pedido:\n\n"
+        let total = 0
+        CART.forEach(item => {
+          const sub = item.price ? item.price * item.qty : 0
+          total += sub
+          msg += `▪ ${item.qty}x ${item.name} `
+          msg += item.price ? `($${sub.toLocaleString("es-AR")})\n` : "(Consultar)\n"
+        })
+        msg += `\nTotal Estimado: $${total.toLocaleString("es-AR")}\n\n`
+        
+        msg += `*Datos del Cliente:*\n`
+        msg += `Nombre: ${customer.nombre || ""} ${customer.apellido || ""}\n`
+        msg += `Cédula: ${customer.cedula || ""}\n`
+        msg += `Dirección: ${customer.direccion || ""}\n`
+        if (customer.zona) msg += `Zona: ${customer.zona}\n`
+        msg += `Tel: ${customer.celular || ""}\n`
+        msg += `Entrega: ${customer.entrega || ""}\n`
+        if (orderCode) {
+          msg += `Número de pedido interno: ${orderCode}\n`
+        }
+        
+        upsertClientFromCustomer(customer)
+        logOrder(CART, orderNumber)
+        generateOrderPdf(customer, CART, orderNumber)
+        trackOrderEvent(customer, CART, origin, orderNumber)
+        
+        const num = (storeWa && storeWa.value) ? storeWa.value.replace(/\D/g, "") : "584242240909"
+        window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank")
+      }
+
       sendWaDrawer.addEventListener("click", () => {
         if (CART.length === 0) return
+        const params = new URLSearchParams(window.location.search)
+        const isPortal = params.get("portal") === "1"
+        const existing = getCustomerData() || null
+        if (isPortal && existing && existing.nombre && existing.email) {
+          processOrder(existing, "portal")
+          return
+        }
         openCustomerModal((customer) => {
-            let msg = "¡Hola! Quiero realizar el siguiente pedido:\n\n"
-            let total = 0
-            CART.forEach(item => {
-                const sub = item.price ? item.price * item.qty : 0
-                total += sub
-                msg += `▪ ${item.qty}x ${item.name} `
-                msg += item.price ? `($${sub.toLocaleString("es-AR")})\n` : "(Consultar)\n"
-            })
-            msg += `\nTotal Estimado: $${total.toLocaleString("es-AR")}\n\n`
-            
-            msg += `*Datos del Cliente:*\n`
-            msg += `Nombre: ${customer.nombre} ${customer.apellido}\n`
-            msg += `Cédula: ${customer.cedula}\n`
-            msg += `Dirección: ${customer.direccion}\n`
-            msg += `Tel: ${customer.celular}\n`
-            msg += `Entrega: ${customer.entrega}\n`
-            
-            upsertClientFromCustomer(customer)
-            logOrder(CART)
-            
-            const num = (storeWa && storeWa.value) ? storeWa.value.replace(/\D/g, "") : "584242240909"
-            window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank")
+          processOrder(customer, isPortal ? "portal" : "public")
         })
       })
 
@@ -569,17 +1087,8 @@
         })
       }
 
-      if (categoryChipsContainer) {
-        const chips = categoryChipsContainer.querySelectorAll(".filter-chip")
-        chips.forEach(chip => {
-          chip.addEventListener("click", () => {
-            chips.forEach(c => c.classList.remove("active"))
-            chip.classList.add("active")
-            activeCategory = chip.dataset.cat
-            renderGrid()
-            chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-          })
-        })
+      if (categorySelect) {
+        categorySelect.addEventListener("change", renderGrid)
       }
 
       if (searchInput) {
@@ -592,77 +1101,100 @@
         storeWa.addEventListener("input", () => localStorage.setItem("storeWa", storeWa.value))
       }
 
-      // Hero Slider (Existing logic kept simple)
-      (function() {
-        // Imágenes del banner actualizadas
-        const images = [
-          "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1000&q=80", // Tableros
-          "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1000&q=80", // Construcción
-          "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1000&q=80", // Tuberías
-          "https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?auto=format&fit=crop&w=1000&q=80"  // Iluminación
-        ]
-
+      // Hero Slider (Dynamic from Products)
+      function renderHeroSlider() {
         const container = document.getElementById("hero-slider")
         const indicators = document.getElementById("hero-indicators")
-        let current = 0
-        const slides = [] 
-        
         if (!container || !indicators) return
+
+        // Get Featured Products or Top 5
+        let slides = PRODUCTS.filter(p => p.label === "Destacado" || p.label === "Oferta" || p.label === "Nuevo")
+        if (slides.length === 0) slides = PRODUCTS.slice(0, 5)
+        
+        // Fallback if no products
+        if (slides.length === 0) {
+            // Use default images if no products exist
+            const defaults = [
+              { img: "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1000&q=80", name: "Materiales Eléctricos", price: null, label: "Calidad" },
+              { img: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1000&q=80", name: "Plomería y Tuberías", price: null, label: "Stock" }
+            ]
+            slides = defaults
+        }
 
         container.innerHTML = ""
         indicators.innerHTML = ""
+        
+        slides.forEach((p, idx) => {
+            const div = document.createElement("div")
+            div.className = `absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`
+            
+            // Image
+            const img = document.createElement("img")
+            img.src = p.img || p.image || "https://via.placeholder.com/1000x400?text=Oferta"
+            img.className = "w-full h-full object-cover"
+            img.alt = p.name
+            
+            // Gradient Overlay & Text
+            const overlay = document.createElement("div")
+            overlay.className = "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-6 md:p-10"
+            
+            let priceHtml = ""
+            if (p.price) priceHtml = `<p class="font-bold text-xl md:text-2xl text-emerald-300 mt-1">${formatPrice(p.price)}</p>`
+            
+            let labelHtml = ""
+            if (p.label && p.label !== "Ninguna") {
+                let color = "bg-blue-600"
+                if(p.label === "Oferta") color = "bg-red-600"
+                if(p.label === "Destacado") color = "bg-purple-600"
+                labelHtml = `<span class="px-2 py-1 rounded ${color} text-white text-[10px] md:text-xs font-bold uppercase mb-2 inline-block shadow-sm">${p.label}</span>`
+            }
 
-        // Preload first image
-        const firstImg = new Image()
-        firstImg.src = images[0]
+            overlay.innerHTML = `
+                <div class="text-white max-w-lg transform transition-transform duration-700 translate-y-0">
+                    ${labelHtml}
+                    <h3 class="text-2xl md:text-4xl font-bold leading-tight mb-1 drop-shadow-sm">${p.name}</h3>
+                    ${priceHtml}
+                </div>
+            `
+            
+            div.appendChild(img)
+            div.appendChild(overlay)
+            container.appendChild(div)
 
-        images.forEach((src, i) => {
-          const img = document.createElement("img")
-          img.src = src
-          img.alt = "Banner " + (i + 1)
-          img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`
-          
-          // Fallback to a colored div if image fails
-          img.onerror = () => { 
-             img.style.display = 'none';
-             const fallback = document.createElement('div');
-             fallback.className = `absolute inset-0 w-full h-full flex items-center justify-center bg-slate-800 text-white ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`;
-             fallback.textContent = "Banner " + (i+1);
-             container.appendChild(fallback);
-             slides[i] = fallback; // Replace in slides array
-          }
-          
-          container.appendChild(img)
-          slides.push(img)
-          
-          const dot = document.createElement("button")
-          dot.className = `w-2.5 h-2.5 rounded-full transition-colors ${i === 0 ? 'bg-white' : 'bg-white/40 hover:bg-white/60'}`
-          dot.onclick = () => setSlide(i)
-          indicators.appendChild(dot)
+            // Indicator
+            const dot = document.createElement("button")
+            dot.className = `w-2 h-2 md:w-3 md:h-3 rounded-full transition-all border border-white/50 ${idx === 0 ? 'bg-white w-6 md:w-8' : 'bg-white/30 hover:bg-white/60'}`
+            dot.onclick = () => setSlide(idx)
+            indicators.appendChild(dot)
         })
 
-        function setSlide(index) {
-          current = index
-          slides.forEach((el, i) => {
-            if(!el) return
-            if (i === current) {
-                el.classList.remove('opacity-0', 'z-0')
-                el.classList.add('opacity-100', 'z-10')
-            } else {
-                el.classList.remove('opacity-100', 'z-10')
-                el.classList.add('opacity-0', 'z-0')
-            }
-          })
-          
-          Array.from(indicators.children).forEach((dot, i) => {
-            dot.className = `w-2.5 h-2.5 rounded-full transition-colors ${i === current ? 'bg-white' : 'bg-white/40 hover:bg-white/60'}`
-          })
+        // Slider Logic
+        let current = 0
+        const total = slides.length
+        let intervalId = null
+
+        function setSlide(n) {
+            current = n
+            Array.from(container.children).forEach((el, i) => {
+                if (i === current) {
+                    el.classList.remove('opacity-0', 'z-0')
+                    el.classList.add('opacity-100', 'z-10')
+                } else {
+                    el.classList.remove('opacity-100', 'z-10')
+                    el.classList.add('opacity-0', 'z-0')
+                }
+            })
+            Array.from(indicators.children).forEach((el, i) => {
+                el.className = `w-2 h-2 md:w-3 md:h-3 rounded-full transition-all border border-white/50 ${i === current ? 'bg-white w-6 md:w-8' : 'bg-white/30 hover:bg-white/60'}`
+            })
         }
 
-        setInterval(() => {
-          setSlide((current + 1) % images.length)
-        }, 3000)
-      })()
+        // Auto Slide
+        if (intervalId) clearInterval(intervalId)
+        intervalId = setInterval(() => {
+            setSlide((current + 1) % total)
+        }, 5000)
+      }
 
 
       // Share Button
@@ -713,6 +1245,27 @@
       getProducts().then(p => {
         PRODUCTS = p
         window.PRODUCTS = PRODUCTS
+        renderFeatured()
+        renderHeroSlider()
+
+        // --- Check URL Params for Filtering ---
+        const params = new URLSearchParams(window.location.search)
+        const catParam = params.get("category")
+        const searchParam = params.get("search")
+        
+        if (catParam && categorySelect) {
+            // Check if option exists to avoid invalid selection
+            const options = Array.from(categorySelect.options).map(o => o.value)
+            if (options.includes(catParam)) {
+                categorySelect.value = catParam
+            }
+        }
+        
+        if (searchParam && searchInput) {
+            searchInput.value = searchParam
+        }
+        // --------------------------------------
+
         renderGrid()
       }).catch(err => {
         console.error("Init Error:", err)
@@ -720,797 +1273,40 @@
         if(grid) grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Error cargando la tienda. Por favor recarga.</div>`
       })
 
-    })()
-  </script>
-  <script>
-    const assistantRoot = document.getElementById("assistant-root")
-    const assistantPanel = document.getElementById("assistant-panel")
-    const assistantToggle = document.getElementById("assistant-toggle")
-    const assistantClose = document.getElementById("assistant-close")
-    const assistantMessages = document.getElementById("assistant-messages")
-    const assistantInput = document.getElementById("assistant-input")
-    const assistantSend = document.getElementById("assistant-send")
-    function getAssistantLogs() {
-      try {
-        const raw = localStorage.getItem("assistantLogs")
-        const arr = raw ? JSON.parse(raw) : []
-        return Array.isArray(arr) ? arr : []
-      } catch {
-        return []
-      }
-    }
-    function saveAssistantLogs(list) {
-      try {
-        localStorage.setItem("assistantLogs", JSON.stringify(list))
-      } catch {}
-    }
-    const assistantState = {
-      lastQuery: "",
-      pending: ""
-    }
-    function logAssistantInteraction(query, productIds) {
-      const logs = getAssistantLogs()
-      logs.push({ ts: Date.now(), query: query || "", productIds: productIds || [] })
-      saveAssistantLogs(logs)
-    }
-    function addAssistantMessage(sender, text) {
-      if (!assistantMessages) return
-      const wrap = document.createElement("div")
-      wrap.className = "flex " + (sender === "user" ? "justify-end" : "justify-start")
-      const bubble = document.createElement("div")
-      bubble.className = (sender === "user"
-        ? "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-indigo-600 text-white rounded-br-none"
-        : "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-white text-slate-800 border border-slate-200 rounded-bl-none")
-      bubble.textContent = text
-      wrap.appendChild(bubble)
-      assistantMessages.appendChild(wrap)
-      assistantMessages.scrollTop = assistantMessages.scrollHeight
-    }
-    function addProductSuggestion(p) {
-      if (!assistantMessages) return
-      const row = document.createElement("div")
-      row.className = "flex items-center justify-between gap-2 text-xs bg-white border border-slate-200 rounded-lg px-3 py-2"
-      const left = document.createElement("div")
-      left.innerHTML = `<div class="font-medium text-slate-900">${p.name}</div><div class="text-[11px] text-slate-500">${p.category}${p.subcategory ? " • "+p.subcategory : ""}${p.material ? " • "+p.material : ""}</div>`
-      const right = document.createElement("div")
-      right.className = "flex flex-col items-end gap-1"
-      const price = document.createElement("div")
-      price.className = "text-[11px] text-indigo-700 font-semibold"
-      price.textContent = p.price == null ? "Solicitar cotización" : "$" + Number(p.price).toLocaleString("es-AR")
-      const btn = document.createElement("button")
-      btn.className = "bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-3 py-1 text-[11px] font-medium"
-      btn.textContent = "Agregar al carrito"
-      btn.addEventListener("click", () => {
-        if (window.addToCart) window.addToCart(p, 1)
-      })
-      right.appendChild(price)
-      right.appendChild(btn)
-      row.appendChild(left)
-      row.appendChild(right)
-      assistantMessages.appendChild(row)
-      assistantMessages.scrollTop = assistantMessages.scrollHeight
-    }
-    function findBestProductMatch(text) {
-      const q = (text || "").toLowerCase()
-      const list = Array.isArray(window.PRODUCTS) ? window.PRODUCTS.slice() : []
-      let best = null
-      let bestScore = 0
-      for (const p of list) {
-        const name = (p.name || "").toLowerCase()
-        const hay = `${p.name || ""} ${p.desc || ""}`.toLowerCase()
-        let score = 0
-        const words = q.split(/\s+/).filter(Boolean)
-        for (const w of words) {
-          if (!w) continue
-          if (name.includes(w)) score += 3
-          if (hay.includes(w)) score += 1
-        }
-        if (score > bestScore) {
-          bestScore = score
-          best = p
-        }
-      }
-      if (bestScore === 0) return null
-      return best
-    }
-    function recommendProductsForQuery(query) {
-      const q = (query || "").toLowerCase()
-      const words = q.split(/\s+/).filter(Boolean)
-      const list = Array.isArray(window.PRODUCTS) ? window.PRODUCTS.slice() : []
-      const filtered = []
-      for (const p of list) {
-        if (p.available && p.available !== "Disponible") continue
-        const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""}`.toLowerCase()
-        let score = 0
-        if (!words.length) score += 1
-        for (const w of words) {
-          if (hay.includes(w)) score += 3
-        }
-        if (/lámpara|iluminación|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
-        if (/tubo|agua|llave|grifo|grifería|sifón/.test(q) && p.category === "Plomería") score += 4
-        if (p.price != null) score += Math.min(p.price / 1000, 5)
-        if (score > 0) {
-          filtered.push({ p, score })
-        }
-      }
-      filtered.sort((a, b) => b.score - a.score)
-      return filtered.slice(0, 4).map(x => x.p)
-    }
-    function handleAssistantQuery() {
-      const text = (assistantInput.value || "").trim()
-      if (!text) return
-      assistantInput.value = ""
-      addAssistantMessage("user", text)
-      const lower = text.toLowerCase()
-      if (assistantState.pending === "tablero-detalle") {
-        const combined = (assistantState.lastQuery || "") + " " + text
-        const recs = recommendProductsForQuery(combined)
-        assistantState.pending = ""
-        if (!recs.length) {
-          addAssistantMessage("bot", "Con esos datos no encuentro algo claro en el catálogo. Tal vez puedas indicarme cuántos módulos necesitas o si es para interior o exterior.")
-          return
-        }
-        addAssistantMessage("bot", "Perfecto, con ese detalle te recomiendo estos tableros:")
-        for (const p of recs) {
-          addProductSuggestion(p)
-        }
-        logAssistantInteraction(combined, recs.map(r => r.id))
-        return
-      }
-      if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
-        const prod = findBestProductMatch(text)
-        if (prod) {
-          if (prod.available && prod.available !== "Disponible") {
-            addAssistantMessage("bot", "Ese producto figura como agotado en el catálogo: " + prod.name + ". Si quieres puedo sugerirte alternativas similares.")
-            const altQuery = prod.category + " " + (prod.subcategory || "")
-            const recsAlt = recommendProductsForQuery(altQuery)
-            if (recsAlt.length) {
-              addAssistantMessage("bot", "Mira estas opciones que podrían reemplazarlo:")
-              for (const p of recsAlt) addProductSuggestion(p)
-              logAssistantInteraction(text, recsAlt.map(r => r.id))
-            }
-          } else {
-            addAssistantMessage("bot", "Sí, en el catálogo figura como disponible: " + prod.name + ". Puedes agregarlo al carrito desde las sugerencias o buscándolo en el listado.")
-          }
-          return
-        }
-      }
-      if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
-        assistantState.lastQuery = text
-        assistantState.pending = "tablero-detalle"
-        addAssistantMessage("bot", "¿Qué tipo de tablero necesitas? Por ejemplo, empotrado o de superficie, y para cuántos módulos aproximados.")
-        return
-      }
-      const recs = recommendProductsForQuery(text)
-      if (!recs.length) {
-        addAssistantMessage("bot", "Con lo que me cuentas no encontré nada claro en el catálogo. Prueba contándome qué ambiente o instalación quieres armar (ej: iluminación de sala, cambio de grifería de baño).")
-        return
-      }
-      addAssistantMessage("bot", "Te sugiero estos productos. Puedes agregarlos directo al carrito:")
-      for (const p of recs) {
-        addProductSuggestion(p)
-      }
-      logAssistantInteraction(text, recs.map(r => r.id))
-    }
-    if (assistantToggle && assistantPanel) {
-      assistantToggle.addEventListener("click", () => {
-        assistantPanel.classList.remove("hidden")
-        assistantToggle.classList.add("hidden")
-        if (assistantMessages && !assistantMessages.dataset.init) {
-          addAssistantMessage("bot", "Hola, soy tu asistente de compras. Cuéntame qué necesitas y buscaré en el catálogo los productos adecuados. Por ejemplo: \"Necesito todo para instalar una lámpara en el comedor\" o \"Busco tubería y accesorios para agua en cocina\".")
-          assistantMessages.dataset.init = "1"
-        }
-        assistantInput.focus()
-      })
-    }
-    if (assistantClose && assistantPanel && assistantToggle) {
-      assistantClose.addEventListener("click", () => {
-        assistantPanel.classList.add("hidden")
-        assistantToggle.classList.remove("hidden")
-      })
-    }
-    if (assistantSend) {
-      assistantSend.addEventListener("click", handleAssistantQuery)
-    }
-    if (assistantInput) {
-      assistantInput.addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault()
-          handleAssistantQuery()
-        }
-      })
-    }
-  </script>
-
-  <script>
-    // --- STATE ---
-    let PRODUCTS = []
-    let CART = []
-    let CURRENT_CAT = ""
-    
-    // --- DOM ELEMENTS ---
-    const gridEl = document.getElementById("prod-grid")
-    const searchProdEl = document.getElementById("search-prod")
-    const categoryChips = document.getElementById("category-chips")
-    const cartDrawer = document.getElementById("cart-drawer")
-    const cartOverlay = document.getElementById("cart-drawer-overlay")
-    const closeDrawerBtn = document.getElementById("close-drawer")
-    const cartItemsDrawer = document.getElementById("cart-items-drawer")
-    const drawerTotal = document.getElementById("drawer-total")
-    const sendWaDrawerBtn = document.getElementById("send-wa-drawer")
-    const shareStoreBtn = document.getElementById("share-store")
-    const storeWaInput = document.getElementById("store-wa")
-
-    // --- INITIALIZATION ---
-    async function init() {
-      try {
-        const raw = localStorage.getItem("cart")
-        if (raw) CART = JSON.parse(raw)
-      } catch {}
-      updateCartDrawer()
-
-      await loadProducts()
-      
+      // Portal Gate Logic
       const params = new URLSearchParams(window.location.search)
-      const catParam = params.get("category")
-      const searchParam = params.get("q")
       const isPortal = params.get("portal") === "1"
-      
-      if (catParam) {
-        CURRENT_CAT = catParam
-        updateActiveChip()
-      }
-      if (searchParam) {
-        searchProdEl.value = searchParam
-      }
-
-      renderCatalog()
-      setupHeroSlider()
-
-      const existingCustomer = typeof getCustomerData === "function" ? getCustomerData() : null
+      const isAdminView = params.get("admin_view") === "true"
 
       if (isPortal) {
-        const overlay = document.createElement("div")
-        overlay.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[70]"
-        const box = document.createElement("div")
-        box.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6"
-        box.innerHTML = `
-          <h2 class="text-xl font-bold text-slate-900 mb-2">Portal de clientes</h2>
-          <p class="text-sm text-slate-600 mb-4">
-            Si ya tienes usuario y clave asignados por EMBAIR, ingresa. Si es tu primera vez, solicita acceso.
-          </p>
-          <div class="space-y-3">
-            <button id="portal-login" class="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
-              Ya estoy registrado (Login)
-            </button>
-            <button id="portal-register" class="w-full py-2.5 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50">
-              Registrarme por primera vez
-            </button>
-          </div>
-        `
-        overlay.appendChild(box)
-        document.body.appendChild(overlay)
-
-        const closeOverlay = () => {
-          if (overlay && overlay.parentNode) {
-            overlay.parentNode.removeChild(overlay)
-          }
-        }
-
-        const openLoginModal = () => {
-          closeOverlay()
-          const o = document.createElement("div")
-          o.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[80]"
-          const m = document.createElement("div")
-          m.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6"
-          m.innerHTML = `
-            <h3 class="text-lg font-bold text-slate-900 mb-2">Login de cliente</h3>
-            <p class="text-sm text-slate-600 mb-4">Ingresa el correo y clave que registraste con EMBAIR.</p>
-            <div class="space-y-3">
-              <input id="portal-login-email" type="email" placeholder="Correo" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-login-pass" type="password" placeholder="Clave" class="w-full border rounded-lg px-3 py-2 text-sm" />
-            </div>
-            <p id="portal-login-error" class="text-xs text-red-600 mt-2 hidden"></p>
-            <div class="flex gap-2 mt-5">
-              <button id="portal-login-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 text-sm">Cancelar</button>
-              <button id="portal-login-confirm" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">Entrar</button>
-            </div>
-          `
-          o.appendChild(m)
-          document.body.appendChild(o)
-
-          const cancel = m.querySelector("#portal-login-cancel")
-          const confirm = m.querySelector("#portal-login-confirm")
-          const emailInput = m.querySelector("#portal-login-email")
-          const passInput = m.querySelector("#portal-login-pass")
-          const errEl = m.querySelector("#portal-login-error")
-
-          const close = () => {
-            if (o && o.parentNode) o.parentNode.removeChild(o)
-          }
-
-          if (cancel) {
-            cancel.addEventListener("click", () => {
-              close()
-              window.location.href = "/"
-            })
-          }
-
-          if (confirm) {
-            confirm.addEventListener("click", async () => {
-              const email = (emailInput.value || "").trim()
-              const password = (passInput.value || "").trim()
-              if (!email || !password) {
-                if (errEl) {
-                  errEl.textContent = "Ingresa correo y clave."
-                  errEl.classList.remove("hidden")
-                }
-                return
+          if (isAdminView) {
+              // Admin View Mode: Skip Login, Show Indicator
+              const toast = document.createElement("div")
+              toast.className = "fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl z-[70] text-xs font-mono border border-slate-600"
+              toast.innerHTML = `👁️ MODO VISTA ADMIN`
+              document.body.appendChild(toast)
+          } else {
+              // Regular Customer Mode
+              const customer = getCustomerData()
+              // If no customer data or incomplete, force login/register
+              if (!customer || !customer.celular || !customer.nombre) {
+                  setTimeout(() => {
+                      openCustomerModal((data) => {
+                          // Optional: Show a toast or welcome message
+                          const toast = document.createElement("div")
+                          toast.className = "fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-xl shadow-xl z-[70] animate-fade-in"
+                          toast.innerHTML = `✅ Bienvenido al Portal, <b>${data.nombre}</b>`
+                          document.body.appendChild(toast)
+                          setTimeout(() => toast.remove(), 3000)
+                      }, true) // Force login
+                  }, 800)
               }
-              try {
-                confirm.disabled = true
-                const res = await fetch("/api/portal/login", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ email, password })
-                })
-                const data = await res.json()
-                if (!res.ok || !data.ok) {
-                  if (errEl) {
-                    errEl.textContent = data.error === "invalid_credentials"
-                      ? "Correo o clave incorrectos."
-                      : "No encontramos un cliente con ese correo."
-                    errEl.classList.remove("hidden")
-                  }
-                  confirm.disabled = false
-                  return
-                }
-                const c = data.client || {}
-                const customer = {
-                  nombre: c.nombre || "",
-                  apellido: c.apellido || "",
-                  cedula: "",
-                  direccion: "",
-                  celular: c.celular || "",
-                  tipo: c.tipo || "",
-                  entrega: "",
-                  email: c.email || ""
-                }
-                if (typeof saveCustomerData === "function") {
-                  saveCustomerData(customer)
-                }
-                close()
-              } catch {
-                if (errEl) {
-                  errEl.textContent = "Error de conexión. Intenta nuevamente."
-                  errEl.classList.remove("hidden")
-                }
-                confirm.disabled = false
-              }
-            })
           }
-        }
-
-        const openRegisterModal = () => {
-          closeOverlay()
-          const o = document.createElement("div")
-          o.className = "fixed inset-0 bg-black/60 flex items-center justify-center z-[80]"
-          const m = document.createElement("div")
-          m.className = "bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
-          m.innerHTML = `
-            <h3 class="text-lg font-bold text-slate-900 mb-2">Registro de cliente</h3>
-            <p class="text-sm text-slate-600 mb-4">Completa tus datos para acceder al catálogo mayorista.</p>
-            <div class="space-y-3">
-              <input id="portal-reg-nombre" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-reg-apellido" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-reg-email" type="email" placeholder="Correo" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-reg-phone" placeholder="Celular / WhatsApp" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <input id="portal-reg-zona" placeholder="Zona / ciudad" class="w-full border rounded-lg px-3 py-2 text-sm" />
-              <select id="portal-reg-tipo" class="w-full border rounded-lg px-3 py-2 text-sm">
-                <option value="">Tipo de cliente...</option>
-                <option value="Particular">Particular</option>
-                <option value="Instalador">Instalador</option>
-                <option value="Empresa">Empresa</option>
-                <option value="Revendedor">Revendedor</option>
-              </select>
-            </div>
-            <p class="text-xs text-slate-500 mt-2">
-              Recibirás tu usuario y clave por parte de nuestro equipo una vez aprobada tu solicitud.
-            </p>
-            <p id="portal-reg-error" class="text-xs text-red-600 mt-1 hidden"></p>
-            <div class="flex gap-2 mt-5">
-              <button id="portal-reg-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 text-sm">Cancelar</button>
-              <button id="portal-reg-confirm" class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Enviar solicitud</button>
-            </div>
-          `
-          o.appendChild(m)
-          document.body.appendChild(o)
-
-          const cancel = m.querySelector("#portal-reg-cancel")
-          const confirm = m.querySelector("#portal-reg-confirm")
-          const errEl = m.querySelector("#portal-reg-error")
-
-          const close = () => {
-            if (o && o.parentNode) o.parentNode.removeChild(o)
-          }
-
-          if (cancel) {
-            cancel.addEventListener("click", () => {
-              close()
-              window.location.href = "/"
-            })
-          }
-
-          if (confirm) {
-            confirm.addEventListener("click", async () => {
-              const nombre = m.querySelector("#portal-reg-nombre").value.trim()
-              const apellido = m.querySelector("#portal-reg-apellido").value.trim()
-              const email = m.querySelector("#portal-reg-email").value.trim()
-              const celular = m.querySelector("#portal-reg-phone").value.trim()
-              const zona = m.querySelector("#portal-reg-zona").value.trim()
-              const tipo = m.querySelector("#portal-reg-tipo").value
-
-              if (!nombre || !email || !celular) {
-                if (errEl) {
-                  errEl.textContent = "Completa nombre, correo y celular."
-                  errEl.classList.remove("hidden")
-                }
-                return
-              }
-
-              try {
-                confirm.disabled = true
-                const res = await fetch("/api/portal/register", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email,
-                    nombre,
-                    apellido,
-                    celular,
-                    zona,
-                    tipo
-                  })
-                })
-                const data = await res.json()
-                if (!res.ok || !data.ok) {
-                  if (errEl) {
-                    errEl.textContent = "No se pudo completar la solicitud."
-                    errEl.classList.remove("hidden")
-                  }
-                  confirm.disabled = false
-                  return
-                }
-                alert("Hemos recibido tu solicitud. Te enviaremos tu usuario y clave cuando sea aprobada.")
-                close()
-                window.location.href = "/"
-              } catch {
-                if (errEl) {
-                  errEl.textContent = "Error de conexión. Intenta nuevamente."
-                  errEl.classList.remove("hidden")
-                }
-                confirm.disabled = false
-              }
-            })
-          }
-        }
-
-        const loginBtn = box.querySelector("#portal-login")
-        if (loginBtn) {
-          loginBtn.addEventListener("click", () => {
-            openLoginModal()
-          })
-        }
-
-        const registerBtn = box.querySelector("#portal-register")
-        if (registerBtn) {
-          registerBtn.addEventListener("click", () => {
-            openRegisterModal()
-          })
-        }
-      } else {
-        if (!existingCustomer && typeof openCustomerModal === "function") {
-          openCustomerModal((customer) => {
-            upsertClientFromCustomer(customer)
-          })
-        }
-      }
-    }
-
-    // --- PRODUCTS ---
-    async function loadProducts() {
-      const SAMPLE = [
-          { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://images.unsplash.com/photo-1544724569-5f546fd6dd2d?auto=format&fit=crop&w=400&q=80", packInfo: "Rollo 100m", brand: "Genérica", sku: "CB-15", code: "ELEC-001" },
-          { id: 2, name: "Llave de paso 1/2\"", category: "Plomería", subcategory: "Válvulas", material: "Latón", price: 2500, available: "Disponible", img: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=400&q=80", packInfo: "Unidad", brand: "Aqua", sku: "LP12", code: "PLOM-010" },
-          { id: 3, name: "Bombillo LED 9W", category: "Electricidad", subcategory: "Iluminación", material: "Plástico", price: 150, available: "Disponible", img: "https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=400&q=80", packInfo: "Caja x10", brand: "Lumina", sku: "LED-9W", code: "ELEC-020" }
-      ]
-      
-      try {
-        // Try Server
-        const res = await fetch("/api/products")
-        if (res.ok) {
-          const data = await res.json()
-          if (Array.isArray(data) && data.length > 0) {
-            PRODUCTS = data
-            return
-          }
-        }
-      } catch (e) { console.log("Server offline, using local/sample") }
-
-      // Try LocalStorage
-      try {
-        const raw = localStorage.getItem("products")
-        if (raw) {
-          const arr = JSON.parse(raw)
-          if (Array.isArray(arr) && arr.length > 0) {
-            PRODUCTS = arr
-            return
-          }
-        }
-      } catch {}
-
-      // Fallback
-      PRODUCTS = SAMPLE
-    }
-
-    function renderCatalog() {
-      const q = (searchProdEl.value || "").toLowerCase()
-      
-      const items = PRODUCTS.filter(p => {
-        const okCat = CURRENT_CAT ? p.category === CURRENT_CAT : true
-        const text = `${p.name} ${p.brand||""} ${p.code||""} ${p.sku||""}`.toLowerCase()
-        const okSearch = q ? text.includes(q) : true
-        return okCat && okSearch
-      })
-
-      gridEl.innerHTML = ""
-      if (items.length === 0) {
-        gridEl.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">No se encontraron productos</div>`
-        return
       }
 
-      for (const p of items) {
-        const price = p.price == null ? "Consultar" : "$" + Number(p.price).toLocaleString("es-AR")
-        const card = document.createElement("div")
-        card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col"
-        
-        // Handle image error
-        const imgUrl = p.img || "https://via.placeholder.com/400x300?text=Sin+Imagen"
-        
-        card.innerHTML = `
-          <div class="relative h-48 overflow-hidden bg-slate-100 group">
-            <img src="${imgUrl}" alt="${p.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://via.placeholder.com/400x300?text=Error+Imagen'">
-            ${p.available === "Agotado" ? '<div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">Agotado</div>' : ''}
-          </div>
-          <div class="p-4 flex-1 flex flex-col">
-            <div class="text-xs text-slate-500 mb-1">${p.category} ${p.subcategory ? '• '+p.subcategory : ''}</div>
-            <h3 class="font-semibold text-slate-800 leading-tight mb-1">${p.name}</h3>
-            <div class="text-xs text-slate-400 mb-3">${p.brand||""} ${p.sku ? 'SKU: '+p.sku : ''}</div>
-            
-            <div class="mt-auto flex items-center justify-between">
-              <span class="text-lg font-bold text-indigo-700">${price}</span>
-              <button onclick="addToCart(${p.id})" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white p-2 rounded-lg transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-              </button>
-            </div>
-          </div>
-        `
-        gridEl.appendChild(card)
-      }
-      
-      // Update URL without reload
-      const url = new URL(window.location)
-      if (CURRENT_CAT) url.searchParams.set("category", CURRENT_CAT)
-      else url.searchParams.delete("category")
-      
-      if (q) url.searchParams.set("q", q)
-      else url.searchParams.delete("q")
-      
-      window.history.replaceState({}, "", url)
-    }
-
-    // --- CART LOGIC ---
-    window.addToCart = function(id) {
-      const p = PRODUCTS.find(x => x.id === id)
-      if (!p) return
-      
-      const existing = CART.find(x => x.id === id)
-      if (existing) {
-        existing.qty++
-      } else {
-        CART.push({ ...p, qty: 1 })
-      }
-      saveCart()
-      openDrawer()
-    }
-
-    function removeFromCart(id) {
-      CART = CART.filter(x => x.id !== id)
-      saveCart()
-    }
-
-    function updateQty(id, delta) {
-      const item = CART.find(x => x.id === id)
-      if (!item) return
-      const newQty = item.qty + delta
-      if (newQty < 1) removeFromCart(id)
-      else {
-        item.qty = newQty
-        saveCart()
-      }
-    }
-
-    function saveCart() {
-      localStorage.setItem("cart", JSON.stringify(CART))
-      updateCartDrawer()
-    }
-
-    function updateCartDrawer() {
-      cartItemsDrawer.innerHTML = ""
-      let total = 0
-      
-      if (CART.length === 0) {
-        cartItemsDrawer.innerHTML = `
-          <div class="text-center py-10 text-slate-400">
-            <div class="text-4xl mb-3">🛒</div>
-            <p>Tu carrito está vacío</p>
-          </div>`
-      } else {
-        CART.forEach(item => {
-          const itemTotal = (item.price || 0) * item.qty
-          total += itemTotal
-          const el = document.createElement("div")
-          el.className = "flex gap-3 bg-slate-50 p-3 rounded-xl"
-          el.innerHTML = `
-            <img src="${item.img}" class="w-16 h-16 object-cover rounded-lg bg-white border border-slate-200">
-            <div class="flex-1">
-              <div class="text-sm font-medium text-slate-900 line-clamp-1">${item.name}</div>
-              <div class="text-xs text-slate-500 mb-2">$${Number(item.price).toLocaleString("es-AR")} x ${item.qty}</div>
-              <div class="flex items-center gap-3">
-                <div class="flex items-center bg-white border border-slate-200 rounded-lg h-8">
-                  <button onclick="updateQty(${item.id}, -1)" class="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-l-lg">-</button>
-                  <span class="text-xs font-medium w-6 text-center">${item.qty}</span>
-                  <button onclick="updateQty(${item.id}, 1)" class="w-8 h-full flex items-center justify-center text-slate-500 hover:bg-slate-50 rounded-r-lg">+</button>
-                </div>
-                <button onclick="removeFromCart(${item.id})" class="text-xs text-red-500 hover:underline ml-auto">Eliminar</button>
-              </div>
-            </div>
-          `
-          cartItemsDrawer.appendChild(el)
-        })
-      }
-      
-      drawerTotal.textContent = "$" + total.toLocaleString("es-AR")
-      
-      // Badge logic if needed (optional)
-    }
-
-    function openDrawer() {
-      cartDrawer.classList.remove("translate-x-full")
-      cartOverlay.classList.remove("hidden", "opacity-0")
-      document.body.classList.add("drawer-open")
-    }
-
-    function closeDrawer() {
-      cartDrawer.classList.add("translate-x-full")
-      cartOverlay.classList.add("hidden", "opacity-0")
-      document.body.classList.remove("drawer-open")
-    }
-
-    // --- HERO SLIDER ---
-    function setupHeroSlider() {
-      const images = [
-        "uploads/banner-1.jpg", 
-        "uploads/banner-2.jpg",
-        "uploads/banner-3.jpg"
-      ]
-      const fallbacks = [
-        "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1200&q=80", 
-        "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1544724569-5f546fd6dd2d?auto=format&fit=crop&w=1200&q=80"
-      ]
-      const container = document.getElementById("hero-slider")
-      const indicators = document.getElementById("hero-indicators")
-      let current = 0
-      
-      if (!container || !indicators) return
-
-      // Clear previous
-      container.innerHTML = ""
-      indicators.innerHTML = ""
-
-      images.forEach((src, i) => {
-        const img = document.createElement("img")
-        img.src = src
-        img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === 0 ? 'opacity-100' : 'opacity-0'}`
-        img.onerror = () => { img.src = fallbacks[i % fallbacks.length] }
-        container.appendChild(img)
-        
-        const dot = document.createElement("button")
-        dot.className = `w-2 h-2 rounded-full transition-all ${i === 0 ? 'bg-white w-6' : 'bg-white/50'}`
-        dot.onclick = () => showSlide(i)
-        indicators.appendChild(dot)
-      })
-
-      function showSlide(index) {
-        current = index
-        Array.from(container.children).forEach((img, i) => {
-          img.className = `absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === index ? 'opacity-100' : 'opacity-0'}`
-        })
-        Array.from(indicators.children).forEach((dot, i) => {
-          dot.className = `w-2 h-2 rounded-full transition-all ${i === index ? 'bg-white w-6' : 'bg-white/50'}`
-        })
-      }
-
-      setInterval(() => {
-        showSlide((current + 1) % images.length)
-      }, 5000)
-    }
-
-    // --- EVENTS ---
-    const logoImg = document.getElementById("app-logo")
-    if (logoImg) {
-      const customLogo = localStorage.getItem("company_logo")
-      if (customLogo) logoImg.src = customLogo
-
-      logoImg.onload = () => {
-         logoImg.classList.remove("hidden")
-         document.getElementById("app-logo-fallback").classList.add("hidden")
-      }
-    }
-
-    categoryChips.addEventListener("click", e => {
-      if (e.target.tagName === "BUTTON") {
-        CURRENT_CAT = e.target.getAttribute("data-cat")
-        updateActiveChip()
-        renderCatalog()
-      }
-    })
-
-    function updateActiveChip() {
-      Array.from(categoryChips.children).forEach(btn => {
-        if (btn.getAttribute("data-cat") === CURRENT_CAT) {
-          btn.classList.add("active", "bg-indigo-600", "text-white", "border-indigo-600")
-          btn.classList.remove("bg-white", "text-slate-600", "border-slate-300")
-        } else {
-          btn.classList.remove("active", "bg-indigo-600", "text-white", "border-indigo-600")
-          btn.classList.add("bg-white", "text-slate-600", "border-slate-300")
-        }
-      })
-    }
-
-    searchProdEl.addEventListener("input", renderCatalog)
-    closeDrawerBtn.addEventListener("click", closeDrawer)
-    cartOverlay.addEventListener("click", closeDrawer)
-
-    // Send Order via WhatsApp
-    sendWaDrawerBtn.addEventListener("click", () => {
-      if (CART.length === 0) return
-      
-      let text = "Hola, me gustaría hacer el siguiente pedido:\n\n"
-      let total = 0
-      CART.forEach(p => {
-        text += `- ${p.name} (x${p.qty}): $${(p.price*p.qty).toLocaleString("es-AR")}\n`
-        total += p.price * p.qty
-      })
-      text += `\n*Total: $${total.toLocaleString("es-AR")}*`
-      
-      const storePhone = storeWaInput.value.trim() || "584242240909" // Default fallback
-      const url = `https://wa.me/${storePhone.replace(/\D/g,"")}?text=${encodeURIComponent(text)}`
-      window.open(url, "_blank")
-    })
-
-    // Share Store Link
-    if (shareStoreBtn) {
-      shareStoreBtn.addEventListener("click", () => {
-        const url = window.location.href
-        const text = `¡Mira este catálogo de materiales! ${url}`
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`
-        window.open(waUrl, "_blank")
-      })
-    }
-
-    init()
+    })()
   </script>
+
+  <script src="/js/assistant.js"></script>
 </body>
 </html>

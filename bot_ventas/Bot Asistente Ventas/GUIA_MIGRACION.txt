@@ -1,0 +1,64 @@
+========================================================================
+GUÍA CRÍTICA: MIGRAR A OTRA PC (SIN NODE.JS)
+========================================================================
+
+Si la computadora de la oficina NO TIENE NODE.JS, sigue estos pasos EXACTOS:
+
+1. COPIA TODA LA CARPETA "Mercado Libre" a la nueva PC.
+
+2. En la nueva PC, abre la carpeta y ejecuta:
+   --> "INSTALAR_DEPENDENCIAS.bat"
+
+3. COMO NO TIENES NODE, EL ARCHIVO TE AVISARÁ Y ABRIRÁ LA PÁGINA DE DESCARGA.
+   - Se abrirá una web (nodejs.org).
+   - Descarga la versión que dice "LTS" (Recomendado).
+   - Instálalo (dale "Siguiente", "Siguiente", "Instalar").
+   
+4. UNA VEZ INSTALADO NODE.JS:
+   - Vuelve a ejecutar "INSTALAR_DEPENDENCIAS.bat".
+   - Ahora sí, descargará todo lo necesario para los bots.
+
+¡LISTO! Ya puedes ejecutar tus bots.
+
+------------------------------------------------------------------------
+NOTA IMPORTANTE: SI CAMBIAS EL NOMBRE DE LA CARPETA
+------------------------------------------------------------------------
+Si decides cambiar el nombre de la carpeta del proyecto (ej: de "Mercado Libre" a "Mi Bot V1"):
+
+1. Haz el cambio de nombre.
+2. BORRA la carpeta llamada ".venv" (si existe).
+3. Vuelve a ejecutar "INSTALAR_DEPENDENCIAS.bat".
+
+Esto es necesario porque Python guarda la ubicación exacta de los archivos y si cambias el nombre, se pierde.
+
+------------------------------------------------------------------------
+PASO 4: INICIAR SESIÓN (IMPORTANTE)
+------------------------------------------------------------------------
+Los bots usan su PROPIO navegador, NO se conectan a tu Chrome personal que ya tienes abierto.
+Por lo tanto, la PRIMERA VEZ tendrás que iniciar sesión de nuevo en las ventanas que abran los bots.
+
+- Para WhatsApp:
+  Ejecuta "iniciar_whatsapp.bat" y escanea el código QR que aparecerá.
+
+- Para Marketplace:
+  Ejecuta "iniciar_marketplace.bat", se abrirá un Chrome limpio.
+  Inicia sesión en Facebook ahí manualmente.
+  (Una vez inicies sesión, no tendrás que hacerlo de nuevo si no borras la carpeta "marketplace_session").
+
+- Para Mercado Libre:
+  Ejecuta "iniciar_bot.bat", se abrirá un Chrome limpio.
+  Inicia sesión en Mercado Libre ahí manualmente.
+
+------------------------------------------------------------------------
+NOTAS ADICIONALES
+------------------------------------------------------------------------
+- Si quieres mantener tu inventario actualizado, asegúrate de copiar siempre
+  la versión más reciente del archivo "inventario_ml.xlsx".
+
+- Si quieres transferir las sesiones (para no loguearte de nuevo),
+  puedes intentar copiar también las carpetas ocultas:
+  - ".wwebjs_auth" (Sesión de WhatsApp)
+  - "user_data" (Sesión de Mercado Libre)
+  - "marketplace_session" (Sesión de Marketplace)
+  
+  Pero si te da error, lo mejor es borrarlas en la nueva PC y loguearte de cero.

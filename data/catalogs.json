@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Catálogo Giolito",
+    "url": "/uploads/CATALOGO_GIOLITO_1770728730348.pdf",
+    "createdAt": "2026-03-09T00:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Catálogo Voltage Nuevo",
+    "url": "/uploads/CATALOGO_VOLTAGE_NUEVO_1770729266187.pdf",
+    "createdAt": "2026-03-09T00:00:00.000Z"
+  },
+  {
+    "id": 3,
+    "title": "Lista de Precios EMBAIR Febrero 2026",
+    "url": "/uploads/LISTA_PRECIOS_EMBAIR_FEBRERO_2026_MAT_ELECTRICOS_1771646281336.pdf",
+    "createdAt": "2026-03-09T00:00:00.000Z"
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "id": 1771888536162,
+    "nombre": "Carlos",
+    "email": "lospiloncitos@gmail.com",
+    "celular": "",
+    "zona": "Catia",
+    "tipo": "Ferretería",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-23T23:15:36.162Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  },
+  {
+    "id": 1771889941224,
+    "nombre": "Manuel",
+    "email": "",
+    "celular": "04127077059",
+    "zona": "Centro",
+    "tipo": "Particular",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-23T23:39:01.224Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  },
+  {
+    "id": 1771890483979,
+    "nombre": "Manuel",
+    "email": "",
+    "celular": "0412707059",
+    "zona": "Norte",
+    "tipo": "Particular",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-23T23:48:03.979Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  },
+  {
+    "id": 1771891151434,
+    "nombre": "Manuel",
+    "email": "",
+    "celular": "04127077059",
+    "zona": "Norte",
+    "tipo": "Revendedor",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-23T23:59:11.434Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  },
+  {
+    "id": 1771891400776,
+    "nombre": "Manuel",
+    "email": "",
+    "celular": "0412707059",
+    "zona": "Cantro",
+    "tipo": "Particular",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-24T00:03:20.776Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  },
+  {
+    "id": 1771897195801,
+    "nombre": "Manuel",
+    "email": "",
+    "celular": "04127077059",
+    "zona": "Gran Caracas - Caricuao",
+    "tipo": "Particular",
+    "source": "assistant_landing",
+    "createdAt": "2026-02-24T01:39:55.801Z",
+    "convertedToClient": false,
+    "clientId": null,
+    "convertedAt": null
+  }
+]

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot de Ventas - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex-shrink-0 hidden md:flex flex-col">
+      <div class="p-6 border-b border-slate-800">
+        <h1 class="text-xl font-bold">Admin Panel</h1>
+        <p class="text-xs text-slate-400">Gestión de Tienda</p>
+      </div>
+      <nav class="flex-1 p-4 space-y-1">
+        <a href="/admin" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+          <i class="fa-solid fa-chart-line w-5"></i> Dashboard
+        </a>
+        <a href="/admin-ia.html" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+          <i class="fa-solid fa-robot w-5"></i> Gestión IA
+        </a>
+        <a href="/admin-bot.html" class="flex items-center gap-3 px-3 py-2 bg-blue-600 text-white rounded-lg transition-colors">
+          <i class="fa-solid fa-comments-dollar w-5"></i> Bot de Ventas
+        </a>
+        <a href="/" class="flex items-center gap-3 px-3 py-2 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors mt-8">
+          <i class="fa-solid fa-store w-5"></i> Ver Tienda
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+      <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-800">Configuración Bot de Ventas</h2>
+        <button onclick="saveConfig()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+          <i class="fa-solid fa-save mr-2"></i> Guardar Cambios
+        </button>
+      </header>
+
+      <div class="flex-1 overflow-y-auto p-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+          
+          <!-- Connections Section -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Conexiones a Redes Sociales</h3>
+            <p class="text-sm text-slate-600 mb-4">Gestiona la conexión de tus bots externos.</p>
+            
+            <div class="space-y-4">
+              <!-- WhatsApp -->
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                    <i class="fa-brands fa-whatsapp text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-slate-800">WhatsApp Business</h4>
+                    <p id="status-wa" class="text-xs text-slate-500">Desconectado</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="controlBot('start', 'wa')" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded shadow-sm transition-colors">Iniciar</button>
+                  <button onclick="controlBot('stop', 'wa')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded shadow-sm transition-colors">Detener</button>
+                </div>
+              </div>
+
+              <!-- MercadoLibre -->
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600">
+                    <i class="fa-solid fa-handshake text-xl"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-medium text-slate-800">MercadoLibre</h4>
+                    <p id="status-meli" class="text-xs text-slate-500">Desconectado</p>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="controlBot('start', 'meli')" class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded shadow-sm transition-colors">Iniciar</button>
+                  <button onclick="controlBot('stop', 'meli')" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded shadow-sm transition-colors">Detener</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Flow Logic Section -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Lógica de Respuesta</h3>
+            <p class="text-sm text-slate-600 mb-4">Configura cómo debe responder el bot en redes sociales.</p>
+            
+            <div class="space-y-4">
+              <div class="flex items-start gap-3">
+                <input type="checkbox" id="force-portal" class="mt-1 w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500">
+                <div>
+                  <label for="force-portal" class="font-medium text-slate-800">Redirección Forzosa al Portal</label>
+                  <p class="text-xs text-slate-500 mt-1">
+                    Si está activo, el bot solicitará Nombre y Apellido y enviará un link al portal para completar Zona y Tipo de Cliente, en lugar de procesarlo en el chat.
+                  </p>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Entrenamiento de Respuesta (Script)</label>
+                <p class="text-xs text-slate-500 mb-2">Instrucciones específicas para el tono del bot en redes sociales.</p>
+                <textarea id="bot-training" rows="4" class="w-full border border-slate-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Ej: Saluda siempre con el nombre de la empresa. Sé breve y directo..."></textarea>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let botConfig = { 
+      forcePortal: true,
+      training: ""
+    }
+
+    // Load config on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      loadConfig()
+      pollStatus()
+      setInterval(pollStatus, 5000) // Poll every 5 seconds
+    })
+
+    async function loadConfig() {
+      try {
+        const res = await fetch("/api/bot/config")
+        if (res.ok) {
+          const data = await res.json()
+          botConfig = { ...botConfig, ...data }
+          renderConfig()
+        }
+      } catch (e) {
+        console.error("Error loading bot config", e)
+      }
+    }
+
+    async function pollStatus() {
+      try {
+        const res = await fetch("/api/bot/status")
+        if (res.ok) {
+          const status = await res.json()
+          updateStatusUI("wa", status.wa)
+          updateStatusUI("meli", status.meli)
+        }
+      } catch (e) {
+        console.error("Error polling status", e)
+      }
+    }
+
+    function updateStatusUI(type, isRunning) {
+      const el = document.getElementById(`status-${type}`)
+      if (isRunning) {
+        el.textContent = "Ejecutando"
+        el.className = "text-xs text-green-600 font-bold"
+      } else {
+        el.textContent = "Detenido"
+        el.className = "text-xs text-slate-500"
+      }
+    }
+
+    function renderConfig() {
+      // Flow
+      document.getElementById("force-portal").checked = botConfig.forcePortal
+      document.getElementById("bot-training").value = botConfig.training || ""
+    }
+
+    async function controlBot(action, type) {
+       // action: 'start' | 'stop'
+       const method = action === 'start' ? 'Iniciar' : 'Detener';
+       if (!confirm(`¿Estás seguro de que deseas ${method} el bot?`)) return;
+
+       try {
+        // Default admin:admin for local dev convenience
+        // In production, you would handle this with a proper login session/cookie
+        const defaultAuth = btoa("admin:admin"); 
+        const token = localStorage.getItem("admin_token") || defaultAuth;
+        
+        const headers = { 
+          "Content-Type": "application/json",
+          "Authorization": "Basic " + token
+        };
+        
+        const res = await fetch("/api/bot/control", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ action, type })
+        });
+        
+        if (res.ok) {
+           const data = await res.json();
+           if(data.message === "already_running") {
+             alert("El bot ya se está ejecutando.");
+           } else {
+             // Success
+             setTimeout(pollStatus, 2000); // Give it a moment to spin up/down
+           }
+        } else {
+           if (res.status === 401) {
+             const newToken = prompt("Credenciales inválidas. Ingrese user:pass (base64) o user:pass normal:");
+             if (newToken) {
+                // Check if it looks like base64 or plain text
+                const finalToken = newToken.includes(":") ? btoa(newToken) : newToken;
+                localStorage.setItem("admin_token", finalToken);
+                // Retry once
+                return controlBot(action, type);
+             }
+           }
+           alert("Error al controlar el bot");
+        }
+      } catch (e) {
+        console.error(e);
+        alert("Error de red");
+      }
+    }
+
+    async function saveConfig() {
+      botConfig.forcePortal = document.getElementById("force-portal").checked;
+      botConfig.training = document.getElementById("bot-training").value;
+
+      try {
+        const defaultAuth = btoa("admin:admin");
+        const token = localStorage.getItem("admin_token") || defaultAuth;
+        
+        const headers = { 
+          "Content-Type": "application/json",
+          "Authorization": "Basic " + token
+        };
+        
+        const res = await fetch("/api/bot/config", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(botConfig)
+        });
+        
+        if (res.ok) {
+          alert("Configuración del Bot guardada");
+        } else {
+           if (res.status === 401) {
+             const newToken = prompt("Credenciales requeridas. Ingrese user:pass:");
+             if (newToken) {
+                localStorage.setItem("admin_token", btoa(newToken));
+                return saveConfig(); // Retry
+             }
+           }
+           alert("Error guardando");
+        }
+      } catch (e) {
+        alert("Error de red");
+      }
+    }
+  </script>
+</body>
+</html>

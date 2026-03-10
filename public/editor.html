@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editor Visual Avanzado - EMBAIR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .draggable-item { cursor: move; }
+    .ghost { opacity: 0.5; background: #e0e7ff; }
+    .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #64748b; }
+    .tab-inactive:hover { color: #334155; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 pb-20">
+  <header class="bg-white shadow sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="/admin.html" class="text-slate-500 hover:text-slate-800 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
+        <h1 class="text-xl font-bold text-slate-900">Editor Visual de Sitio</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="/" target="_blank" class="text-sm text-blue-600 font-medium hover:underline flex items-center gap-1">
+            Ver Sitio 
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <button id="save-all" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-blue-700 transition flex items-center gap-2">
+            <span>💾 Guardar Cambios</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    
+    <!-- TABS -->
+    <div class="flex border-b border-slate-200 mb-6">
+        <button id="tab-btn-landing" class="px-6 py-3 tab-active transition-colors" onclick="switchTab('landing')">Landing Page</button>
+        <button id="tab-btn-portal" class="px-6 py-3 tab-inactive transition-colors" onclick="switchTab('portal')">Portal Clientes (Catálogo)</button>
+    </div>
+
+    <!-- 1. IDENTIDAD Y COLORES (Global) -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <h2 class="font-bold text-lg text-slate-800">Identidad y Marca</h2>
+            <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded">Global</span>
+        </div>
+        <div class="p-6 grid md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre de la Tienda</label>
+                    <input id="config-storeName" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: Materiales Eléctricos" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">WhatsApp (Internacional)</label>
+                    <input id="config-whatsapp" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: 58424..." />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Logo del Sitio</label>
+                    <div class="flex gap-2">
+                        <input id="config-logoUrl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50" readonly placeholder="/uploads/logo.png" />
+                        <button id="btn-upload-logo" class="bg-white border border-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Subir</button>
+                        <input type="file" id="file-logo" accept="image/*" class="hidden" />
+                    </div>
+                    <img id="preview-logo" src="" class="h-10 mt-2 object-contain hidden" />
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Primario</label>
+                        <div class="flex items-center gap-2 p-2 border border-slate-300 rounded-lg">
+                            <input type="color" id="config-primaryColor" class="h-8 w-8 border-none p-0 cursor-pointer bg-transparent" value="#4f46e5" />
+                            <span class="text-xs text-slate-500">Botones, énfasis</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Secundario</label>
+                        <div class="flex items-center gap-2 p-2 border border-slate-300 rounded-lg">
+                            <input type="color" id="config-secondaryColor" class="h-8 w-8 border-none p-0 cursor-pointer bg-transparent" value="#0ea5e9" />
+                            <span class="text-xs text-slate-500">Fondos, detalles</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50 text-blue-800 text-xs rounded-lg border border-blue-100">
+                    💡 Estos colores se aplicarán automáticamente a botones, enlaces y fondos de toda la tienda.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 1.5. INFORMACIÓN DE CONTACTO (Pie de Página) -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <h2 class="font-bold text-lg text-slate-800">Información de Contacto (Pie de Página)</h2>
+            <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded">Global</span>
+        </div>
+        <div class="p-6 grid md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Dirección Física</label>
+                    <textarea id="config-address" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" rows="3" placeholder="Ej: Av. Intercomunal..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Teléfono (Contacto)</label>
+                    <input id="config-phone" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: +58 412-000-0000" />
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Correo Electrónico</label>
+                    <input id="config-email" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: contacto@embair.com" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">URL Google Maps (Embed)</label>
+                    <input id="config-mapUrl" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: https://www.google.com/maps/embed?pb=..." />
+                    <p class="text-xs text-slate-500 mt-1">Copia el link de "Insertar mapa" de Google Maps.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="tab-content-landing" class="space-y-8">
+        <!-- 2. HERO / CARRUSEL -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800">Portada Principal (Landing)</h2>
+                <button id="add-slide-btn" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition">+ Añadir Slide</button>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Landing Hero Text -->
+                <div class="space-y-4 pb-6 border-b border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Texto Principal</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Título del Banner</label>
+                        <input id="config-heroTitle" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: Materiales Eléctricos..." />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Subtítulo / Descripción</label>
+                        <textarea id="config-heroSubtitle" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" rows="2" placeholder="Ej: Explora el catálogo..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Slides -->
+                <div>
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Imágenes del Carrusel</h3>
+                    <p class="text-sm text-slate-500 mb-4">Configura el carrusel principal de la Landing Page.</p>
+                    <div id="slides-container" class="space-y-4">
+                        <!-- Slides will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SECCIONES DE CONTENIDO -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800">Secciones de Contenido</h2>
+                <div class="flex gap-2">
+                    <button onclick="addSection('text')" class="text-xs bg-white border border-slate-300 text-slate-700 px-3 py-1 rounded-full font-medium hover:bg-slate-50">+ Texto</button>
+                    <button onclick="addSection('image-text')" class="text-xs bg-white border border-slate-300 text-slate-700 px-3 py-1 rounded-full font-medium hover:bg-slate-50">+ Imagen y Texto</button>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50/50 min-h-[200px]">
+                <div id="sections-container" class="space-y-6">
+                    <!-- Sections will be injected here -->
+                    <div id="empty-sections-msg" class="text-center py-10 text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                        No hay secciones adicionales. Añade una arriba para personalizar tu landing.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- TAB CONTENT: PORTAL -->
+    <div id="tab-content-portal" class="space-y-8 hidden">
+        <!-- CINTILLO / MARQUEE -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800">Cintillo de Avisos (Marquee)</h2>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="config-marqueeEnabled" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="config-marqueeEnabled" class="text-sm font-medium text-slate-700">Habilitar</label>
+                </div>
+            </div>
+            <div class="p-6 grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Texto del Aviso</label>
+                        <input id="config-marqueeText" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: ¡Ofertas de Verano! 20% de descuento en..." />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Enlace (Opcional)</label>
+                        <input id="config-marqueeLink" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: /productos.html?cat=ofertas" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Velocidad (Segundos)</label>
+                        <input type="range" id="config-marqueeSpeed" min="5" max="60" value="20" class="w-full" oninput="this.nextElementSibling.value = this.value + 's'">
+                        <output class="text-xs text-slate-500">20s</output>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Fondo</label>
+                            <div class="flex items-center gap-2 p-2 border border-slate-300 rounded-lg">
+                                <input type="color" id="config-marqueeBgColor" class="h-8 w-8 border-none p-0 cursor-pointer bg-transparent" value="#0f172a" />
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Texto</label>
+                            <div class="flex items-center gap-2 p-2 border border-slate-300 rounded-lg">
+                                <input type="color" id="config-marqueeTextColor" class="h-8 w-8 border-none p-0 cursor-pointer bg-transparent" value="#ffffff" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-yellow-50 text-yellow-800 text-xs rounded-lg border border-yellow-100">
+                        💡 Este cintillo aparecerá debajo del menú en el catálogo de productos. Úsalo para anuncios importantes.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PORTAL SLIDES -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800">Portada del Catálogo</h2>
+                <button id="add-portal-slide-btn" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition">+ Añadir Slide</button>
+            </div>
+            <div class="p-6 space-y-6">
+                <!-- Portal Hero Text -->
+                <div class="space-y-4 pb-6 border-b border-slate-100">
+                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Texto Principal (Portal)</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Título del Banner</label>
+                        <input id="config-portalHeroTitle" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: Catálogo Mayorista..." />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Subtítulo / Descripción</label>
+                        <textarea id="config-portalHeroSubtitle" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" rows="2" placeholder="Ej: Precios y stock actualizados..."></textarea>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mb-4 p-3 bg-slate-100 rounded-lg">
+                    <input type="checkbox" id="config-useLandingSlidesOnPortal" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                    <label for="config-useLandingSlidesOnPortal" class="text-sm font-medium text-slate-700">Usar los mismos slides de la Landing Page</label>
+                </div>
+                
+                <div id="portal-slides-wrapper">
+                    <p class="text-sm text-slate-500 mb-4">Configura los slides específicos para el portal de clientes. Si está vacío, se mostrarán productos destacados por defecto.</p>
+                    <div id="portal-slides-container" class="space-y-4">
+                        <!-- Portal Slides injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PORTAL SERVICES -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="font-bold text-lg text-slate-800">Sección de Servicios / Beneficios</h2>
+                <button id="add-service-btn" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition">+ Añadir Servicio</button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="space-y-4 pb-6 border-b border-slate-100">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Título de la Sección</label>
+                        <input id="config-servicesTitle" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: Servicios" />
+                    </div>
+                </div>
+
+                <div id="services-container" class="grid md:grid-cols-2 gap-4">
+                    <!-- Services injected here -->
+                </div>
+                <p class="text-xs text-slate-500">Estos cuadros aparecen debajo del banner en el catálogo.</p>
+            </div>
+        </section>
+    </div>
+
+  </main>
+
+  <!-- Templates for JS -->
+  <template id="slide-template">
+    <div class="slide-item bg-white border border-slate-200 rounded-lg p-4 relative group draggable-item">
+        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+            <button class="delete-slide text-red-400 hover:text-red-600 p-1">🗑️</button>
+        </div>
+        <div class="grid md:grid-cols-[120px_1fr] gap-4 items-start">
+            <div class="bg-slate-100 h-24 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer upload-trigger">
+                <img src="" class="slide-img-preview absolute inset-0 w-full h-full object-cover hidden" />
+                <span class="text-xs text-slate-400 text-center px-2">Click para imagen</span>
+                <input type="file" accept="image/*" class="hidden slide-file-input">
+                <input type="hidden" class="slide-img-url">
+            </div>
+            <div class="space-y-2">
+                <input type="text" class="slide-title w-full border-b border-slate-200 pb-1 text-sm font-bold focus:border-blue-500 outline-none" placeholder="Título del Slide (Ej: Gran Oferta)" />
+                <textarea class="slide-subtitle w-full border-b border-slate-200 pb-1 text-xs text-slate-600 focus:border-blue-500 outline-none resize-none" rows="2" placeholder="Subtítulo o descripción breve..."></textarea>
+                <input type="text" class="slide-link w-full text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border-none focus:ring-1 focus:ring-blue-500" placeholder="Enlace opcional (Ej: /productos.html?cat=ofertas)" />
+            </div>
+        </div>
+    </div>
+  </template>
+
+  <template id="section-text-template">
+    <div class="section-item bg-white border border-slate-200 rounded-lg p-0 overflow-hidden draggable-item" data-type="text">
+        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center cursor-move">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Bloque de Texto</span>
+            <button class="delete-section text-slate-400 hover:text-red-500">✕</button>
+        </div>
+        <div class="p-4 space-y-3">
+            <input type="text" class="section-title w-full text-lg font-bold border border-slate-200 rounded px-3 py-2" placeholder="Título de la Sección" />
+            <textarea class="section-content w-full border border-slate-200 rounded px-3 py-2 text-sm min-h-[100px]" placeholder="Escribe aquí el contenido..."></textarea>
+        </div>
+    </div>
+  </template>
+
+  <template id="section-image-text-template">
+    <div class="section-item bg-white border border-slate-200 rounded-lg p-0 overflow-hidden draggable-item" data-type="image-text">
+        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center cursor-move">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Imagen + Texto</span>
+            <button class="delete-section text-slate-400 hover:text-red-500">✕</button>
+        </div>
+        <div class="p-4 grid md:grid-cols-2 gap-4">
+            <div class="space-y-3">
+                <input type="text" class="section-title w-full text-lg font-bold border border-slate-200 rounded px-3 py-2" placeholder="Título" />
+                <textarea class="section-content w-full border border-slate-200 rounded px-3 py-2 text-sm min-h-[120px]" placeholder="Descripción..."></textarea>
+                <select class="section-layout w-full border border-slate-200 rounded px-3 py-2 text-sm bg-white">
+                    <option value="left">Imagen a la Izquierda</option>
+                    <option value="right">Imagen a la Derecha</option>
+                </select>
+            </div>
+            <div class="bg-slate-100 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer upload-trigger min-h-[150px]">
+                <img src="" class="section-img-preview absolute inset-0 w-full h-full object-cover hidden" />
+                <div class="text-center p-4">
+                    <span class="block text-2xl mb-1">📷</span>
+                    <span class="text-xs text-slate-400">Click para subir imagen</span>
+                </div>
+                <input type="file" accept="image/*" class="hidden section-file-input">
+                <input type="hidden" class="section-img-url">
+            </div>
+        </div>
+    </div>
+  </template>
+
+  <template id="service-template">
+    <div class="service-item bg-white border border-slate-200 rounded-lg p-4 relative group draggable-item">
+        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button class="delete-service text-red-400 hover:text-red-600 p-1">🗑️</button>
+        </div>
+        <div class="space-y-3">
+            <input type="text" class="service-title w-full border-b border-slate-200 pb-1 text-sm font-bold focus:border-blue-500 outline-none" placeholder="Título (Ej: Envíos Rápidos)" />
+            <textarea class="service-desc w-full border-b border-slate-200 pb-1 text-xs text-slate-600 focus:border-blue-500 outline-none resize-none" rows="2" placeholder="Descripción breve..."></textarea>
+            <input type="text" class="service-cta w-full text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border-none focus:ring-1 focus:ring-blue-500" placeholder="Texto del botón (Ej: Ver más)" />
+             <input type="text" class="service-link w-full text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded border-none focus:ring-1 focus:ring-blue-500 mt-1" placeholder="Enlace (Opcional)" />
+        </div>
+    </div>
+  </template>
+
+  <script>
+    // --- UTILS ---
+    async function uploadFile(file) {
+        const fd = new FormData()
+        fd.append("file", file)
+        const res = await fetch("/api/upload", {
+            method: "POST",
+            headers: { "Authorization": "Basic " + btoa("admin:admin") },
+            body: fd
+        })
+        const data = await res.json()
+        return data.ok ? data.url : null
+    }
+
+    function switchTab(tab) {
+        // Reset Tabs
+        document.getElementById('tab-btn-landing').className = 'px-6 py-3 tab-inactive transition-colors'
+        document.getElementById('tab-btn-portal').className = 'px-6 py-3 tab-inactive transition-colors'
+        
+        // Hide Contents
+        document.getElementById('tab-content-landing').classList.add('hidden')
+        document.getElementById('tab-content-portal').classList.add('hidden')
+
+        // Activate Tab
+        document.getElementById(`tab-btn-${tab}`).className = 'px-6 py-3 tab-active transition-colors'
+        document.getElementById(`tab-content-${tab}`).classList.remove('hidden')
+    }
+
+    // --- LOGIC ---
+    document.addEventListener("DOMContentLoaded", async () => {
+        const slidesContainer = document.getElementById("slides-container")
+        const portalSlidesContainer = document.getElementById("portal-slides-container")
+        const sectionsContainer = document.getElementById("sections-container")
+        const servicesContainer = document.getElementById("services-container")
+        
+        // Initialize Sortable
+        new Sortable(slidesContainer, { animation: 150, handle: '.draggable-item', ghostClass: 'ghost' })
+        new Sortable(portalSlidesContainer, { animation: 150, handle: '.draggable-item', ghostClass: 'ghost' })
+        new Sortable(sectionsContainer, { animation: 150, handle: '.bg-slate-50', ghostClass: 'ghost' })
+        new Sortable(servicesContainer, { animation: 150, handle: '.draggable-item', ghostClass: 'ghost' })
+
+        // Load Config
+        try {
+            const res = await fetch("/api/config")
+            const config = await res.json()
+            
+            // 1. Identity
+            document.getElementById("config-storeName").value = config.storeName || ""
+            document.getElementById("config-whatsapp").value = config.whatsapp || ""
+            document.getElementById("config-logoUrl").value = config.logoUrl || ""
+            if(config.logoUrl) {
+                const preview = document.getElementById("preview-logo")
+                preview.src = config.logoUrl
+                preview.classList.remove("hidden")
+            }
+            document.getElementById("config-primaryColor").value = config.primaryColor || "#4f46e5"
+            document.getElementById("config-secondaryColor").value = config.secondaryColor || "#0ea5e9"
+
+            // 2. Landing Slides & Text
+            document.getElementById("config-heroTitle").value = config.heroTitle || ""
+            document.getElementById("config-heroSubtitle").value = config.heroSubtitle || ""
+
+            const slides = config.slides || []
+            slides.forEach(s => addSlide(s, "slides-container"))
+            if (slides.length === 0) addSlide({}, "slides-container")
+
+            // 3. Sections
+            const sections = config.sections || []
+            sections.forEach(s => addSection(s.type, s))
+            updateEmptyMsg()
+
+            // 4. Portal Config (Marquee & Text)
+            if (config.marqueeEnabled) document.getElementById("config-marqueeEnabled").checked = true
+            document.getElementById("config-marqueeText").value = config.marqueeText || ""
+            document.getElementById("config-marqueeLink").value = config.marqueeLink || ""
+            document.getElementById("config-marqueeSpeed").value = config.marqueeSpeed || 20
+            document.getElementById("config-marqueeSpeed").nextElementSibling.value = (config.marqueeSpeed || 20) + "s"
+            document.getElementById("config-marqueeBgColor").value = config.marqueeBgColor || "#0f172a"
+            document.getElementById("config-marqueeTextColor").value = config.marqueeTextColor || "#ffffff"
+
+            document.getElementById("config-portalHeroTitle").value = config.portalHeroTitle || ""
+            document.getElementById("config-portalHeroSubtitle").value = config.portalHeroSubtitle || ""
+
+            // Footer Contact
+            document.getElementById("config-address").value = config.address || ""
+            document.getElementById("config-phone").value = config.phone || ""
+            document.getElementById("config-email").value = config.email || ""
+            document.getElementById("config-mapUrl").value = config.mapUrl || ""
+
+            // 5. Portal Slides
+            if (config.useLandingSlidesOnPortal) document.getElementById("config-useLandingSlidesOnPortal").checked = true
+            const portalSlides = config.portalSlides || []
+            portalSlides.forEach(s => addSlide(s, "portal-slides-container"))
+
+            // Toggle Portal Slides visibility based on checkbox
+            togglePortalSlidesWrapper()
+            document.getElementById("config-useLandingSlidesOnPortal").addEventListener("change", togglePortalSlidesWrapper)
+
+            // 6. Services
+            document.getElementById("config-servicesTitle").value = config.servicesTitle || "Servicios"
+            const services = config.services || []
+            services.forEach(s => addService(s))
+            if(services.length === 0) {
+                 // Add defaults if empty
+                 addService({title: "Instalaciones eléctricas", desc: "Asesoría en selección de cables, tableros y protecciones.", cta: "Consulta por WhatsApp"})
+                 addService({title: "Proyectos de obra", desc: "Apoyo para listas de materiales en obras nuevas o remodelaciones.", cta: "Armamos tu lista completa"})
+                 addService({title: "Plomería y agua", desc: "Tuberías, fittings y soluciones para redes de agua.", cta: "Stock y alternativas"})
+            }
+
+        } catch (e) {
+            console.error("Error loading config", e)
+        }
+
+        // --- Event Listeners ---
+        
+        // Logo Upload
+        const btnUploadLogo = document.getElementById("btn-upload-logo")
+        const fileLogo = document.getElementById("file-logo")
+        btnUploadLogo.addEventListener("click", () => fileLogo.click())
+        fileLogo.addEventListener("change", async () => {
+            const file = fileLogo.files[0]
+            if(!file) return
+            btnUploadLogo.textContent = "..."
+            try {
+                const url = await uploadFile(file)
+                if(url) {
+                    document.getElementById("config-logoUrl").value = url
+                    const preview = document.getElementById("preview-logo")
+                    preview.src = url
+                    preview.classList.remove("hidden")
+                }
+            } catch(e) { alert("Error al subir") }
+            btnUploadLogo.textContent = "Subir"
+        })
+
+        // Add Slide Buttons
+        document.getElementById("add-slide-btn").addEventListener("click", () => addSlide({}, "slides-container"))
+        document.getElementById("add-portal-slide-btn").addEventListener("click", () => addSlide({}, "portal-slides-container"))
+        document.getElementById("add-service-btn").addEventListener("click", () => addService({}))
+
+        // Save All
+        document.getElementById("save-all").addEventListener("click", async () => {
+            const btn = document.getElementById("save-all")
+            btn.disabled = true
+            btn.innerHTML = "<span>⏳ Guardando...</span>"
+            
+            // Gather Data
+            const newConfig = {
+                storeName: document.getElementById("config-storeName").value,
+                whatsapp: document.getElementById("config-whatsapp").value,
+                logoUrl: document.getElementById("config-logoUrl").value,
+                primaryColor: document.getElementById("config-primaryColor").value,
+                secondaryColor: document.getElementById("config-secondaryColor").value,
+                
+                // Landing Slides
+                slides: Array.from(document.querySelectorAll("#slides-container .slide-item")).map(el => ({
+                    title: el.querySelector(".slide-title").value,
+                    subtitle: el.querySelector(".slide-subtitle").value,
+                    link: el.querySelector(".slide-link").value,
+                    img: el.querySelector(".slide-img-url").value
+                })),
+                
+                // Portal Slides
+                portalSlides: Array.from(document.querySelectorAll("#portal-slides-container .slide-item")).map(el => ({
+                    title: el.querySelector(".slide-title").value,
+                    subtitle: el.querySelector(".slide-subtitle").value,
+                    link: el.querySelector(".slide-link").value,
+                    img: el.querySelector(".slide-img-url").value
+                })),
+                useLandingSlidesOnPortal: document.getElementById("config-useLandingSlidesOnPortal").checked,
+
+                // Services
+                servicesTitle: document.getElementById("config-servicesTitle").value,
+                services: Array.from(document.querySelectorAll("#services-container .service-item")).map(el => ({
+                    title: el.querySelector(".service-title").value,
+                    desc: el.querySelector(".service-desc").value,
+                    cta: el.querySelector(".service-cta").value,
+                    link: el.querySelector(".service-link").value
+                })),
+
+                // Marquee
+                marqueeEnabled: document.getElementById("config-marqueeEnabled").checked,
+                marqueeText: document.getElementById("config-marqueeText").value,
+                marqueeLink: document.getElementById("config-marqueeLink").value,
+                marqueeSpeed: document.getElementById("config-marqueeSpeed").value,
+                marqueeBgColor: document.getElementById("config-marqueeBgColor").value,
+                marqueeTextColor: document.getElementById("config-marqueeTextColor").value,
+
+                // Textos
+                heroTitle: document.getElementById("config-heroTitle").value, 
+                heroSubtitle: document.getElementById("config-heroSubtitle").value,
+                portalHeroTitle: document.getElementById("config-portalHeroTitle").value,
+                portalHeroSubtitle: document.getElementById("config-portalHeroSubtitle").value,
+
+                // Footer Contact
+                address: document.getElementById("config-address").value,
+                phone: document.getElementById("config-phone").value,
+                email: document.getElementById("config-email").value,
+                mapUrl: document.getElementById("config-mapUrl").value,
+
+                // Sections
+                sections: Array.from(document.querySelectorAll(".section-item")).map(el => ({
+                    type: el.dataset.type,
+                    title: el.querySelector(".section-title")?.value || "",
+                    content: el.querySelector(".section-content")?.value || "",
+                    img: el.querySelector(".section-img-url")?.value || "",
+                    layout: el.querySelector(".section-layout")?.value || "left"
+                }))
+            }
+
+            try {
+                const res = await fetch("/api/config", {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": "Basic " + btoa("admin:admin")
+                    },
+                    body: JSON.stringify(newConfig)
+                })
+                if(res.ok) {
+                    alert("✅ Sitio actualizado correctamente")
+                } else {
+                    alert("Error al guardar")
+                }
+            } catch(e) {
+                alert("Error de conexión")
+            } finally {
+                btn.disabled = false
+                btn.innerHTML = "<span>💾 Guardar Cambios</span>"
+            }
+        })
+    })
+
+    // --- HELPER FUNCTIONS ---
+
+    function togglePortalSlidesWrapper() {
+        const checkbox = document.getElementById("config-useLandingSlidesOnPortal")
+        const wrapper = document.getElementById("portal-slides-wrapper")
+        if (checkbox.checked) {
+            wrapper.classList.add("opacity-50", "pointer-events-none")
+        } else {
+            wrapper.classList.remove("opacity-50", "pointer-events-none")
+        }
+    }
+
+    function addSlide(data = {}, containerId) {
+        const tpl = document.getElementById("slide-template")
+        const clone = tpl.content.cloneNode(true)
+        const root = clone.querySelector(".slide-item")
+        
+        // Fill Data
+        if(data.title) root.querySelector(".slide-title").value = data.title
+        if(data.subtitle) root.querySelector(".slide-subtitle").value = data.subtitle
+        if(data.link) root.querySelector(".slide-link").value = data.link
+        if(data.img) {
+            root.querySelector(".slide-img-url").value = data.img
+            root.querySelector(".slide-img-preview").src = data.img
+            root.querySelector(".slide-img-preview").classList.remove("hidden")
+        }
+
+        // Events
+        root.querySelector(".delete-slide").addEventListener("click", () => root.remove())
+        
+        const uploadTrigger = root.querySelector(".upload-trigger")
+        const fileInput = root.querySelector(".slide-file-input")
+        uploadTrigger.addEventListener("click", () => fileInput.click())
+        fileInput.addEventListener("change", async (e) => {
+            const file = e.target.files[0]
+            if(!file) return
+            // Visual feedback could be added here
+            const url = await uploadFile(file)
+            if(url) {
+                root.querySelector(".slide-img-url").value = url
+                root.querySelector(".slide-img-preview").src = url
+                root.querySelector(".slide-img-preview").classList.remove("hidden")
+            }
+        })
+
+        document.getElementById(containerId).appendChild(root)
+    }
+
+    function addService(data = {}) {
+        const tpl = document.getElementById("service-template")
+        const clone = tpl.content.cloneNode(true)
+        const root = clone.querySelector(".service-item")
+        
+        // Fill Data
+        if(data.title) root.querySelector(".service-title").value = data.title
+        if(data.desc) root.querySelector(".service-desc").value = data.desc
+        if(data.cta) root.querySelector(".service-cta").value = data.cta
+        if(data.link) root.querySelector(".service-link").value = data.link
+
+        // Events
+        root.querySelector(".delete-service").addEventListener("click", () => root.remove())
+        
+        document.getElementById("services-container").appendChild(root)
+    }
+
+    function addSection(type, data = {}) {
+        const tplId = type === 'text' ? 'section-text-template' : 'section-image-text-template'
+        const tpl = document.getElementById(tplId)
+        if(!tpl) return
+
+        const clone = tpl.content.cloneNode(true)
+        const root = clone.querySelector(".section-item")
+        
+        // Fill Data
+        if(data.title) root.querySelector(".section-title").value = data.title
+        if(data.content) root.querySelector(".section-content").value = data.content
+        if(type === 'image-text') {
+            if(data.layout) root.querySelector(".section-layout").value = data.layout
+            if(data.img) {
+                root.querySelector(".section-img-url").value = data.img
+                root.querySelector(".section-img-preview").src = data.img
+                root.querySelector(".section-img-preview").classList.remove("hidden")
+            }
+            
+            // Upload Logic
+            const uploadTrigger = root.querySelector(".upload-trigger")
+            const fileInput = root.querySelector(".section-file-input")
+            uploadTrigger.addEventListener("click", () => fileInput.click())
+            fileInput.addEventListener("change", async (e) => {
+                const file = e.target.files[0]
+                if(!file) return
+                const url = await uploadFile(file)
+                if(url) {
+                    root.querySelector(".section-img-url").value = url
+                    root.querySelector(".section-img-preview").src = url
+                    root.querySelector(".section-img-preview").classList.remove("hidden")
+                }
+            })
+        }
+
+        root.querySelector(".delete-section").addEventListener("click", () => {
+            root.remove()
+            updateEmptyMsg()
+        })
+
+        document.getElementById("sections-container").appendChild(root)
+        updateEmptyMsg()
+    }
+
+    function updateEmptyMsg() {
+        const container = document.getElementById("sections-container")
+        const msg = document.getElementById("empty-sections-msg")
+        const hasSections = container.querySelectorAll(".section-item").length > 0
+        if(hasSections) msg.classList.add("hidden")
+        else msg.classList.remove("hidden")
+    }
+  </script>
+</body>
+</html>

@@ -19,12 +19,12 @@ const app = express()
 app.set('trust proxy', 1) // Confía en el primer proxy (Nginx)
 app.use(express.json())
 
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  validate: { xForwardedForHeader: false } // Deshabilita validación estricta de proxy
-})
-app.use(limiter)
+// const limiter = rateLimit({
+//   windowMs: 60 * 1000,
+//   max: 60,
+//   validate: { xForwardedForHeader: false }
+// })
+// app.use(limiter)
 
 function requireAdmin(req, res, next) {
   const user = process.env.ADMIN_USER || "admin"

@@ -244,9 +244,29 @@
     const clientResetBtn = document.getElementById("reset-client")
     const exportClientsBtn = document.getElementById("export-clients")
 
+    function getAdminToken() {
+      try {
+        const saved = localStorage.getItem("admin_token")
+        if (saved) return saved
+      } catch {}
+      return btoa("admin:admin")
+    }
+
+    async function fetchAdmin(path, options) {
+      const token = getAdminToken()
+      const headers = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + token }
+      const res = await fetch(path, { ...(options || {}), headers })
+      if (res.status !== 401 && res.status !== 403) return res
+      const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
+      if (!newToken) return res
+      try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
+      const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + btoa(newToken) }
+      return fetch(path, { ...(options || {}), headers: headers2 })
+    }
+
     async function loadClients() {
       try {
-        const res = await fetch("/api/clients")
+        const res = await fetchAdmin("/api/clients")
         if (res.ok) {
           const arr = await res.json()
           if (Array.isArray(arr) && arr.length > 0) {
@@ -273,11 +293,10 @@
     async function saveClients(list) {
       localStorage.setItem("clients", JSON.stringify(list))
       try {
-        await fetch("/api/clients", {
+        await fetchAdmin("/api/clients", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Basic " + btoa("admin:admin")
+            "Content-Type": "application/json"
           },
           body: JSON.stringify(list)
         })

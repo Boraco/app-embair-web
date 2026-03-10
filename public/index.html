@@ -27,6 +27,7 @@
     .filter-chip { transition: all 0.2s; white-space: nowrap; }
     .filter-chip.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
     .drawer-open { overflow: hidden; }
+    .modal-open { overflow: hidden; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
@@ -170,6 +171,10 @@
           <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full hidden">0</span>
         </div>
         <span class="text-[10px] font-medium">Carrito</span>
+      </button>
+      <button id="share-web" class="flex flex-col items-center text-slate-500 hover:text-slate-900 w-full h-full justify-center">
+        <span class="text-xl mb-0.5">🔗</span>
+        <span class="text-[10px] font-medium">Compartir</span>
       </button>
       <a href="https://wa.me/584242240909" target="_blank" class="flex flex-col items-center text-slate-500 hover:text-emerald-600 w-full h-full justify-center">
         <span class="text-xl mb-0.5">💬</span>
@@ -330,6 +335,7 @@
       const drawerTotal = document.getElementById("drawer-total")
       const sendWaDrawer = document.getElementById("send-wa-drawer")
       const openCartMobile = document.getElementById("open-cart-mobile")
+      const shareWebBtn = document.getElementById("share-web")
       const cartBadge = document.getElementById("cart-badge")
       
       const storeWa = document.getElementById("store-wa")
@@ -337,6 +343,103 @@
       // --- State ---
       let PRODUCTS = []
       let CART = []
+      
+      const productModal = document.getElementById("product-modal")
+      const pmImg = document.getElementById("pm-img")
+      const pmCat = document.getElementById("pm-cat")
+      const pmTitle = document.getElementById("pm-title")
+      const pmPrice = document.getElementById("pm-price")
+      const pmDesc = document.getElementById("pm-desc")
+      const pmSpecsContainer = document.getElementById("pm-specs-container")
+      const pmSpecs = document.getElementById("pm-specs")
+      const pmAddBtn = document.getElementById("pm-add-btn")
+      let CURRENT_PRODUCT = null
+
+      async function shareCurrentPage() {
+        const url = window.location.href
+        const title = document.title || "EMBAIR"
+        const pid = CURRENT_PRODUCT && CURRENT_PRODUCT.id != null ? String(CURRENT_PRODUCT.id) : ""
+        try {
+          if (navigator && navigator.share) {
+            await navigator.share({ title, url })
+            trackEvent("share", { method: "webshare", path: window.location.pathname + window.location.search, productId: pid })
+            return true
+          }
+        } catch {
+          trackEvent("share", { method: "webshare_cancel", path: window.location.pathname + window.location.search, productId: pid })
+          return false
+        }
+        try {
+          if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url)
+            trackEvent("share", { method: "copy", path: window.location.pathname + window.location.search, productId: pid })
+            alert("Link copiado. Ahora puedes pegarlo en WhatsApp o redes.")
+            return true
+          }
+        } catch {}
+        try {
+          const tmp = document.createElement("input")
+          tmp.value = url
+          document.body.appendChild(tmp)
+          tmp.select()
+          document.execCommand("copy")
+          tmp.remove()
+          trackEvent("share", { method: "copy_fallback", path: window.location.pathname + window.location.search, productId: pid })
+          alert("Link copiado. Ahora puedes pegarlo en WhatsApp o redes.")
+          return true
+        } catch {}
+        trackEvent("share", { method: "unsupported", path: window.location.pathname + window.location.search, productId: pid })
+        alert("No se pudo copiar el link en este dispositivo.")
+        return false
+      }
+
+      function closeProductDetail() {
+        if (!productModal) return
+        productModal.classList.add("hidden")
+        CURRENT_PRODUCT = null
+      }
+      window.closeProductDetail = closeProductDetail
+
+      function openProductDetail(product, origin) {
+        if (!productModal || !product) return
+        CURRENT_PRODUCT = product
+        if (pmImg) pmImg.src = product.img || ""
+        if (pmImg) pmImg.alt = product.name || ""
+        if (pmCat) pmCat.textContent = product.category || ""
+        if (pmTitle) pmTitle.textContent = product.name || ""
+        if (pmPrice) pmPrice.textContent = formatPrice(product.price)
+        if (pmDesc) pmDesc.textContent = product.desc || ""
+        if (pmSpecs) {
+          const list = Array.isArray(product.specs) ? product.specs : []
+          pmSpecs.innerHTML = ""
+          if (list.length) {
+            list.forEach(s => {
+              const li = document.createElement("li")
+              li.textContent = String(s)
+              pmSpecs.appendChild(li)
+            })
+            if (pmSpecsContainer) pmSpecsContainer.classList.remove("hidden")
+          } else {
+            if (pmSpecsContainer) pmSpecsContainer.classList.add("hidden")
+          }
+        }
+        if (pmAddBtn) {
+          const isAgotado = product.available === "Agotado" || (product.stock != null && Number(product.stock) <= 0)
+          pmAddBtn.disabled = Boolean(isAgotado)
+          pmAddBtn.className = isAgotado
+            ? "w-full rounded-xl bg-slate-200 text-slate-400 px-4 py-3.5 font-bold shadow-lg transition-all cursor-not-allowed flex items-center justify-center gap-2"
+            : "w-full rounded-xl bg-orange-500 hover:bg-orange-600 text-white px-4 py-3.5 font-bold shadow-lg shadow-orange-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+          pmAddBtn.onclick = () => {
+            if (isAgotado) return
+            addToCart(product, 1, "product_modal")
+          }
+        }
+        productModal.classList.remove("hidden")
+        trackEvent("product_view", { productId: product.id, origin: origin || "", label: product.label || "", category: product.category || "" })
+        if (product.label === "Oferta") {
+          trackEvent("offer_view", { productId: product.id, origin: origin || "", category: product.category || "" })
+        }
+      }
 
       // --- 1. Data Fetching ---
       const PRODUCTS_SAMPLE = [
@@ -381,7 +484,7 @@
       }
 
       // --- 3. Render Grid ---
-      function createProductCard(p) {
+      function createProductCard(p, origin) {
           const card = document.createElement("div")
           card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow relative"
           
@@ -459,7 +562,7 @@
              addBtn.disabled = true
              addBtn.className = "w-8 h-8 rounded-full bg-slate-100 text-slate-300 cursor-not-allowed flex items-center justify-center"
           } else {
-             addBtn.onclick = () => addToCart(p)
+             addBtn.onclick = () => addToCart(p, 1, origin || "")
           }
 
           priceRow.appendChild(price)
@@ -470,6 +573,13 @@
           
           card.appendChild(imgContainer)
           card.appendChild(body)
+
+          card.addEventListener("click", (e) => {
+            const target = e.target
+            if (target && target.closest && target.closest("button")) return
+            openProductDetail(p, origin || "")
+          })
+
           return card
       }
 
@@ -488,8 +598,9 @@
         container.classList.remove("hidden")
         grid.innerHTML = ""
         featured.forEach(p => {
-          grid.appendChild(createProductCard(p))
+          grid.appendChild(createProductCard(p, "featured"))
         })
+        trackEvent("featured_render", { count: featured.length })
       }
 
       function renderGrid() {
@@ -519,12 +630,14 @@
               <button class="mt-2 text-blue-600 font-medium" onclick="document.getElementById('search-prod').value=''; document.getElementById('category-select').value=''; renderGrid()">Ver todo</button>
             </div>
           `
+          window.__lastGridMetrics = { q, cat, count: 0 }
           return
         }
 
         for (const p of filtered) {
-          grid.appendChild(createProductCard(p))
+          grid.appendChild(createProductCard(p, "grid"))
         }
+        window.__lastGridMetrics = { q, cat, count: filtered.length }
       }
 
       // --- 4. Cart Logic ---
@@ -545,13 +658,14 @@
         updateCartUI()
       }
 
-      function addToCart(product, qty = 1) {
+      function addToCart(product, qty = 1, origin = "") {
         const existing = CART.find(i => i.id === product.id)
         if (existing) {
           existing.qty += qty
         } else {
           CART.push({ ...product, qty: qty })
         }
+        trackEvent("cart_add", { productId: product.id, qty, origin: origin || "", label: product.label || "", category: product.category || "", price: product.price == null ? null : Number(product.price) })
         saveCart()
         openDrawer()
       }
@@ -672,6 +786,22 @@
           return ""
         }
       }
+      async function trackEvent(type, meta, emailOverride) {
+        try {
+          const existing = getCustomerData() || {}
+          const email = typeof emailOverride === "string" ? emailOverride : (existing.email || "")
+          await fetch("/api/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type,
+              sessionId: getSessionId(),
+              email,
+              meta: meta || {}
+            })
+          })
+        } catch {}
+      }
       async function trackOrderEvent(customer, cart, origin, orderNumber) {
         try {
           const total = cart.reduce((acc, item) => {
@@ -716,13 +846,45 @@
           return Date.now()
         }
       }
-      function upsertClientFromCustomer(customer) {
-        // Send to server logic (simplified)
-        fetch("/api/clients", {
+      function upsertClientFromCustomer(customer, source) {
+        const payload = {
+          email: customer && customer.email ? customer.email : "",
+          nombre: customer && customer.nombre ? customer.nombre : "",
+          apellido: customer && customer.apellido ? customer.apellido : "",
+          cedula: customer && customer.cedula ? customer.cedula : "",
+          celular: customer && customer.celular ? customer.celular : "",
+          zona: customer && customer.zona ? customer.zona : "",
+          tipo: customer && customer.tipo ? customer.tipo : "",
+          direccion: customer && customer.direccion ? customer.direccion : "",
+          entrega: customer && customer.entrega ? customer.entrega : "",
+          source: source || ""
+        }
+        fetch("/api/public/client", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...customer, pedidos: 1 })
-        }).catch(console.error)
+          body: JSON.stringify(payload)
+        }).catch(() => {})
+      }
+      function upsertLeadFromCustomer(customer, source) {
+        const payload = {
+          nombre: customer && customer.nombre ? customer.nombre : "",
+          apellido: customer && customer.apellido ? customer.apellido : "",
+          cedula: customer && customer.cedula ? customer.cedula : "",
+          email: customer && customer.email ? customer.email : "",
+          celular: customer && customer.celular ? customer.celular : "",
+          zona: customer && customer.zona ? customer.zona : "",
+          tipo: customer && customer.tipo ? customer.tipo : "",
+          direccion: customer && customer.direccion ? customer.direccion : "",
+          entrega: customer && customer.entrega ? customer.entrega : "",
+          interesado: true,
+          source: source || "",
+          sessionId: getSessionId()
+        }
+        fetch("/api/public/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(() => {})
       }
       function logOrder(cart, orderNumber) {
         try {
@@ -819,7 +981,7 @@
         } catch {}
       }
 
-      function openCustomerModal(onConfirm, force = false) {
+      function openCustomerModal(onConfirm, force = false, persistMode = "client", source = "") {
         const existing = getCustomerData() || {}
         
         // Create Modal Elements
@@ -880,7 +1042,26 @@
         `
 
         modal.innerHTML = viewPhone + viewRegister
+        overlay.appendChild(modal)
         document.body.appendChild(overlay)
+        document.body.classList.add("modal-open")
+
+        const onKeyDown = (e) => {
+          if (e.key === "Escape" && !force) closeModal()
+        }
+
+        const closeModal = () => {
+          try {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay)
+          } catch {}
+          document.body.classList.remove("modal-open")
+          document.removeEventListener("keydown", onKeyDown)
+        }
+
+        document.addEventListener("keydown", onKeyDown)
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay && !force) closeModal()
+        })
         
         // Logic
         const vPhone = modal.querySelector("#view-phone")
@@ -900,7 +1081,8 @@
         setTimeout(() => inputPhone.focus(), 100)
 
         // Handlers
-        if (btnCancel) btnCancel.onclick = () => document.body.removeChild(overlay)
+        if (btnCancel) btnCancel.onclick = closeModal
+        trackEvent("portal_gate_open", { force: Boolean(force), mode: persistMode, source: source || "", path: window.location.pathname + window.location.search })
         
         btnCheck.onclick = async () => {
             const phone = inputPhone.value.trim()
@@ -909,6 +1091,9 @@
                 errorMsg.classList.remove("hidden")
                 return
             }
+
+            const phoneDigits = phone.replace(/\D/g, "")
+            trackEvent("portal_phone_submit", { len: phoneDigits.length, last4: phoneDigits.slice(-4), source: source || "" })
             
             // UI Loading
             btnCheck.disabled = true
@@ -925,8 +1110,28 @@
                 
                 if (data.exists && data.data) {
                     // Client Found! Update local and finish
-                    const client = data.data
+                    const client = { ...data.data, recordType: data.type || "" }
                     saveCustomerData(client)
+                    trackEvent("portal_phone_verified", { kind: data.type || "", zona: client.zona || "", tipo: client.tipo || "", source: source || "" }, client.email || "")
+
+                    if (data.type === "lead" && (persistMode === "lead" || force)) {
+                      const missing = !client.nombre || !client.cedula || !client.email || !client.celular || !client.zona || !client.tipo
+                      if (missing) {
+                        vPhone.classList.add("hidden")
+                        vReg.classList.remove("hidden")
+                        regPhone.value = phone
+                        modal.querySelector("#c-name").value = client.nombre || ""
+                        modal.querySelector("#c-last").value = client.apellido || ""
+                        modal.querySelector("#c-email").value = client.email || ""
+                        modal.querySelector("#c-id").value = client.cedula || ""
+                        modal.querySelector("#c-addr").value = client.direccion || ""
+                        modal.querySelector("#c-zone").value = client.zona || ""
+                        modal.querySelector("#c-type").value = client.tipo || ""
+                        modal.querySelector("#c-ship").value = client.entrega || ""
+                        return
+                      }
+                      upsertLeadFromCustomer(client, source || "portal_returning")
+                    }
                     
                     // Show success brief
                     vPhone.innerHTML = `
@@ -937,11 +1142,12 @@
                         </div>
                     `
                     setTimeout(() => {
-                        document.body.removeChild(overlay)
+                        closeModal()
                         onConfirm(client)
                     }, 1500)
                 } else {
                     // Not found -> Go to Register
+                    trackEvent("portal_phone_not_found", { source: source || "" })
                     vPhone.classList.add("hidden")
                     vReg.classList.remove("hidden")
                     regPhone.value = phone
@@ -975,17 +1181,21 @@
                 zona: modal.querySelector("#c-zone").value.trim(),
                 celular: regPhone.value.trim(),
                 tipo: modal.querySelector("#c-type").value,
-                entrega: modal.querySelector("#c-ship").value
+                entrega: modal.querySelector("#c-ship").value,
+                recordType: persistMode === "lead" ? "lead" : "client"
             }
             
-            if(!data.nombre || !data.celular || !data.email) {
-                return alert("Nombre, Email y Celular son obligatorios para el registro")
+            const emailOk = /@/.test(data.email)
+            if(!data.nombre || !data.cedula || !data.celular || !data.email || !emailOk || !data.zona || !data.tipo) {
+                return alert("Nombre, Cédula, Email, Celular, Zona y Tipo son obligatorios para el registro")
             }
             
             saveCustomerData(data)
-            upsertClientFromCustomer(data) // Send to server
+            if (persistMode === "lead") upsertLeadFromCustomer(data, source || "portal")
+            else upsertClientFromCustomer(data, source || "")
+            trackEvent("portal_register_confirmed", { source: source || "", zona: data.zona || "", tipo: data.tipo || "" }, data.email || "")
             
-            document.body.removeChild(overlay)
+            closeModal()
             onConfirm(data)
         }
       }
@@ -1022,7 +1232,24 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(crmOrder)
-          }).catch(e => console.error("CRM Sync Error", e))
+          }).then(async (res) => {
+            if (!res || !res.ok) {
+              trackEvent("crm_order_error", { origin: origin || "", status: res ? res.status : null })
+              return
+            }
+            let data = null
+            try { data = await res.json() } catch {}
+            trackEvent("crm_order_created", { origin: origin || "", orderId: data && data.orderId ? data.orderId : "" })
+            try {
+              const toast = document.createElement("div")
+              toast.className = "fixed bottom-24 right-4 md:right-6 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl z-[80] text-xs"
+              toast.textContent = "Pedido registrado"
+              document.body.appendChild(toast)
+              setTimeout(() => toast.remove(), 2500)
+            } catch {}
+          }).catch(e => {
+            trackEvent("crm_order_error", { origin: origin || "", error: String(e && e.message ? e.message : e) })
+          })
         } catch(e) { console.error("CRM Error", e) }
         // --- End CRM Sync ---
 
@@ -1053,7 +1280,7 @@
           msg += `Número de pedido interno: ${orderCode}\n`
         }
         
-        upsertClientFromCustomer(customer)
+        upsertClientFromCustomer(customer, origin || "")
         logOrder(CART, orderNumber)
         generateOrderPdf(customer, CART, orderNumber)
         trackOrderEvent(customer, CART, origin, orderNumber)
@@ -1062,17 +1289,69 @@
         window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank")
       }
 
+      function openOrderConfirmModal(customer, origin) {
+        const total = CART.reduce((acc, i) => acc + ((i.price || 0) * (i.qty || 0)), 0)
+        const itemCount = CART.reduce((acc, i) => acc + (i.qty || 0), 0)
+
+        trackEvent("order_confirm_open", { origin: origin || "", items: CART.length, qty: itemCount, total })
+
+        const overlay = document.createElement("div")
+        overlay.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-[70]"
+
+        const modal = document.createElement("div")
+        modal.className = "bg-white rounded-xl shadow-2xl max-w-md w-full p-6 mx-4 animate-fade-in relative overflow-hidden"
+        modal.innerHTML = `
+          <h3 class="text-lg font-bold text-slate-900 mb-2">Confirmar pedido</h3>
+          <p class="text-sm text-slate-600">Se abrirá WhatsApp con el detalle del pedido y se registrará en el CRM.</p>
+          <div class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700 space-y-1">
+            <div class="flex justify-between"><span>Productos</span><span class="font-semibold">${CART.length}</span></div>
+            <div class="flex justify-between"><span>Unidades</span><span class="font-semibold">${itemCount}</span></div>
+            <div class="flex justify-between"><span>Total estimado</span><span class="font-semibold">$${Number(total).toLocaleString("es-AR")}</span></div>
+          </div>
+          <div class="flex gap-2 mt-6">
+            <button id="order-cancel" class="flex-1 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium text-sm hover:bg-slate-50">Cancelar</button>
+            <button id="order-send" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-lg font-medium text-sm hover:bg-emerald-700">Enviar por WhatsApp</button>
+          </div>
+        `
+
+        overlay.appendChild(modal)
+        document.body.appendChild(overlay)
+        document.body.classList.add("modal-open")
+
+        const close = () => {
+          try { overlay.remove() } catch {}
+          document.body.classList.remove("modal-open")
+        }
+
+        overlay.addEventListener("click", (e) => {
+          if (e.target === overlay) {
+            trackEvent("order_confirm_cancel", { origin: origin || "", via: "overlay" })
+            close()
+          }
+        })
+
+        modal.querySelector("#order-cancel").addEventListener("click", () => {
+          trackEvent("order_confirm_cancel", { origin: origin || "", via: "button" })
+          close()
+        })
+        modal.querySelector("#order-send").addEventListener("click", () => {
+          trackEvent("order_confirm_send", { origin: origin || "" }, customer && customer.email ? customer.email : "")
+          close()
+          processOrder(customer, origin)
+        })
+      }
+
       sendWaDrawer.addEventListener("click", () => {
         if (CART.length === 0) return
         const params = new URLSearchParams(window.location.search)
         const isPortal = params.get("portal") === "1"
         const existing = getCustomerData() || null
         if (isPortal && existing && existing.nombre && existing.email) {
-          processOrder(existing, "portal")
+          openOrderConfirmModal(existing, "portal")
           return
         }
         openCustomerModal((customer) => {
-          processOrder(customer, isPortal ? "portal" : "public")
+          openOrderConfirmModal(customer, isPortal ? "portal" : "public")
         })
       })
 
@@ -1088,12 +1367,44 @@
       }
 
       if (categorySelect) {
-        categorySelect.addEventListener("change", renderGrid)
+        categorySelect.addEventListener("change", () => {
+          renderGrid()
+          if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
+          window.__searchTrackTimer = setTimeout(() => {
+            const m = window.__lastGridMetrics || {}
+            trackEvent("catalog_filter", { q: m.q || "", cat: m.cat || "", count: m.count || 0 })
+          }, 800)
+        })
       }
 
       if (searchInput) {
-        searchInput.addEventListener("input", renderGrid)
+        searchInput.addEventListener("input", () => {
+          renderGrid()
+          if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
+          window.__searchTrackTimer = setTimeout(() => {
+            const m = window.__lastGridMetrics || {}
+            trackEvent("catalog_filter", { q: m.q || "", cat: m.cat || "", count: m.count || 0 })
+          }, 800)
+        })
       }
+
+      if (searchInput) {
+        searchInput.addEventListener("focus", () => {
+          const m = window.__lastGridMetrics || {}
+          trackEvent("search_focus", { q: m.q || "", cat: m.cat || "" })
+        })
+      }
+
+      if (shareWebBtn) {
+        shareWebBtn.addEventListener("click", () => {
+          trackEvent("share_click", { path: window.location.pathname + window.location.search })
+          shareCurrentPage()
+        })
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeProductDetail()
+      })
       
       // Store WA persistence
       if (storeWa) {
@@ -1288,19 +1599,17 @@
           } else {
               // Regular Customer Mode
               const customer = getCustomerData()
-              // If no customer data or incomplete, force login/register
-              if (!customer || !customer.celular || !customer.nombre) {
-                  setTimeout(() => {
-                      openCustomerModal((data) => {
-                          // Optional: Show a toast or welcome message
-                          const toast = document.createElement("div")
-                          toast.className = "fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-xl shadow-xl z-[70] animate-fade-in"
-                          toast.innerHTML = `✅ Bienvenido al Portal, <b>${data.nombre}</b>`
-                          document.body.appendChild(toast)
-                          setTimeout(() => toast.remove(), 3000)
-                      }, true) // Force login
-                  }, 800)
+              trackEvent("portal_view", { path: window.location.pathname + window.location.search })
+              if (customer && customer.recordType === "lead" && customer.celular) {
+                upsertLeadFromCustomer(customer, "portal_visit")
               }
+              openCustomerModal((data) => {
+                  const toast = document.createElement("div")
+                  toast.className = "fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-xl shadow-xl z-[70] animate-fade-in"
+                  toast.innerHTML = `✅ Bienvenido al Portal, <b>${data.nombre}</b>`
+                  document.body.appendChild(toast)
+                  setTimeout(() => toast.remove(), 3000)
+              }, true, "lead", "portal")
           }
       }
 

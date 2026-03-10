@@ -88,6 +88,8 @@ app.post("/api/events", (req, res) => {
     id: Date.now().toString(),
     createdAt: new Date().toISOString(),
     type: req.body.type || "unknown",
+    sessionId: req.body.sessionId || "",
+    email: req.body.email || "",
     meta: req.body.meta || {},
     ip: req.ip
   }
@@ -103,6 +105,25 @@ app.get("/api/clients", requireAdmin, (req, res) => {
     const data = readData(clientsFile)
     res.json(data)
 })
+
+function normalizeEmail(v) {
+  const email = String(v || "").trim().toLowerCase()
+  return email && email.includes("@") ? email : ""
+}
+
+function normalizePhone(v) {
+  const digits = String(v || "").replace(/\D+/g, "")
+  return digits.length >= 8 ? digits : ""
+}
+
+function matchByEmailOrPhone(item, email, phone) {
+  const itemEmail = normalizeEmail(item && item.email)
+  const itemPhone = normalizePhone(item && item.celular)
+  if (email && itemEmail && email === itemEmail) return true
+  if (phone && itemPhone && itemPhone.includes(phone)) return true
+  if (phone && itemPhone && phone.includes(itemPhone)) return true
+  return false
+}
 
 function readData(file) {
   try {
@@ -681,39 +702,127 @@ app.get("/api/leads", requireAdmin, (req, res) => {
 })
 
 app.post("/api/public/lead", (req, res) => {
-  const { nombre, email, celular, zona, tipo, source } = req.body || {}
-  if (!nombre || (!celular && !email)) {
+  const {
+    nombre,
+    apellido,
+    cedula,
+    email,
+    celular,
+    zona,
+    tipo,
+    direccion,
+    entrega,
+    interesado,
+    source,
+    campaignId,
+    catalogId,
+    sessionId
+  } = req.body || {}
+
+  const src = String(source || "").trim()
+  const emailKey = normalizeEmail(email)
+  const phoneKey = normalizePhone(celular)
+  const isCatalogFlow = /catalog/.test(src) || Boolean(catalogId)
+  const isPortalFlow = src === "portal" || src === "portal_gate"
+
+  if (!nombre || (!phoneKey && !emailKey)) {
     return res.status(400).json({ error: "missing_fields" })
   }
+
+  if (isCatalogFlow || isPortalFlow) {
+    if (!emailKey || !phoneKey || !String(cedula || "").trim() || !String(zona || "").trim() || !String(tipo || "").trim()) {
+      return res.status(400).json({ error: "missing_fields" })
+    }
+  }
+
   const leads = readData(leadsFile)
   const now = new Date().toISOString()
-  const lead = {
-    id: Date.now(),
-    nombre: String(nombre || "").trim(),
-    email: email || "",
-    celular: celular || "",
-    zona: zona || "",
-    tipo: tipo || "",
-    source: source || "",
-    createdAt: now,
-    convertedToClient: false,
-    clientId: null,
-    convertedAt: null
+
+  let lead = leads.find(l => matchByEmailOrPhone(l, emailKey, phoneKey)) || null
+
+  if (!lead) {
+    lead = {
+      id: Date.now(),
+      nombre: String(nombre || "").trim(),
+      apellido: String(apellido || "").trim(),
+      cedula: String(cedula || "").trim(),
+      email: emailKey || "",
+      celular: String(celular || "").trim(),
+      direccion: String(direccion || "").trim(),
+      entrega: String(entrega || "").trim(),
+      zona: String(zona || "").trim(),
+      tipo: String(tipo || "").trim(),
+      interesado: Boolean(interesado),
+      source: src || "",
+      campaignId: campaignId || "",
+      createdAt: now,
+      lastSeenAt: now,
+      visits: 1,
+      convertedToClient: false,
+      clientId: null,
+      convertedAt: null
+    }
+    leads.push(lead)
+  } else {
+    if (nombre) lead.nombre = String(nombre || "").trim() || lead.nombre
+    if (apellido) lead.apellido = String(apellido || "").trim() || lead.apellido
+    if (cedula) lead.cedula = String(cedula || "").trim() || lead.cedula
+    if (emailKey) lead.email = emailKey
+    if (celular) lead.celular = String(celular || "").trim() || lead.celular
+    if (direccion) lead.direccion = String(direccion || "").trim() || lead.direccion
+    if (entrega) lead.entrega = String(entrega || "").trim() || lead.entrega
+    if (zona) lead.zona = String(zona || "").trim() || lead.zona
+    if (tipo) lead.tipo = String(tipo || "").trim() || lead.tipo
+    if (typeof interesado === "boolean") lead.interesado = interesado
+    if (src) lead.source = lead.source || src
+    if (campaignId) lead.campaignId = lead.campaignId || campaignId
+    lead.lastSeenAt = now
+    lead.visits = typeof lead.visits === "number" ? lead.visits + 1 : 1
   }
-  leads.push(lead)
+
   const trimmedLeads = leads.slice(-5000)
   writeData(leadsFile, trimmedLeads)
   const events = readData(eventsFile)
   events.push({
     id: Date.now(),
-    type: "assistant_lead",
-    sessionId: "",
-    email: lead.email,
-    meta: { zona: lead.zona, tipo: lead.tipo, source: lead.source },
+    type: src && src.includes("assistant") ? "assistant_lead" : "lead_capture",
+    sessionId: sessionId || "",
+    email: lead.email || "",
+    meta: {
+      zona: lead.zona || "",
+      tipo: lead.tipo || "",
+      source: lead.source || "",
+      campaignId: campaignId || "",
+      catalogId: catalogId || ""
+    },
     createdAt: now
   })
   const trimmedEvents = events.slice(-5000)
   writeData(eventsFile, trimmedEvents)
+
+  if (catalogId) {
+    const list = readData(catalogsFile)
+    const numId = Number(catalogId)
+    const item = list.find(c => Number(c.id) === numId)
+    if (item) {
+      item.downloads = (item.downloads || 0) + 1
+      item.lastDownloadAt = now
+      item.lastDownloadEmail = lead.email || ""
+      writeData(catalogsFile, list)
+    }
+    const events2 = readData(eventsFile)
+    events2.push({
+      id: Date.now(),
+      type: "catalog_download_confirmed",
+      sessionId: sessionId || "",
+      email: lead.email || "",
+      meta: { catalogId, source: src || "" },
+      createdAt: now
+    })
+    const trimmed2 = events2.slice(-5000)
+    writeData(eventsFile, trimmed2)
+  }
+
   res.json({ ok: true })
 })
 
@@ -787,6 +896,26 @@ app.post("/api/public/client", (req, res) => {
     const trimmed = events.slice(-5000)
     writeData(eventsFile, trimmed)
   }
+
+  try {
+    const leads = readData(leadsFile)
+    const emailLower = normalizeEmail(email)
+    const phoneKey = normalizePhone(client && client.celular)
+    let updated = false
+    leads.forEach(l => {
+      if (l.convertedToClient) return
+      if (matchByEmailOrPhone(l, emailLower, phoneKey)) {
+        l.convertedToClient = true
+        l.clientId = client.id
+        l.convertedAt = now
+        updated = true
+      }
+    })
+    if (updated) {
+      const trimmedLeads = leads.slice(-5000)
+      writeData(leadsFile, trimmedLeads)
+    }
+  } catch {}
 
   res.json({ ok: true })
 })
@@ -935,6 +1064,10 @@ app.post("/api/auth/check", (req, res) => {
       type: "lead",
       data: {
         nombre: lead.nombre,
+        apellido: lead.apellido || "",
+        cedula: lead.cedula || "",
+        direccion: lead.direccion || "",
+        entrega: lead.entrega || "",
         email: lead.email,
         celular: lead.celular,
         zona: lead.zona,
@@ -1286,6 +1419,26 @@ app.post("/api/clients", (req, res) => {
   }
   
   writeData(clientsFile, list)
+  try {
+    const leads = readData(leadsFile)
+    const emailLower = normalizeEmail(found && found.email)
+    const phoneKey = normalizePhone(found && found.celular)
+    const now = new Date().toISOString()
+    let updated = false
+    leads.forEach(l => {
+      if (l.convertedToClient) return
+      if (matchByEmailOrPhone(l, emailLower, phoneKey)) {
+        l.convertedToClient = true
+        l.clientId = found.id
+        l.convertedAt = now
+        updated = true
+      }
+    })
+    if (updated) {
+      const trimmedLeads = leads.slice(-5000)
+      writeData(leadsFile, trimmedLeads)
+    }
+  } catch {}
   res.json({ ok: true, id: found.id })
 })
 

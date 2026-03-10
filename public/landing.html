@@ -751,16 +751,20 @@
         
         // Save Lead
         try {
-            await fetch("/api/clients", {
+            const contact = String(leadState.contact || "").trim()
+            const looksLikeEmail = contact.includes("@")
+            await fetch("/api/public/lead", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     nombre: leadState.name,
+                    email: looksLikeEmail ? contact : "",
+                    celular: looksLikeEmail ? "" : contact,
                     tipo: leadState.segmentType,
                     zona: leadState.zone,
-                    celular: leadState.contact,
                     interesado: true,
-                    origen: leadState.source
+                    source: leadState.source || "landing_assistant",
+                    sessionId: getSessionId()
                 })
             })
             leadState.sentClient = true

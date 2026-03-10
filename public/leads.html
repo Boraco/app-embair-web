@@ -113,6 +113,26 @@
 
     let allLeads = []
 
+    function getAdminToken() {
+      try {
+        const saved = localStorage.getItem("admin_token")
+        if (saved) return saved
+      } catch {}
+      return btoa("admin:admin")
+    }
+
+    async function fetchAdmin(path, options) {
+      const token = getAdminToken()
+      const headers = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + token }
+      const res = await fetch(path, { ...(options || {}), headers })
+      if (res.status !== 401 && res.status !== 403) return res
+      const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
+      if (!newToken) return res
+      try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
+      const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + btoa(newToken) }
+      return fetch(path, { ...(options || {}), headers: headers2 })
+    }
+
     function formatLeadSource(s) {
       const v = String(s || "").toLowerCase()
       if (!v) return "-"
@@ -189,7 +209,7 @@
     async function loadLeads() {
       if (!leadRowsEl) return
       try {
-        const res = await fetch("/api/leads")
+        const res = await fetchAdmin("/api/leads")
         if (!res.ok) throw new Error("http_error")
         const list = await res.json()
         allLeads = Array.isArray(list) ? list : []

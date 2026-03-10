@@ -121,6 +121,98 @@
             </div>
         </div>
 
+        <!-- Reporte por Contacto -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Reporte por contacto</h3>
+                    <p class="text-sm text-slate-500">Busca por email, celular o nombre para ver actividad, consultas y compras.</p>
+                </div>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <input id="contact-query" class="flex-1 md:w-80 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ej: correo@dominio.com / 0424... / Juan" />
+                    <button id="contact-search" class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-sm font-semibold">Buscar</button>
+                </div>
+            </div>
+
+            <div id="contact-matches" class="mt-5 hidden"></div>
+
+            <div id="contact-result" class="mt-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="text-xs text-slate-500">Contacto</div>
+                                <div id="cr-name" class="text-lg font-bold text-slate-900">-</div>
+                                <div id="cr-badges" class="mt-2 flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-2 text-sm text-slate-700">
+                            <div class="flex justify-between gap-3"><span class="text-slate-500">Email</span><span id="cr-email" class="font-medium break-all">-</span></div>
+                            <div class="flex justify-between gap-3"><span class="text-slate-500">Celular</span><span id="cr-phone" class="font-medium">-</span></div>
+                            <div class="flex justify-between gap-3"><span class="text-slate-500">Zona</span><span id="cr-zone" class="font-medium">-</span></div>
+                            <div class="flex justify-between gap-3"><span class="text-slate-500">Tipo</span><span id="cr-type" class="font-medium">-</span></div>
+                            <div class="flex justify-between gap-3"><span class="text-slate-500">Última actividad</span><span id="cr-last" class="font-medium">-</span></div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                <div class="text-xs text-slate-500 uppercase font-semibold">Pedidos</div>
+                                <div id="cr-orders" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                                <div id="cr-spend" class="text-xs text-slate-500 mt-1">$0</div>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                <div class="text-xs text-slate-500 uppercase font-semibold">Vistas</div>
+                                <div id="cr-views" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                                <div id="cr-offers" class="text-xs text-slate-500 mt-1">0 ofertas</div>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                <div class="text-xs text-slate-500 uppercase font-semibold">Búsquedas</div>
+                                <div id="cr-searches" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                                <div class="text-xs text-slate-500 mt-1">Filtros / términos</div>
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                <div class="text-xs text-slate-500 uppercase font-semibold">Catálogos</div>
+                                <div id="cr-downloads" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                                <div class="text-xs text-slate-500 mt-1">Descargas</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                            <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                                <h4 class="font-bold text-slate-800">Compras / Pedidos</h4>
+                                <span id="cr-orders-note" class="text-xs text-slate-500"></span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="text-xs text-slate-500 uppercase bg-white border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-4 py-2 font-medium">Fecha</th>
+                                            <th class="px-4 py-2 font-medium">Fuente</th>
+                                            <th class="px-4 py-2 font-medium">Estado</th>
+                                            <th class="px-4 py-2 font-medium text-right">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cr-orders-body" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                            <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                                <h4 class="font-bold text-slate-800">Actividad</h4>
+                                <span class="text-xs text-slate-500">Eventos más recientes</span>
+                            </div>
+                            <div id="cr-events" class="max-h-72 overflow-y-auto divide-y divide-slate-100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="contact-hint" class="mt-6 text-sm text-slate-400">Escribe un email, celular o nombre y presiona Buscar.</div>
+        </div>
+
         <!-- Recent Events Table -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -132,8 +224,11 @@
                     <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
                         <tr>
                             <th class="px-6 py-3 font-medium">Fecha</th>
+                            <th class="px-6 py-3 font-medium">Hora</th>
+                            <th class="px-6 py-3 font-medium">Quién</th>
                             <th class="px-6 py-3 font-medium">Evento</th>
                             <th class="px-6 py-3 font-medium">Detalle</th>
+                            <th class="px-6 py-3 font-medium"></th>
                         </tr>
                     </thead>
                     <tbody id="events-table-body" class="divide-y divide-slate-100">
@@ -145,11 +240,78 @@
 
     </main>
 
+    <div id="journey-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[90]">
+        <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-start justify-between gap-4">
+                <div>
+                    <div class="text-xs text-slate-500">Detalle de navegación</div>
+                    <div id="journey-title" class="text-lg font-bold text-slate-900">-</div>
+                    <div id="journey-subtitle" class="text-xs text-slate-500 mt-1">-</div>
+                </div>
+                <button id="journey-close" class="text-slate-400 hover:text-slate-700 text-xl leading-none">✕</button>
+            </div>
+            <div class="p-5 space-y-5 max-h-[75vh] overflow-y-auto">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="border border-slate-200 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Búsquedas</div>
+                        <div id="journey-searches" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                        <div id="journey-top-cat" class="text-xs text-slate-500 mt-1">-</div>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Vistas</div>
+                        <div id="journey-views" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                        <div id="journey-offers" class="text-xs text-slate-500 mt-1">0 ofertas</div>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Carrito</div>
+                        <div id="journey-cart" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                        <div class="text-xs text-slate-500 mt-1">agregados</div>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl p-4">
+                        <div class="text-xs text-slate-500 uppercase font-semibold">Compartidos</div>
+                        <div id="journey-shares" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+                        <div id="journey-share-methods" class="text-xs text-slate-500 mt-1">-</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <div class="font-bold text-slate-800">Sectores con más interés</div>
+                            <div class="text-xs text-slate-500">Según búsquedas y vistas</div>
+                        </div>
+                        <div id="journey-sectors" class="divide-y divide-slate-100"></div>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <div class="px-4 py-3 border-b border-slate-200 bg-slate-50">
+                            <div class="font-bold text-slate-800">Navegación</div>
+                            <div class="text-xs text-slate-500">Rutas visitadas en esta sesión</div>
+                        </div>
+                        <div id="journey-paths" class="divide-y divide-slate-100"></div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-slate-800">Eventos</div>
+                            <div class="text-xs text-slate-500">Línea de tiempo</div>
+                        </div>
+                        <div id="journey-range" class="text-xs text-slate-500"></div>
+                    </div>
+                    <div id="journey-events" class="divide-y divide-slate-100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Data Store
         let EVENTS = []
         let PRODUCTS = []
         let CLIENTS = []
+        let LEADS = []
+        let ORDERS = []
         let PRODUCTS_MAP = new Map()
 
         // Charts Instances
@@ -157,9 +319,29 @@
         let chartClientType = null
         let chartClientZona = null
 
+        function getAdminToken() {
+            try {
+                const saved = localStorage.getItem("admin_token")
+                if (saved) return saved
+            } catch {}
+            return btoa("admin:admin")
+        }
+
+        async function fetchAdmin(path, options) {
+            const token = getAdminToken()
+            const headers = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + token }
+            const res = await fetch(path, { ...(options || {}), headers })
+            if (res.status !== 401 && res.status !== 403) return res
+            const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
+            if (!newToken) return res
+            try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
+            const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + btoa(newToken) }
+            return fetch(path, { ...(options || {}), headers: headers2 })
+        }
+
         async function init() {
             try {
-                await Promise.all([loadEvents(), loadProducts(), loadClients()])
+                await Promise.all([loadEvents(), loadProducts(), loadClients(), loadLeads(), loadOrders()])
                 renderDashboard()
             } catch (error) {
                 console.error("Error initializing dashboard:", error)
@@ -168,7 +350,7 @@
         }
 
         async function loadEvents() {
-            const res = await fetch("/api/events")
+            const res = await fetchAdmin("/api/events")
             if (!res.ok) throw new Error("Failed to load events")
             EVENTS = await res.json()
         }
@@ -181,9 +363,23 @@
         }
 
         async function loadClients() {
-            const res = await fetch("/api/clients")
+            const res = await fetchAdmin("/api/clients")
             if (!res.ok) throw new Error("Failed to load clients")
             CLIENTS = await res.json()
+        }
+
+        async function loadLeads() {
+            const res = await fetchAdmin("/api/leads")
+            if (!res.ok) throw new Error("Failed to load leads")
+            const list = await res.json()
+            LEADS = Array.isArray(list) ? list : []
+        }
+
+        async function loadOrders() {
+            const res = await fetchAdmin("/api/crm/orders")
+            if (!res.ok) throw new Error("Failed to load orders")
+            const list = await res.json()
+            ORDERS = Array.isArray(list) ? list : []
         }
 
         function renderDashboard() {
@@ -191,6 +387,8 @@
             renderProductCharts()
             renderClientCharts()
             renderEventsTable()
+            setupContactReport()
+            setupJourneyModal()
         }
 
         function renderKeyMetrics() {
@@ -205,44 +403,302 @@
             document.getElementById("stat-registers").textContent = registers
         }
 
+        function normalizeEmailForLookup(v) {
+            return String(v || "").trim().toLowerCase()
+        }
+
+        function normalizePhoneForLookup(v) {
+            return String(v || "").replace(/\D/g, "")
+        }
+
+        function getDisplayNameByEmail(email) {
+            const key = normalizeEmailForLookup(email)
+            if (!key) return ""
+            const client = CLIENTS.find(c => normalizeEmailForLookup(c.email) === key)
+            if (client) return `${client.nombre || ""} ${client.apellido || ""}`.trim() || client.email || ""
+            const lead = LEADS.find(l => normalizeEmailForLookup(l.email) === key)
+            if (lead) return `${lead.nombre || ""} ${lead.apellido || ""}`.trim() || lead.email || ""
+            return ""
+        }
+
+        function formatTime(v) {
+            const d = new Date(v)
+            if (Number.isNaN(d.getTime())) return "-"
+            return d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })
+        }
+
+        function formatDate(v) {
+            const d = new Date(v)
+            if (Number.isNaN(d.getTime())) return "-"
+            return d.toLocaleDateString("es-AR")
+        }
+
+        function formatEventLabel(type) {
+            const typeMap = {
+                "landing_visit": "Visita Landing",
+                "portal_view": "Visita Portal",
+                "portal_gate_open": "Gate Portal",
+                "portal_phone_submit": "Gate: Celular",
+                "portal_phone_verified": "Gate: Verificado",
+                "portal_phone_not_found": "Gate: No encontrado",
+                "portal_register_confirmed": "Registro Portal",
+                "portal_register": "Registro Portal",
+                "portal_login": "Login Portal",
+                "catalog_filter": "Búsqueda / Filtro",
+                "search_focus": "Buscador (focus)",
+                "product_view": "Vista Producto",
+                "offer_view": "Vista Oferta",
+                "cart_add": "Agregó al carrito",
+                "order_confirm_open": "Confirmación Pedido",
+                "order_confirm_send": "Confirmación: Enviar",
+                "order_sent": "Pedido Enviado",
+                "new_order": "Pedido CRM",
+                "crm_order_created": "CRM: Pedido creado",
+                "crm_order_error": "CRM: Error",
+                "catalog_download_confirmed": "Descarga Catálogo",
+                "catalog_download_allowed": "Descarga Catálogo",
+                "catalog_download_submit": "Formulario Catálogo",
+                "lead_capture": "Registro Lead",
+                "assistant_lead": "Registro Lead IA",
+                "share_click": "Compartir (click)",
+                "share": "Compartió"
+            }
+            return typeMap[type] || type
+        }
+
+        function formatEventDetailShort(e) {
+            const email = normalizeEmailForLookup(e.email)
+            if (e.type === "product_view" || e.type === "offer_view") {
+                const pid = e.meta && e.meta.productId != null ? Number(e.meta.productId) : null
+                const p = pid != null ? PRODUCTS_MAP.get(pid) : null
+                const name = p ? p.name : (pid != null ? "ID " + pid : "")
+                const cat = e.meta && e.meta.category ? String(e.meta.category) : ""
+                return [name, cat].filter(Boolean).join(" · ") || "-"
+            }
+            if (e.type === "catalog_filter") {
+                const q = e.meta && e.meta.q ? String(e.meta.q) : ""
+                const cat = e.meta && e.meta.cat ? String(e.meta.cat) : ""
+                return [q ? `q="${q}"` : "", cat ? `cat="${cat}"` : ""].filter(Boolean).join(" · ") || "-"
+            }
+            if (e.type === "order_sent") {
+                const total = e.meta && e.meta.total ? Number(e.meta.total) : 0
+                const items = e.meta && Array.isArray(e.meta.items) ? e.meta.items.length : 0
+                const parts = []
+                if (email) parts.push(email)
+                if (items) parts.push(items + " items")
+                if (total) parts.push("$" + total.toLocaleString("es-AR"))
+                return parts.join(" · ") || "-"
+            }
+            if (e.type === "share") {
+                const method = e.meta && e.meta.method ? String(e.meta.method) : ""
+                const path = e.meta && e.meta.path ? String(e.meta.path) : ""
+                return [method, path].filter(Boolean).join(" · ") || (email || "-")
+            }
+            const parts = []
+            if (email) parts.push(email)
+            if (e.meta && e.meta.zona) parts.push(String(e.meta.zona))
+            if (e.meta && e.meta.tipo) parts.push(String(e.meta.tipo))
+            if (e.meta && e.meta.total) parts.push("$" + Number(e.meta.total).toLocaleString("es-AR"))
+            return parts.join(" · ") || "-"
+        }
+
         function renderEventsTable() {
             const tbody = document.getElementById("events-table-body")
-            const recent = EVENTS.slice(0, 100) // Top 100
-            
-            tbody.innerHTML = recent.map(e => {
-                const date = new Date(e.createdAt).toLocaleString("es-AR")
-                let typeLabel = e.type
-                let detail = "-"
+            if (!tbody) return
+            const recent = EVENTS.slice(0, 100)
 
-                // Map Types
-                const typeMap = {
-                    "landing_visit": "Visita Web",
-                    "order_sent": "Pedido Enviado",
-                    "catalog_download_confirmed": "Descarga Catálogo",
-                    "portal_register": "Registro Portal",
-                    "portal_login": "Login Portal",
-                    "assistant_message": "Mensaje IA"
-                }
-                typeLabel = typeMap[e.type] || e.type
-
-                // Format Details
-                if (e.meta) {
-                    const parts = []
-                    if (e.email) parts.push(e.email)
-                    if (e.meta.total) parts.push(`$${e.meta.total.toLocaleString("es-AR")}`)
-                    if (e.meta.items && e.meta.items.length) parts.push(`${e.meta.items.length} productos`)
-                    if (e.meta.zona) parts.push(e.meta.zona)
-                    detail = parts.join(" · ") || "-"
-                }
-
+            tbody.innerHTML = recent.map((e, idx) => {
+                const email = normalizeEmailForLookup(e.email)
+                const name = email ? (getDisplayNameByEmail(email) || email) : "-"
+                const label = formatEventLabel(e.type)
+                const detail = formatEventDetailShort(e)
+                const canDetail = Boolean((e.sessionId && String(e.sessionId).trim()) || email)
                 return `
                     <tr class="hover:bg-slate-50 transition">
-                        <td class="px-6 py-3 whitespace-nowrap text-slate-600">${date}</td>
-                        <td class="px-6 py-3 font-medium text-blue-600">${typeLabel}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-slate-600">${formatDate(e.createdAt)}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-slate-600">${formatTime(e.createdAt)}</td>
+                        <td class="px-6 py-3 whitespace-nowrap text-slate-700 font-medium">${name}</td>
+                        <td class="px-6 py-3 font-semibold text-blue-600">${label}</td>
                         <td class="px-6 py-3 text-slate-500 text-xs">${detail}</td>
+                        <td class="px-6 py-3 text-right">
+                            ${canDetail ? `<button data-ev="${idx}" class="text-xs text-blue-600 hover:text-blue-800 font-semibold">Detalle</button>` : ""}
+                        </td>
                     </tr>
                 `
             }).join("")
+
+            tbody.querySelectorAll("button[data-ev]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const i = Number(btn.getAttribute("data-ev"))
+                    const ev = recent[i]
+                    if (ev) openJourneyFromEvent(ev)
+                })
+            })
+        }
+
+        let journeyModalReady = false
+        function setupJourneyModal() {
+            if (journeyModalReady) return
+            journeyModalReady = true
+            const modal = document.getElementById("journey-modal")
+            const closeBtn = document.getElementById("journey-close")
+            if (closeBtn) closeBtn.addEventListener("click", closeJourneyModal)
+            if (modal) {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) closeJourneyModal()
+                })
+            }
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") closeJourneyModal()
+            })
+        }
+
+        function closeJourneyModal() {
+            const modal = document.getElementById("journey-modal")
+            if (!modal) return
+            modal.classList.add("hidden")
+            modal.classList.remove("flex")
+            document.body.classList.remove("modal-open")
+        }
+
+        function openJourneyModal() {
+            const modal = document.getElementById("journey-modal")
+            if (!modal) return
+            modal.classList.remove("hidden")
+            modal.classList.add("flex")
+            document.body.classList.add("modal-open")
+        }
+
+        function groupCount(map, key) {
+            const k = String(key || "").trim()
+            if (!k) return
+            map.set(k, (map.get(k) || 0) + 1)
+        }
+
+        function topEntries(map, limit) {
+            return Array.from(map.entries()).sort((a, b) => b[1] - a[1]).slice(0, limit)
+        }
+
+        function openJourneyFromEvent(ev) {
+            const evEmail = normalizeEmailForLookup(ev.email)
+            const evSession = String(ev.sessionId || "").trim()
+            const pivotTs = new Date(ev.createdAt).getTime()
+
+            let list = []
+            if (evSession) {
+                list = EVENTS.filter(e => String(e.sessionId || "").trim() === evSession)
+            } else if (evEmail) {
+                list = EVENTS.filter(e => normalizeEmailForLookup(e.email) === evEmail)
+                list = list.filter(e => {
+                    const t = new Date(e.createdAt).getTime()
+                    return Math.abs(t - pivotTs) <= 1000 * 60 * 60
+                })
+            }
+            list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+
+            const titleEl = document.getElementById("journey-title")
+            const subtitleEl = document.getElementById("journey-subtitle")
+            const rangeEl = document.getElementById("journey-range")
+
+            const whoName = evEmail ? (getDisplayNameByEmail(evEmail) || evEmail) : "Anónimo"
+            if (titleEl) titleEl.textContent = whoName
+
+            const start = list.length ? list[0].createdAt : ev.createdAt
+            const end = list.length ? list[list.length - 1].createdAt : ev.createdAt
+            const subtitleParts = []
+            if (evSession) subtitleParts.push("Sesión: " + evSession)
+            if (evEmail) subtitleParts.push(evEmail)
+            if (subtitleEl) subtitleEl.textContent = subtitleParts.join(" · ") || "-"
+            if (rangeEl) rangeEl.textContent = formatDate(start) + " " + formatTime(start) + " → " + formatTime(end)
+
+            const searches = list.filter(e => e.type === "catalog_filter").length
+            const views = list.filter(e => e.type === "product_view").length
+            const offers = list.filter(e => e.type === "offer_view").length
+            const cartAdds = list.filter(e => e.type === "cart_add").length
+            const shares = list.filter(e => e.type === "share").length
+
+            const sectors = new Map()
+            const paths = new Map()
+            const shareMethods = new Map()
+
+            list.forEach(e => {
+                if (e.type === "catalog_filter") {
+                    if (e.meta && e.meta.cat) groupCount(sectors, e.meta.cat)
+                }
+                if (e.type === "product_view" || e.type === "offer_view") {
+                    if (e.meta && e.meta.category) groupCount(sectors, e.meta.category)
+                }
+                if (e.meta && e.meta.path) groupCount(paths, e.meta.path)
+                if (e.type === "share") {
+                    if (e.meta && e.meta.method) groupCount(shareMethods, e.meta.method)
+                }
+            })
+
+            const topSector = topEntries(sectors, 1)[0]
+            const topSectorText = topSector ? `${topSector[0]} (${topSector[1]})` : "-"
+            const shareMethodsText = topEntries(shareMethods, 3).map(([k, v]) => `${k} (${v})`).join(" · ") || "-"
+
+            const setText = (id, v) => {
+                const el = document.getElementById(id)
+                if (el) el.textContent = v
+            }
+
+            setText("journey-searches", String(searches))
+            setText("journey-top-cat", topSectorText)
+            setText("journey-views", String(views))
+            setText("journey-offers", String(offers) + " ofertas")
+            setText("journey-cart", String(cartAdds))
+            setText("journey-shares", String(shares))
+            setText("journey-share-methods", shareMethodsText)
+
+            const sectorsBox = document.getElementById("journey-sectors")
+            if (sectorsBox) {
+                const items = topEntries(sectors, 8)
+                sectorsBox.innerHTML = items.length
+                    ? items.map(([k, v]) => `
+                        <div class="px-4 py-3 flex items-center justify-between">
+                            <div class="text-sm font-semibold text-slate-800">${k}</div>
+                            <div class="text-sm text-slate-600">${v}</div>
+                        </div>
+                      `).join("")
+                    : `<div class="px-4 py-3 text-sm text-slate-400">Sin datos de sectores para esta sesión.</div>`
+            }
+
+            const pathsBox = document.getElementById("journey-paths")
+            if (pathsBox) {
+                const items = topEntries(paths, 10)
+                pathsBox.innerHTML = items.length
+                    ? items.map(([k, v]) => `
+                        <div class="px-4 py-3 flex items-center justify-between gap-3">
+                            <div class="text-xs text-slate-700 break-all">${k}</div>
+                            <div class="text-xs text-slate-500 whitespace-nowrap">${v}x</div>
+                        </div>
+                      `).join("")
+                    : `<div class="px-4 py-3 text-sm text-slate-400">No hay rutas registradas en esta sesión.</div>`
+            }
+
+            const eventsBox = document.getElementById("journey-events")
+            if (eventsBox) {
+                eventsBox.innerHTML = list.length
+                    ? list.map(e => {
+                        const time = formatTime(e.createdAt)
+                        const label = formatEventLabel(e.type)
+                        let detail = formatEventDetailShort(e)
+                        if (detail && detail.length > 120) detail = detail.slice(0, 120) + "…"
+                        return `
+                            <div class="px-4 py-3 flex items-start gap-3">
+                                <div class="text-xs text-slate-500 whitespace-nowrap">${time}</div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-semibold text-slate-800">${label}</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">${detail || "-"}</div>
+                                </div>
+                            </div>
+                        `
+                    }).join("")
+                    : `<div class="px-4 py-3 text-sm text-slate-400">No hay eventos suficientes para reconstruir esta sesión.</div>`
+            }
+
+            openJourneyModal()
         }
 
         function renderProductCharts() {
@@ -389,6 +845,300 @@
                         }
                     }
                 })
+            }
+        }
+
+        let contactReportReady = false
+        function setupContactReport() {
+            if (contactReportReady) return
+            contactReportReady = true
+
+            const input = document.getElementById("contact-query")
+            const btn = document.getElementById("contact-search")
+            if (!input || !btn) return
+
+            btn.addEventListener("click", () => runContactSearch(input.value))
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") runContactSearch(input.value)
+            })
+        }
+
+        function normalizeEmail(v) {
+            const s = String(v || "").trim().toLowerCase()
+            return s
+        }
+
+        function normalizePhone(v) {
+            return String(v || "").replace(/\D/g, "")
+        }
+
+        function getNameFromRecord(r) {
+            if (!r) return ""
+            const name = `${r.nombre || ""} ${r.apellido || ""}`.trim()
+            return name || ""
+        }
+
+        function formatBadge(label, kind) {
+            const cls = kind === "client"
+                ? "bg-emerald-100 text-emerald-800"
+                : kind === "lead"
+                    ? "bg-orange-100 text-orange-800"
+                    : "bg-slate-100 text-slate-700"
+            return `<span class="text-[11px] font-bold px-2 py-1 rounded-full ${cls}">${label}</span>`
+        }
+
+        function runContactSearch(rawQuery) {
+            const query = String(rawQuery || "").trim()
+            const matchesWrap = document.getElementById("contact-matches")
+            const resultWrap = document.getElementById("contact-result")
+            const hintWrap = document.getElementById("contact-hint")
+            if (matchesWrap) matchesWrap.classList.add("hidden")
+            if (resultWrap) resultWrap.classList.add("hidden")
+            if (hintWrap) hintWrap.classList.remove("hidden")
+
+            if (!query) return
+
+            const emailQ = query.includes("@") ? normalizeEmail(query) : ""
+            const phoneQ = emailQ ? "" : normalizePhone(query)
+            const textQ = emailQ || phoneQ ? "" : query.toLowerCase()
+
+            const matches = []
+            const pushMatch = (kind, r) => {
+                const email = normalizeEmail(r && r.email ? r.email : "")
+                const phone = normalizePhone(r && r.celular ? r.celular : "")
+                const name = kind === "client" ? getNameFromRecord(r) : (r && r.nombre ? `${r.nombre || ""} ${r.apellido || ""}`.trim() : "")
+                const key = kind + "|" + (email || phone || name)
+                if (!key) return
+                if (matches.some(m => m.key === key)) return
+                matches.push({ key, kind, record: r, email, phone, name })
+            }
+
+            CLIENTS.forEach(c => {
+                const email = normalizeEmail(c.email)
+                const phone = normalizePhone(c.celular)
+                const hay = `${getNameFromRecord(c)} ${c.email || ""} ${c.celular || ""}`.toLowerCase()
+                const ok = emailQ ? email === emailQ : phoneQ ? (phone.includes(phoneQ) && phoneQ.length >= 6) : hay.includes(textQ)
+                if (ok) pushMatch("client", c)
+            })
+
+            LEADS.forEach(l => {
+                const email = normalizeEmail(l.email)
+                const phone = normalizePhone(l.celular)
+                const hay = `${l.nombre || ""} ${l.apellido || ""} ${l.email || ""} ${l.celular || ""}`.toLowerCase()
+                const ok = emailQ ? email === emailQ : phoneQ ? (phone.includes(phoneQ) && phoneQ.length >= 6) : hay.includes(textQ)
+                if (ok) pushMatch("lead", l)
+            })
+
+            if (matches.length === 0) {
+                if (hintWrap) hintWrap.textContent = "No se encontró ese contacto. Prueba con otro email/celular o escribe solo una parte del nombre."
+                return
+            }
+
+            if (matches.length === 1) {
+                if (hintWrap) hintWrap.classList.add("hidden")
+                renderContactReport(matches[0])
+                return
+            }
+
+            if (matchesWrap) {
+                matchesWrap.classList.remove("hidden")
+                if (hintWrap) hintWrap.classList.add("hidden")
+                matchesWrap.innerHTML = `
+                    <div class="text-sm text-slate-600 mb-2">Se encontraron ${matches.length} coincidencias:</div>
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-xs text-slate-500 uppercase">
+                                <tr>
+                                    <th class="px-3 py-2 font-medium">Tipo</th>
+                                    <th class="px-3 py-2 font-medium">Nombre</th>
+                                    <th class="px-3 py-2 font-medium">Zona</th>
+                                    <th class="px-3 py-2 font-medium">Email</th>
+                                    <th class="px-3 py-2 font-medium">Celular</th>
+                                    <th class="px-3 py-2 font-medium"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${matches.slice(0, 20).map((m, idx) => {
+                                    const r = m.record || {}
+                                    const zona = r.zona || "-"
+                                    return `
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="px-3 py-2">${m.kind === "client" ? "Cliente" : "Lead"}</td>
+                                            <td class="px-3 py-2">${m.name || "-"}</td>
+                                            <td class="px-3 py-2">${zona}</td>
+                                            <td class="px-3 py-2">${m.email || "-"}</td>
+                                            <td class="px-3 py-2">${m.phone || "-"}</td>
+                                            <td class="px-3 py-2 text-right">
+                                                <button data-idx="${idx}" class="text-blue-600 hover:text-blue-800 font-semibold">Ver</button>
+                                            </td>
+                                        </tr>
+                                    `
+                                }).join("")}
+                            </tbody>
+                        </table>
+                    </div>
+                `
+                matchesWrap.querySelectorAll("button[data-idx]").forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        const idx = Number(btn.getAttribute("data-idx"))
+                        const picked = matches[idx]
+                        matchesWrap.classList.add("hidden")
+                        renderContactReport(picked)
+                    })
+                })
+            }
+        }
+
+        function formatDateTime(v) {
+            if (!v) return "-"
+            const d = new Date(v)
+            if (Number.isNaN(d.getTime())) return "-"
+            return d.toLocaleString("es-AR")
+        }
+
+        function renderContactReport(match) {
+            const resultWrap = document.getElementById("contact-result")
+            const hintWrap = document.getElementById("contact-hint")
+            if (hintWrap) hintWrap.classList.add("hidden")
+            if (!resultWrap) return
+            resultWrap.classList.remove("hidden")
+
+            const kind = match.kind
+            const r = match.record || {}
+            const email = match.email || normalizeEmail(r.email)
+            const phone = match.phone || normalizePhone(r.celular)
+            const name = match.name || (kind === "lead" ? `${r.nombre || ""} ${r.apellido || ""}`.trim() : getNameFromRecord(r)) || "-"
+            const zona = r.zona || "-"
+            const tipo = r.tipo || "-"
+
+            const events = email ? EVENTS.filter(e => normalizeEmail(e.email) === email) : []
+            const views = events.filter(e => e.type === "product_view").length
+            const offers = events.filter(e => e.type === "offer_view").length
+            const searches = events.filter(e => e.type === "catalog_filter").length
+            const downloads = events.filter(e => e.type === "catalog_download_confirmed" || e.type === "catalog_download_allowed").length
+
+            const orders = ORDERS.filter(o => {
+                const oe = normalizeEmail(o && o.client ? o.client.email : "")
+                const op = normalizePhone(o && o.client ? o.client.phone : "")
+                if (email && oe && oe === email) return true
+                if (phone && op && op.includes(phone) && phone.length >= 6) return true
+                return false
+            })
+            const spend = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
+
+            const lead = kind === "lead" ? r : (email ? LEADS.find(l => normalizeEmail(l.email) === email) : null)
+            const converted = lead && lead.convertedToClient
+
+            const lastEventAt = events.length ? events.reduce((mx, e) => Math.max(mx, new Date(e.createdAt).getTime()), 0) : 0
+            const lastOrderAt = orders.length ? orders.reduce((mx, o) => Math.max(mx, new Date(o.createdAt).getTime()), 0) : 0
+            const lastSeenAt = lead && lead.lastSeenAt ? new Date(lead.lastSeenAt).getTime() : 0
+            const lastAt = Math.max(lastEventAt, lastOrderAt, lastSeenAt)
+
+            const badges = []
+            badges.push(formatBadge(kind === "client" ? "CLIENTE" : "LEAD", kind))
+            if (converted) badges.push(formatBadge("CONVERTIDO", "client"))
+            if (orders.length) badges.push(formatBadge("CON PEDIDOS", "client"))
+
+            const setText = (id, v) => {
+                const el = document.getElementById(id)
+                if (el) el.textContent = v
+            }
+
+            const setHtml = (id, v) => {
+                const el = document.getElementById(id)
+                if (el) el.innerHTML = v
+            }
+
+            setText("cr-name", name)
+            setHtml("cr-badges", badges.join(""))
+            setText("cr-email", email || "-")
+            setText("cr-phone", phone || "-")
+            setText("cr-zone", zona)
+            setText("cr-type", tipo)
+            setText("cr-last", lastAt ? formatDateTime(lastAt) : "-")
+            setText("cr-orders", String(orders.length))
+            setText("cr-spend", "$" + Math.round(spend).toLocaleString("es-AR"))
+            setText("cr-views", String(views))
+            setText("cr-offers", String(offers) + " ofertas")
+            setText("cr-searches", String(searches))
+            setText("cr-downloads", String(downloads))
+
+            const tbody = document.getElementById("cr-orders-body")
+            const note = document.getElementById("cr-orders-note")
+            if (note) note.textContent = orders.length ? "Últimos " + Math.min(orders.length, 10) : "Sin pedidos"
+            if (tbody) {
+                if (!orders.length) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-slate-400 text-sm">No hay pedidos registrados para este contacto.</td></tr>`
+                } else {
+                    tbody.innerHTML = orders.slice(0, 10).map(o => {
+                        const date = formatDateTime(o.createdAt)
+                        const source = (o.source || "web").toString()
+                        const status = (o.status || "new").toString()
+                        const total = "$" + Number(o.total || 0).toLocaleString("es-AR")
+                        return `
+                            <tr class="hover:bg-slate-50">
+                                <td class="px-4 py-2 whitespace-nowrap">${date}</td>
+                                <td class="px-4 py-2">${source}</td>
+                                <td class="px-4 py-2">${status}</td>
+                                <td class="px-4 py-2 text-right font-semibold">${total}</td>
+                            </tr>
+                        `
+                    }).join("")
+                }
+            }
+
+            const eventsBox = document.getElementById("cr-events")
+            if (eventsBox) {
+                const typeMap = {
+                    "landing_visit": "Visita Landing",
+                    "portal_view": "Visita Portal",
+                    "portal_login": "Login Portal",
+                    "portal_register": "Registro Portal",
+                    "lead_capture": "Registro Lead",
+                    "assistant_lead": "Registro Lead IA",
+                    "catalog_filter": "Búsqueda / Filtro",
+                    "product_view": "Vista Producto",
+                    "offer_view": "Vista Oferta",
+                    "cart_add": "Agregó al carrito",
+                    "order_sent": "Pedido Enviado",
+                    "new_order": "Pedido CRM",
+                    "catalog_download_confirmed": "Descarga Catálogo",
+                    "catalog_download_allowed": "Descarga Catálogo"
+                }
+                const list = events.slice(0, 80)
+                if (!list.length) {
+                    eventsBox.innerHTML = `<div class="px-4 py-3 text-slate-400 text-sm">No hay eventos con email asociado para este contacto.</div>`
+                } else {
+                    eventsBox.innerHTML = list.map(e => {
+                        const date = formatDateTime(e.createdAt)
+                        const label = typeMap[e.type] || e.type
+                        let detail = ""
+                        if (e.type === "product_view" || e.type === "offer_view") {
+                            const pid = e.meta && e.meta.productId != null ? Number(e.meta.productId) : null
+                            const p = pid != null ? PRODUCTS_MAP.get(pid) : null
+                            detail = p ? p.name : (pid != null ? "ID " + pid : "")
+                        } else if (e.type === "catalog_filter") {
+                            const q = e.meta && e.meta.q ? String(e.meta.q) : ""
+                            const cat = e.meta && e.meta.cat ? String(e.meta.cat) : ""
+                            detail = [q ? `q="${q}"` : "", cat ? `cat="${cat}"` : ""].filter(Boolean).join(" · ")
+                        } else if (e.type === "order_sent") {
+                            const total = e.meta && e.meta.total ? Number(e.meta.total) : 0
+                            detail = total ? "$" + total.toLocaleString("es-AR") : ""
+                        } else if (e.type === "catalog_download_confirmed" || e.type === "catalog_download_allowed") {
+                            const cid = e.meta && e.meta.catalogId ? String(e.meta.catalogId) : ""
+                            detail = cid ? "Catálogo " + cid : ""
+                        }
+                        return `
+                            <div class="px-4 py-3 flex items-start gap-3">
+                                <div class="text-xs text-slate-500 whitespace-nowrap">${date}</div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-semibold text-slate-800">${label}</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">${detail || "-"}</div>
+                                </div>
+                            </div>
+                        `
+                    }).join("")
+                }
             }
         }
 

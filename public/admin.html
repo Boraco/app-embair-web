@@ -1215,9 +1215,7 @@
     async function loadCatalogs() {
       try {
         const res = await fetch("/api/catalogs", {
-          headers: {
-            "Authorization": "Basic " + btoa("admin:admin")
-          }
+          credentials: "same-origin"
         })
         const ct = res.headers.get("content-type") || ""
         if (!ct.includes("application/json")) {
@@ -1278,9 +1276,7 @@
           fd.append("file", file)
           const upRes = await fetch("/api/upload", {
             method: "POST",
-            headers: {
-              "Authorization": "Basic " + btoa("admin:admin")
-            },
+            credentials: "same-origin",
             body: fd
           })
           const ct = upRes.headers.get("content-type") || ""
@@ -1295,9 +1291,9 @@
           const res = await fetch("/api/catalogs", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Basic " + btoa("admin:admin")
+              "Content-Type": "application/json"
             },
+            credentials: "same-origin",
             body: JSON.stringify({ title: name, url: upData.url })
           })
           const ct2 = res.headers.get("content-type") || ""
@@ -1346,8 +1342,12 @@
         if (action === "delete") {
           if (!confirm("¿Eliminar este catálogo? Esta acción no elimina el archivo físico, solo la entrada de la lista.")) return
           try {
-            const res = await fetch(`/api/catalogs/${id}`, { method: "DELETE" })
-            const data = await res.json()
+            const res = await fetch(`/api/catalogs/${id}`, {
+              method: "DELETE",
+              credentials: "same-origin"
+            })
+            const ct = res.headers.get("content-type") || ""
+            const data = ct.includes("application/json") ? await res.json() : { ok: false, error: await res.text() }
             if (!res.ok || !data.ok) throw new Error(data.error || "Error eliminando catálogo")
             await loadCatalogs()
           } catch (err) {

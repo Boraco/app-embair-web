@@ -1492,7 +1492,8 @@ function getLocalIp() {
 ensurePortalTestClient()
 
 const port = process.env.PORT || 3002
-// Escuchar solo en localhost para evitar conflictos y delegar acceso externo a Nginx
-app.listen(port, "127.0.0.1", () => {
-  console.log(`Server on http://127.0.0.1:${port}`)
+app.listen(port, "0.0.0.0", () => {
+  const ip = getLocalIp()
+  console.log(`Server on http://localhost:${port}`)
+  console.log(`Network access: http://${ip}:${port}`)
 })

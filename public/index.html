@@ -1010,29 +1010,35 @@
           </div>
         `
         
+        const existingFullName = `${existing.nombre || ""} ${existing.apellido || ""}`.trim()
+        const existingCed = String(existing.cedula || "").trim()
+        const cedParts = existingCed.includes("-") ? existingCed.split("-") : []
+        const existingDocPrefix = (cedParts[0] || "").trim().toUpperCase()
+        const existingDocNumber = (cedParts.slice(1).join("-") || "").trim()
+
         const viewRegister = `
           <div id="view-register" class="hidden">
             <h3 class="text-lg font-bold text-slate-900 mb-2">Completa tus datos</h3>
             <p class="text-sm text-slate-500 mb-4">No encontramos tu número. Regístrate para continuar.</p>
             <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              <input id="c-name" placeholder="Nombre" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.nombre||''}">
-              <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.apellido||''}">
-              <input id="c-email" placeholder="Email" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.email||''}">
-              <input id="c-id" placeholder="Cédula / RIF" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.cedula||''}">
-              <input id="c-addr" placeholder="Dirección exacta" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.direccion||''}">
-              <input id="c-zone" placeholder="Zona (Ej: Norte, Centro...)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.zona||''}">
-              <input id="c-phone-reg" placeholder="Celular" class="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" readonly>
               <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
                   <option value="">Tipo de cliente...</option>
+                  <option value="Empresa" ${existing.tipo==='Empresa'?'selected':''}>Empresa</option>
+                  <option value="Gubernamental" ${existing.tipo==='Gubernamental'?'selected':''}>Gubernamental</option>
                   <option value="Particular" ${existing.tipo==='Particular'?'selected':''}>Particular</option>
                   <option value="Instalador" ${existing.tipo==='Instalador'?'selected':''}>Instalador</option>
-                  <option value="Empresa" ${existing.tipo==='Empresa'?'selected':''}>Empresa</option>
               </select>
-              <select id="c-ship" class="w-full border rounded-lg px-3 py-2 text-sm">
-                  <option value="">Preferencia de Entrega...</option>
-                  <option value="Delivery" ${existing.entrega==='Delivery'?'selected':''}>Delivery</option>
-                  <option value="Pick up" ${existing.entrega==='Pick up'?'selected':''}>Retiro en oficina</option>
-              </select>
+              <input id="c-name" placeholder="Nombre / Empresa" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existingFullName}">
+              <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm hidden" value="">
+              <input id="c-email" placeholder="Email" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.email||''}">
+              <div class="flex gap-2">
+                <select id="c-doc-prefix" class="w-24 border rounded-lg px-3 py-2 text-sm bg-white">
+                  <option value=""></option>
+                </select>
+                <input id="c-doc-number" placeholder="Número (Cédula/RIF)" class="flex-1 border rounded-lg px-3 py-2 text-sm" value="${existingDocNumber}">
+              </div>
+              <input id="c-zone" placeholder="Zona (Ej: Norte, Centro...)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.zona||''}">
+              <input id="c-phone-reg" placeholder="Celular" class="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50" readonly>
             </div>
             <div class="flex gap-2 mt-6">
               ${!force ? '<button id="c-back" class="px-4 py-2.5 border border-slate-300 rounded-lg text-slate-700 font-medium text-sm">Atrás</button>' : ''}
@@ -1076,6 +1082,46 @@
         const regPhone = modal.querySelector("#c-phone-reg")
         const btnConfirm = modal.querySelector("#c-confirm")
         const btnBack = modal.querySelector("#c-back")
+        const regType = modal.querySelector("#c-type")
+        const docPrefixEl = modal.querySelector("#c-doc-prefix")
+        const docNumberEl = modal.querySelector("#c-doc-number")
+        const nameEl = modal.querySelector("#c-name")
+        const lastEl = modal.querySelector("#c-last")
+        const emailEl = modal.querySelector("#c-email")
+        const zoneEl = modal.querySelector("#c-zone")
+
+        const docOptionsByType = (tipo) => {
+          const t = String(tipo || "")
+          if (t === "Empresa") return ["J"]
+          if (t === "Gubernamental") return ["G"]
+          if (t === "Particular") return ["V", "E"]
+          if (t === "Instalador") return ["V", "E"]
+          return ["V", "E", "J", "G"]
+        }
+        const setDocPrefixOptions = (tipo, preferred) => {
+          if (!docPrefixEl) return
+          const opts = docOptionsByType(tipo)
+          const pref = String(preferred || "").trim().toUpperCase()
+          const selected = opts.includes(pref) ? pref : (opts[0] || "")
+          docPrefixEl.innerHTML = opts.map(v => `<option value="${v}" ${v === selected ? "selected" : ""}>${v}</option>`).join("")
+        }
+
+        setDocPrefixOptions(regType && regType.value ? regType.value : (existing.tipo || ""), existingDocPrefix)
+        if (regType) {
+          regType.addEventListener("change", () => {
+            setDocPrefixOptions(regType.value, "")
+            const t = String(regType.value || "")
+            const needsLast = t === "Particular" || t === "Instalador"
+            if (lastEl) lastEl.classList.toggle("hidden", !needsLast)
+            if (nameEl) nameEl.placeholder = needsLast ? "Nombre" : "Nombre / Empresa"
+          })
+        }
+        if (regType) {
+          const t0 = String(regType.value || "")
+          const needsLast0 = t0 === "Particular" || t0 === "Instalador"
+          if (lastEl) lastEl.classList.toggle("hidden", !needsLast0)
+          if (nameEl) nameEl.placeholder = needsLast0 ? "Nombre" : "Nombre / Empresa"
+        }
 
         // Focus phone
         setTimeout(() => inputPhone.focus(), 100)
@@ -1120,14 +1166,24 @@
                         vPhone.classList.add("hidden")
                         vReg.classList.remove("hidden")
                         regPhone.value = phone
-                        modal.querySelector("#c-name").value = client.nombre || ""
-                        modal.querySelector("#c-last").value = client.apellido || ""
-                        modal.querySelector("#c-email").value = client.email || ""
-                        modal.querySelector("#c-id").value = client.cedula || ""
-                        modal.querySelector("#c-addr").value = client.direccion || ""
-                        modal.querySelector("#c-zone").value = client.zona || ""
-                        modal.querySelector("#c-type").value = client.tipo || ""
-                        modal.querySelector("#c-ship").value = client.entrega || ""
+                        const fullName = `${client.nombre || ""} ${client.apellido || ""}`.trim()
+                        if (nameEl) nameEl.value = fullName
+                        if (lastEl) lastEl.value = client.apellido || ""
+                        if (emailEl) emailEl.value = client.email || ""
+                        if (zoneEl) zoneEl.value = client.zona || ""
+                        if (regType) regType.value = client.tipo || ""
+                        if (regType) {
+                          const t1 = String(regType.value || "")
+                          const needsLast1 = t1 === "Particular" || t1 === "Instalador"
+                          if (lastEl) lastEl.classList.toggle("hidden", !needsLast1)
+                          if (nameEl) nameEl.placeholder = needsLast1 ? "Nombre" : "Nombre / Empresa"
+                        }
+                        const ced = String(client.cedula || "").trim()
+                        const parts = ced.includes("-") ? ced.split("-") : []
+                        const pref = (parts[0] || "").trim().toUpperCase()
+                        const num = (parts.slice(1).join("-") || "").trim()
+                        setDocPrefixOptions(regType && regType.value ? regType.value : "", pref)
+                        if (docNumberEl) docNumberEl.value = num
                         return
                       }
                       upsertLeadFromCustomer(client, source || "portal_returning")
@@ -1175,21 +1231,25 @@
         
         btnConfirm.onclick = () => {
             const data = {
-                nombre: modal.querySelector("#c-name").value.trim(),
-                apellido: modal.querySelector("#c-last").value.trim(),
-                email: modal.querySelector("#c-email").value.trim(),
-                cedula: modal.querySelector("#c-id").value.trim(),
-                direccion: modal.querySelector("#c-addr").value.trim(),
-                zona: modal.querySelector("#c-zone").value.trim(),
+                nombre: nameEl ? nameEl.value.trim() : "",
+                apellido: lastEl && !lastEl.classList.contains("hidden") ? lastEl.value.trim() : "",
+                email: emailEl ? emailEl.value.trim() : "",
+                cedula: "",
+                direccion: "",
+                zona: zoneEl ? zoneEl.value.trim() : "",
                 celular: regPhone.value.trim(),
-                tipo: modal.querySelector("#c-type").value,
-                entrega: modal.querySelector("#c-ship").value,
+                tipo: regType ? regType.value : "",
+                entrega: "",
                 recordType: persistMode === "lead" ? "lead" : "client"
             }
+
+            const prefix = docPrefixEl ? String(docPrefixEl.value || "").trim().toUpperCase() : ""
+            const docNum = docNumberEl ? String(docNumberEl.value || "").trim().replace(/[^0-9A-Za-z]/g, "") : ""
+            data.cedula = prefix && docNum ? `${prefix}-${docNum}` : ""
             
             const emailOk = /@/.test(data.email)
-            if(!data.nombre || !data.cedula || !data.celular || !data.email || !emailOk || !data.zona || !data.tipo) {
-                return alert("Nombre, Cédula, Email, Celular, Zona y Tipo son obligatorios para el registro")
+            if(!data.tipo || !data.nombre || !data.cedula || !data.celular || !data.email || !emailOk || !data.zona) {
+                return alert("Tipo de cliente, Nombre, Email, Celular, Zona y Cédula/RIF son obligatorios para el registro")
             }
             
             saveCustomerData(data)

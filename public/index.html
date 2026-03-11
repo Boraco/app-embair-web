@@ -1166,9 +1166,11 @@
             if(e.key === "Enter") btnCheck.click()
         })
         
-        btnBack.onclick = () => {
-            vReg.classList.add("hidden")
-            vPhone.classList.remove("hidden")
+        if (btnBack) {
+            btnBack.onclick = () => {
+                vReg.classList.add("hidden")
+                vPhone.classList.remove("hidden")
+            }
         }
         
         btnConfirm.onclick = () => {

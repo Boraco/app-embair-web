@@ -72,12 +72,30 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(__dirname, "..", "public")))
 
+function shouldRequireAdminView(req) {
+  return String(req.query && req.query.admin_view ? req.query.admin_view : "") === "true"
+}
+
 app.get("/producto/:slug", (req, res) => {
+  if (shouldRequireAdminView(req)) {
+    return requireAdmin(req, res, () => {
+      res.sendFile(path.join(__dirname, "..", "public", "index.html"))
+    })
+  }
   res.sendFile(path.join(__dirname, "..", "public", "index.html"))
 })
 
 app.get("/app", (req, res) => {
+  if (shouldRequireAdminView(req)) {
+    return requireAdmin(req, res, () => {
+      res.sendFile(path.join(__dirname, "..", "public", "index.html"))
+    })
+  }
   res.sendFile(path.join(__dirname, "..", "public", "index.html"))
+})
+
+app.get("/api/admin/ping", requireAdmin, (req, res) => {
+  res.json({ ok: true })
 })
 
 app.get("/admin", requireAdmin, (req, res) => {

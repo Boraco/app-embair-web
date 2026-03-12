@@ -2013,9 +2013,23 @@
       const params = new URLSearchParams(window.location.search)
       const isPortal = params.get("portal") === "1"
       const isAdminView = params.get("admin_view") === "true"
+      let isAdminViewVerified = false
+      if (isAdminView) {
+        try {
+          const r = await fetch("/api/admin/ping", { cache: "no-store" })
+          isAdminViewVerified = !!(r && r.ok)
+        } catch {}
+        if (!isAdminViewVerified) {
+          params.delete("admin_view")
+          const q = params.toString()
+          const next = window.location.pathname + (q ? `?${q}` : "")
+          window.location.replace(next)
+          return
+        }
+      }
 
       if (isPortal) {
-          if (isAdminView) {
+          if (isAdminViewVerified) {
               // Admin View Mode: Skip Login, Show Indicator
               const toast = document.createElement("div")
               toast.className = "fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl z-[70] text-xs font-mono border border-slate-600"

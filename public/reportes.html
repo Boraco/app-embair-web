@@ -130,9 +130,7 @@
 
         async function loadData() {
             try {
-                const res = await fetch("/api/crm/orders", {
-                    headers: { "Authorization": "Basic " + btoa("admin:admin") }
-                })
+                const res = await fetch("/api/crm/orders")
                 if (res.ok) {
                     ORDERS = await res.json()
                     processData()

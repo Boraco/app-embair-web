@@ -176,15 +176,10 @@
        if (!confirm(`¿Estás seguro de que deseas ${method} el bot?`)) return;
 
        try {
-        // Default admin:admin for local dev convenience
-        // In production, you would handle this with a proper login session/cookie
-        const defaultAuth = btoa("admin:admin"); 
-        const token = localStorage.getItem("admin_token") || defaultAuth;
+        const token = localStorage.getItem("admin_token") || "";
         
-        const headers = { 
-          "Content-Type": "application/json",
-          "Authorization": "Basic " + token
-        };
+        const headers = { "Content-Type": "application/json" }
+        if (token) headers["Authorization"] = "Basic " + token
         
         const res = await fetch("/api/bot/control", {
           method: "POST",
@@ -224,13 +219,10 @@
       botConfig.training = document.getElementById("bot-training").value;
 
       try {
-        const defaultAuth = btoa("admin:admin");
-        const token = localStorage.getItem("admin_token") || defaultAuth;
+        const token = localStorage.getItem("admin_token") || "";
         
-        const headers = { 
-          "Content-Type": "application/json",
-          "Authorization": "Basic " + token
-        };
+        const headers = { "Content-Type": "application/json" }
+        if (token) headers["Authorization"] = "Basic " + token
         
         const res = await fetch("/api/bot/config", {
           method: "POST",

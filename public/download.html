@@ -26,7 +26,7 @@
 
       <div>
         <label class="block text-sm font-medium text-slate-700">Correo electrónico</label>
-        <input type="email" id="email" class="mt-1 block w-full bg-slate-100 border border-slate-300 rounded-md shadow-sm py-2 px-3 text-slate-500 sm:text-sm" readonly>
+        <input type="email" id="email" required class="mt-1 block w-full bg-slate-100 border border-slate-300 rounded-md shadow-sm py-2 px-3 text-slate-500 sm:text-sm" readonly>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -46,8 +46,8 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-slate-700">Zona / ciudad</label>
-        <input type="text" id="zona" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <label class="block text-sm font-medium text-slate-700">Cédula / RIF *</label>
+        <input type="text" id="cedula" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
       </div>
 
       <div>
@@ -55,10 +55,16 @@
         <select id="tipo" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
           <option value="">Selecciona una opción...</option>
           <option value="Instalador">Instalador</option>
+          <option value="Ingeniero">Ingeniero</option>
           <option value="Revendedor">Revendedor</option>
           <option value="Particular">Particular</option>
           <option value="Empresa">Empresa</option>
         </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Zona / ciudad *</label>
+        <input type="text" id="zona" required class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
       </div>
 
       <button type="submit" id="submit-btn" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -69,6 +75,34 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      const SESSION_KEY = "embair_session_id"
+      function getSessionId() {
+        try {
+          const existing = localStorage.getItem(SESSION_KEY)
+          if (existing) return existing
+          const id = "sess_" + Math.random().toString(36).slice(2) + Date.now().toString(36)
+          localStorage.setItem(SESSION_KEY, id)
+          return id
+        } catch {
+          return ""
+        }
+      }
+
+      async function trackEvent(type, meta, emailOverride) {
+        try {
+          await fetch("/api/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type,
+              sessionId: getSessionId(),
+              email: typeof emailOverride === "string" ? emailOverride : "",
+              meta: meta || {}
+            })
+          })
+        } catch {}
+      }
+
       // Parse URL params
       const params = new URLSearchParams(window.location.search)
       const emailParam = params.get("email")
@@ -89,12 +123,12 @@
         emailInput.removeAttribute("readonly")
         emailInput.classList.remove("bg-slate-100", "text-slate-500")
         emailInput.classList.add("bg-white", "text-slate-900", "focus:ring-blue-500", "focus:border-blue-500")
-        emailInput.required = true
       }
 
       document.getElementById("campaign-id").value = cid || ""
       document.getElementById("pdf-url").value = pdf
       document.getElementById("catalog-id").value = catalogId || ""
+      trackEvent("download_page_view", { catalogId: catalogId || "", cid: cid || "" })
 
       // Handle Submit
       const form = document.getElementById("download-form")
@@ -112,16 +146,19 @@
           email: finalEmail,
           nombre: document.getElementById("nombre").value.trim(),
           apellido: document.getElementById("apellido").value.trim(),
+          cedula: document.getElementById("cedula").value.trim(),
           celular: document.getElementById("celular").value.trim(),
           zona: document.getElementById("zona").value.trim(),
           tipo: document.getElementById("tipo").value,
           campaignId: cid || "",
           catalogId: catalogIdVal || "",
-          source: "catalog_download"
+          source: "catalog_download",
+          sessionId: getSessionId()
         }
+        trackEvent("catalog_download_submit", { catalogId: catalogIdVal || "", cid: cid || "" }, finalEmail)
 
         try {
-          const res = await fetch("/api/public/client", {
+          const res = await fetch("/api/public/lead", {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
@@ -131,20 +168,21 @@
           })
 
           if (res.ok) {
+            trackEvent("catalog_download_allowed", { catalogId: catalogIdVal || "", cid: cid || "" }, finalEmail)
             // Success -> Redirect to PDF
             window.location.href = pdf
           } else {
+            trackEvent("catalog_download_blocked", { status: res.status, catalogId: catalogIdVal || "", cid: cid || "" }, finalEmail)
             alert("Hubo un error al guardar los datos. Intenta nuevamente.")
             btn.disabled = false
             btn.textContent = "Confirmar y Descargar"
           }
         } catch (err) {
           console.error(err)
-          // Fallback: Redirect anyway if server fails, so user gets their PDF?
-          // Or show error. Let's redirect anyway to not block the user, but warn.
-          // Better: Alert error.
-          alert("Error de conexión. Se intentará descargar de todas formas.")
-          window.location.href = pdf
+          trackEvent("catalog_download_error", { catalogId: catalogIdVal || "", cid: cid || "" }, finalEmail)
+          alert("Error de conexión. Intenta nuevamente.")
+          btn.disabled = false
+          btn.textContent = "Confirmar y Descargar"
         }
       })
     })

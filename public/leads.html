@@ -118,12 +118,13 @@
         const saved = localStorage.getItem("admin_token")
         if (saved) return saved
       } catch {}
-      return btoa("admin:admin")
+      return ""
     }
 
     async function fetchAdmin(path, options) {
       const token = getAdminToken()
-      const headers = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + token }
+      const baseHeaders = options && options.headers ? options.headers : {}
+      const headers = token ? { ...baseHeaders, "Authorization": "Basic " + token } : baseHeaders
       const res = await fetch(path, { ...(options || {}), headers })
       if (res.status !== 401 && res.status !== 403) return res
       const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")

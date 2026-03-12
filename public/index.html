@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png" />
+  <link rel="apple-touch-icon" href="/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png" />
   <title>Catálogo | Materiales Eléctricos y Plomería</title>
   <meta name="description" content="Catálogo online de materiales eléctricos, plomería y herramientas. Realiza tu pedido por WhatsApp fácilmente.">
   <meta name="keywords" content="electricidad, plomería, herramientas, ferretería, construcción, catálogo online">
   <meta property="og:title" content="Catálogo de Materiales Eléctricos y Plomería">
   <meta property="og:description" content="Explora nuestro catálogo y realiza tu pedido por WhatsApp. Precios y stock actualizados.">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="/uploads/logo.png">
-  <meta property="og:image" content="/uploads/share-card.png">
-  <meta property="og:image:alt" content="Catálogo Digital">
-  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
+  <meta property="og:image:alt" content="EMBAIR">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Catálogo de Materiales Eléctricos y Plomería">
   <meta name="twitter:description" content="Explora nuestro catálogo y realiza tu pedido por WhatsApp. Precios y stock actualizados.">
-  <meta name="twitter:image" content="/uploads/share-card.png">
+  <meta name="twitter:image" content="/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
   <meta name="theme-color" content="#1e40af">
   <!-- EDITABLE: Puedes cambiar el color de la barra de navegación aquí si es necesario -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -101,24 +102,67 @@
 
     <section id="catalogo" class="mb-10 mt-4">
       <!-- Toolbar -->
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6">
-        <div class="flex flex-col md:flex-row gap-4">
-          <div class="flex-1 relative">
-            <input id="search-prod" placeholder="Buscar por nombre o código..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors" />
-            <span class="absolute left-3 top-3 text-slate-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </span>
+      <div class="sticky top-3 z-40 px-4 md:px-5 py-3 md:py-3.5 rounded-2xl mb-6 bg-[#001B71]/90 backdrop-blur-xl overflow-x-hidden shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+        <div class="max-w-5xl mx-auto">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="w-5 h-5 text-[#FF6B00] animate-pulse">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h5l2-7 4 14 2-7h5"/></svg>
+            </div>
+            <div class="text-sm md:text-base font-extrabold text-white tracking-wide leading-tight">Encuentra tu producto rápido</div>
           </div>
-          <div class="w-full md:w-64">
-            <select id="category-select" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-colors appearance-none cursor-pointer">
-              <option value="">Todas las categorías</option>
-              <option value="Electricidad">Materiales eléctricos</option>
-              <option value="Iluminación">Iluminación</option>
-              <option value="Plomería">Artículos de plomería</option>
-              <option value="Construcción">Construcción</option>
-              <option value="Herramientas">Herramientas</option>
-              <option value="General">General</option>
-            </select>
+          <div class="flex items-stretch rounded-2xl overflow-hidden border border-[#16318F] bg-[#00155A] focus-within:border-[#FF6B00] focus-within:ring-4 focus-within:ring-[rgba(255,107,0,0.18)] transition-all">
+            <div class="flex items-center pl-3 pr-2 text-white/90">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m20.5 20.5-4.2-4.2m1.7-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+            </div>
+            <input id="search-prod" placeholder="¿Qué material necesitas hoy? Ej: Cable, Breaker, Tubería..." class="flex-1 h-11 md:h-12 bg-transparent px-2 md:px-3 text-[13px] md:text-sm text-white placeholder:text-white/70 outline-none transition-all" />
+            <button id="search-btn" class="h-11 md:h-12 px-4 md:px-7 bg-gradient-to-r from-[#FF6B00] to-[#E85E00] hover:brightness-110 hover:shadow-[0_0_18px_rgba(255,107,0,0.45)] text-white text-[13px] md:text-sm font-extrabold uppercase tracking-[1px] rounded-xl my-0.5 mr-0.5 active:scale-[0.99] transition-all">BUSCAR</button>
+          </div>
+          <div class="mt-1 text-[11px] md:text-xs text-white/60 italic leading-tight">Busca por referencia, marca o normativa técnica (RETIE/NTC).</div>
+
+          <div class="mt-2 flex flex-col md:flex-row gap-2 md:items-center">
+            <div class="grid grid-cols-6 gap-1 flex-1">
+              <button type="button" data-cat-chip="__FAV__" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27Z"/></svg>
+                <span class="truncate">Favoritos</span>
+              </button>
+              <button type="button" data-cat-chip="" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h10M4 18h16"/></svg>
+                <span class="truncate">Todo</span>
+              </button>
+              <button type="button" data-cat-chip="Electricidad" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>
+                <span class="truncate">Eléctricos</span>
+              </button>
+              <button type="button" data-cat-chip="Plomería" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 2h4v5a4 4 0 0 1 4 4v3a6 6 0 0 1-12 0v-3a4 4 0 0 1 4-4V2Z"/></svg>
+                <span class="truncate">Plomería</span>
+              </button>
+              <button type="button" data-cat-chip="Herramientas" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.7 6.3a5 5 0 0 1-6.88 6.88l-4.1 4.1a1.5 1.5 0 1 0 2.12 2.12l4.1-4.1A5 5 0 0 1 17.7 9.3l-3 3-2-2 2-4Z"/></svg>
+                <span class="truncate">Herramientas</span>
+              </button>
+              <button type="button" data-cat-chip="Iluminación" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
+                <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18h6m-5 3h4m-2-19a7 7 0 0 0-4 12c.6.6 1 1.5 1 2.5h6c0-1 .4-1.9 1-2.5A7 7 0 0 0 12 2Z"/></svg>
+                <span class="truncate">Iluminación</span>
+              </button>
+            </div>
+            <div class="w-full md:w-72">
+              <div class="relative">
+                <select id="category-select" class="w-full bg-[#00155A] border border-[#16318F] text-white rounded-2xl px-4 pr-10 py-2.5 h-11 md:h-12 focus:outline-none focus:ring-2 focus:ring-[rgba(255,107,0,0.18)] focus:border-[#FF6B00] transition-all appearance-none cursor-pointer">
+                <option value="">Todas las categorías</option>
+                <option value="__FAV__">Favoritos</option>
+                <option value="Electricidad">Materiales eléctricos</option>
+                <option value="Iluminación">Iluminación</option>
+                <option value="Plomería">Artículos de plomería</option>
+                <option value="Construcción">Construcción</option>
+                <option value="Herramientas">Herramientas</option>
+                <option value="General">General</option>
+              </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-white/90">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -296,6 +340,7 @@
                 <div class="flex flex-col h-full">
                   <div class="mb-auto">
                     <span id="pm-cat" class="inline-block px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider rounded mb-2"></span>
+                    <div id="pm-tags" class="flex flex-wrap gap-2 mb-2 hidden"></div>
                     <h3 class="text-2xl font-bold leading-tight text-slate-900 mb-2" id="pm-title"></h3>
                     <p class="text-3xl font-bold text-blue-600 mb-4" id="pm-price"></p>
                     <div class="prose prose-sm text-slate-500 mb-6">
@@ -304,6 +349,10 @@
                     <div id="pm-specs-container" class="mb-6 hidden">
                       <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Especificaciones</h4>
                       <ul class="space-y-1 text-sm text-slate-600" id="pm-specs"></ul>
+                    </div>
+                    <div id="pm-related-container" class="mb-2 hidden">
+                      <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">También te puede interesar</h4>
+                      <div id="pm-related" class="grid grid-cols-2 gap-2"></div>
                     </div>
                   </div>
                   
@@ -327,6 +376,8 @@
       const grid = document.getElementById("prod-grid")
       const searchInput = document.getElementById("search-prod")
       const categorySelect = document.getElementById("category-select")
+      const searchBtn = document.getElementById("search-btn")
+      const categoryChips = Array.from(document.querySelectorAll("[data-cat-chip]"))
       
       const cartDrawer = document.getElementById("cart-drawer")
       const cartOverlay = document.getElementById("cart-drawer-overlay")
@@ -347,11 +398,14 @@
       const productModal = document.getElementById("product-modal")
       const pmImg = document.getElementById("pm-img")
       const pmCat = document.getElementById("pm-cat")
+      const pmTags = document.getElementById("pm-tags")
       const pmTitle = document.getElementById("pm-title")
       const pmPrice = document.getElementById("pm-price")
       const pmDesc = document.getElementById("pm-desc")
       const pmSpecsContainer = document.getElementById("pm-specs-container")
       const pmSpecs = document.getElementById("pm-specs")
+      const pmRelatedContainer = document.getElementById("pm-related-container")
+      const pmRelated = document.getElementById("pm-related")
       const pmAddBtn = document.getElementById("pm-add-btn")
       let CURRENT_PRODUCT = null
 
@@ -393,6 +447,16 @@
         return false
       }
 
+      function showToast(text) {
+        try {
+          const toast = document.createElement("div")
+          toast.className = "fixed bottom-24 right-4 md:right-6 bg-slate-900 text-white px-4 py-2 rounded-lg shadow-xl z-[80] text-xs"
+          toast.textContent = text
+          document.body.appendChild(toast)
+          setTimeout(() => toast.remove(), 2200)
+        } catch {}
+      }
+
       function closeProductDetail() {
         if (!productModal) return
         productModal.classList.add("hidden")
@@ -406,6 +470,32 @@
         if (pmImg) pmImg.src = product.img || ""
         if (pmImg) pmImg.alt = product.name || ""
         if (pmCat) pmCat.textContent = product.category || ""
+        if (pmTags) {
+          const raw = product.tags
+          const list = Array.isArray(raw)
+            ? raw
+            : String(raw || "")
+              .split(/[,\n;]+/g)
+              .map(s => String(s || "").trim())
+              .filter(Boolean)
+          const clean = list
+            .map(t => String(t || "").trim())
+            .filter(Boolean)
+            .filter((v, idx, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === idx)
+            .slice(0, 12)
+          pmTags.innerHTML = ""
+          if (clean.length) {
+            clean.forEach(t => {
+              const chip = document.createElement("span")
+              chip.className = "inline-flex items-center px-2 py-1 rounded-full text-[11px] bg-slate-100 text-slate-700 border border-slate-200"
+              chip.textContent = String(t)
+              pmTags.appendChild(chip)
+            })
+            pmTags.classList.remove("hidden")
+          } else {
+            pmTags.classList.add("hidden")
+          }
+        }
         if (pmTitle) pmTitle.textContent = product.name || ""
         if (pmPrice) pmPrice.textContent = formatPrice(product.price)
         if (pmDesc) pmDesc.textContent = product.desc || ""
@@ -423,6 +513,54 @@
             if (pmSpecsContainer) pmSpecsContainer.classList.add("hidden")
           }
         }
+        if (pmRelated && pmRelatedContainer) {
+          const normalize = (tags) => {
+            const base = Array.isArray(tags) ? tags : String(tags || "").split(/[,\n;]+/g)
+            return base
+              .map(s => String(s || "").trim().toLowerCase())
+              .filter(Boolean)
+              .filter((v, idx, arr) => arr.indexOf(v) === idx)
+          }
+          const curTags = normalize(product.tags)
+          const related = PRODUCTS
+            .filter(p => p && p.id != null && p.id !== product.id)
+            .map(p => {
+              const pTags = normalize(p.tags)
+              const intersection = curTags.length && pTags.length ? pTags.filter(t => curTags.includes(t)).length : 0
+              let score = 0
+              if (p.category && product.category && p.category === product.category) score += 2
+              score += intersection * 3
+              if (p.label === "Oferta") score += 1
+              return { p, score }
+            })
+            .filter(x => x.score > 0)
+            .sort((a, b) => {
+              if (b.score !== a.score) return b.score - a.score
+              const ao = a.p.order != null ? Number(a.p.order) : 999
+              const bo = b.p.order != null ? Number(b.p.order) : 999
+              return ao - bo
+            })
+            .slice(0, 4)
+            .map(x => x.p)
+
+          pmRelated.innerHTML = ""
+          if (related.length) {
+            related.forEach(p => {
+              const btn = document.createElement("button")
+              btn.type = "button"
+              btn.className = "text-left px-3 py-2 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              btn.innerHTML = `
+                <div class="text-[12px] font-semibold text-slate-900 line-clamp-2">${p.name || ""}</div>
+                <div class="text-[11px] text-slate-600 mt-1">${formatPrice(p.price)}</div>
+              `
+              btn.onclick = () => openProductDetail(p, "related")
+              pmRelated.appendChild(btn)
+            })
+            pmRelatedContainer.classList.remove("hidden")
+          } else {
+            pmRelatedContainer.classList.add("hidden")
+          }
+        }
         if (pmAddBtn) {
           const isAgotado = product.available === "Agotado" || (product.stock != null && Number(product.stock) <= 0)
           pmAddBtn.disabled = Boolean(isAgotado)
@@ -432,6 +570,9 @@
           pmAddBtn.onclick = () => {
             if (isAgotado) return
             addToCart(product, 1, "product_modal")
+            closeProductDetail()
+            openDrawer()
+            showToast("Agregado al carrito")
           }
         }
         productModal.classList.remove("hidden")
@@ -475,6 +616,23 @@
         } catch {}
         
         return PRODUCTS_SAMPLE
+      }
+
+      async function getPortalCatalogOrder() {
+        try {
+          const controller = new AbortController()
+          const id = setTimeout(() => controller.abort(), 3500)
+          const res = await fetch("/api/config", { signal: controller.signal })
+          clearTimeout(id)
+          if (!res.ok) return { categories: {}, subcategories: {} }
+          const cfg = await res.json()
+          const o = cfg && cfg.portalCatalogOrder ? cfg.portalCatalogOrder : {}
+          const cats = o && o.categories && typeof o.categories === "object" ? o.categories : {}
+          const subs = o && o.subcategories && typeof o.subcategories === "object" ? o.subcategories : {}
+          return { categories: cats || {}, subcategories: subs || {} }
+        } catch {
+          return { categories: {}, subcategories: {} }
+        }
       }
 
       // --- 2. Formatting ---
@@ -606,24 +764,120 @@
       function renderGrid() {
         const q = (searchInput.value || "").trim().toLowerCase()
         const cat = categorySelect.value
+        const favIds = cat === "__FAV__" ? getFavoriteProductIdsFromHistory() : []
+        const portalOrder = window.__portalCatalogOrder || { categories: {}, subcategories: {} }
         
-        let filtered = PRODUCTS.filter(p => {
-          const text = (p.name + " " + (p.code || "")).toLowerCase()
-          const okQ = q ? text.includes(q) : true
-          const okC = cat ? p.category === cat : true
-          return okQ && okC
+        const qWords = q ? q.split(/\s+/).filter(Boolean) : []
+        const primaryMatch = (p) => {
+          if (!q) return true
+          const text = `${p.name || ""} ${(p.code || "")} ${(p.brand || "")} ${(p.sku || "")} ${(p.subcategory || "")} ${(p.material || "")} ${(p.desc || "")}`.toLowerCase()
+          return text.includes(q)
+        }
+        const tagMatch = (p) => {
+          if (!qWords.length) return false
+          const tagsText = (Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || "")).toLowerCase()
+          if (!tagsText) return false
+          return qWords.some(w => tagsText.includes(w))
+        }
+        
+        let primary = PRODUCTS.filter(p => {
+          const okC = cat === "__FAV__"
+            ? favIds.includes(p.id)
+            : (cat ? p.category === cat : true)
+          return okC && primaryMatch(p)
         })
 
-        // Sort by Priority (Order)
-        filtered.sort((a, b) => {
-           const orderA = a.order !== undefined && a.order !== null ? Number(a.order) : 999
-           const orderB = b.order !== undefined && b.order !== null ? Number(b.order) : 999
-           return orderA - orderB
-        })
+        const norm = (v) => String(v || "").trim().toLowerCase()
+        const sortByOrder = (a, b) => {
+          if (cat === "__FAV__") {
+            const ia = favIds.indexOf(a.id)
+            const ib = favIds.indexOf(b.id)
+            if (ia !== -1 || ib !== -1) {
+              const aa = ia === -1 ? 999999 : ia
+              const bb = ib === -1 ? 999999 : ib
+              if (aa !== bb) return aa - bb
+            }
+          }
+
+          if (!cat || cat === "__FAV__") {
+            const aKey = String(a.category || "General").trim()
+            const bKey = String(b.category || "General").trim()
+            const aRank = portalOrder && portalOrder.categories && portalOrder.categories[aKey] != null ? Number(portalOrder.categories[aKey]) : null
+            const bRank = portalOrder && portalOrder.categories && portalOrder.categories[bKey] != null ? Number(portalOrder.categories[bKey]) : null
+            if (aRank != null || bRank != null) {
+              const aa = aRank != null && Number.isFinite(aRank) ? aRank : 999999
+              const bb = bRank != null && Number.isFinite(bRank) ? bRank : 999999
+              if (aa !== bb) return aa - bb
+            }
+
+            const aSubMap = portalOrder && portalOrder.subcategories ? portalOrder.subcategories[aKey] : null
+            const bSubMap = portalOrder && portalOrder.subcategories ? portalOrder.subcategories[bKey] : null
+            const aSub = String(a.subcategory || "").trim()
+            const bSub = String(b.subcategory || "").trim()
+            const aSubRank = aSubMap && typeof aSubMap === "object" && aSub ? (aSubMap[aSub] != null ? Number(aSubMap[aSub]) : null) : null
+            const bSubRank = bSubMap && typeof bSubMap === "object" && bSub ? (bSubMap[bSub] != null ? Number(bSubMap[bSub]) : null) : null
+            if (aSubRank != null || bSubRank != null) {
+              const aa = aSubRank != null && Number.isFinite(aSubRank) ? aSubRank : 999999
+              const bb = bSubRank != null && Number.isFinite(bSubRank) ? bSubRank : 999999
+              if (aa !== bb) return aa - bb
+            }
+          } else {
+            const catKey = String(cat).trim()
+            const subMap = portalOrder && portalOrder.subcategories ? portalOrder.subcategories[catKey] : null
+            if (subMap && typeof subMap === "object") {
+              const aSub = String(a.subcategory || "").trim()
+              const bSub = String(b.subcategory || "").trim()
+              const aRank = subMap[aSub] != null ? Number(subMap[aSub]) : null
+              const bRank = subMap[bSub] != null ? Number(subMap[bSub]) : null
+              if (aRank != null || bRank != null) {
+                const aa = aRank != null && Number.isFinite(aRank) ? aRank : 999999
+                const bb = bRank != null && Number.isFinite(bRank) ? bRank : 999999
+                if (aa !== bb) return aa - bb
+              }
+            }
+          }
+
+          const orderA = a.order !== undefined && a.order !== null ? Number(a.order) : 999
+          const orderB = b.order !== undefined && b.order !== null ? Number(b.order) : 999
+          if (orderA !== orderB) return orderA - orderB
+
+          const na = norm(a.name)
+          const nb = norm(b.name)
+          if (na !== nb) return na.localeCompare(nb, "es")
+
+          const idA = a.id != null ? Number(a.id) : 0
+          const idB = b.id != null ? Number(b.id) : 0
+          return idA - idB
+        }
+
+        primary.sort(sortByOrder)
 
         grid.innerHTML = ""
+
+        const complementary = q
+          ? PRODUCTS.filter(p => {
+              const okC = cat === "__FAV__"
+                ? favIds.includes(p.id)
+                : (cat ? p.category === cat : true)
+              if (!okC) return false
+              if (primaryMatch(p)) return false
+              return tagMatch(p)
+            }).sort(sortByOrder).slice(0, 8)
+          : []
         
-        if (filtered.length === 0) {
+        if (cat === "__FAV__" && favIds.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full text-center py-10 text-slate-300">
+              <p class="font-semibold text-white">Aún no tienes favoritos.</p>
+              <p class="text-sm text-slate-400 mt-1">Se generan automáticamente según tus pedidos recientes.</p>
+              <button class="mt-3 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[#FF6B00] hover:bg-[#e85f00] text-white font-bold transition-all" onclick="document.getElementById('category-select').value=''; renderGrid(); syncCategoryChips()">Ver todo</button>
+            </div>
+          `
+          window.__lastGridMetrics = { q, cat, count: 0, complementary: 0 }
+          return
+        }
+
+        if (primary.length === 0 && complementary.length === 0) {
           grid.innerHTML = `
             <div class="col-span-full text-center py-10 text-slate-500">
               <p>No encontramos productos con esos filtros.</p>
@@ -634,10 +888,68 @@
           return
         }
 
-        for (const p of filtered) {
-          grid.appendChild(createProductCard(p, "grid"))
+        for (const p of primary) {
+          grid.appendChild(createProductCard(p, "grid_primary"))
         }
-        window.__lastGridMetrics = { q, cat, count: filtered.length }
+        if (complementary.length) {
+          const header = document.createElement("div")
+          header.className = "col-span-full mt-4 mb-1"
+          header.innerHTML = `
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-extrabold text-slate-900">Complementarios</h3>
+              <span class="text-[11px] text-slate-500">Relacionados por etiquetas</span>
+            </div>
+          `
+          grid.appendChild(header)
+          for (const p of complementary) {
+            grid.appendChild(createProductCard(p, "grid_complement"))
+          }
+        }
+        window.__lastGridMetrics = { q, cat, count: primary.length, complementary: complementary.length }
+      }
+
+      function syncCategoryChips() {
+        if (!categorySelect || !categoryChips.length) return
+        const selected = String(categorySelect.value || "")
+        categoryChips.forEach(btn => {
+          const cat = btn.getAttribute("data-cat-chip")
+          const isActive = String(cat || "") === selected
+          const icon = btn.querySelector("svg")
+          btn.classList.remove("border-[#FF6B00]")
+          btn.classList.add("border-transparent")
+          btn.classList.remove("text-[#FF6B00]")
+          btn.classList.add("text-white/80")
+          if (icon) icon.classList.remove("text-[#FF6B00]")
+          if (icon) icon.classList.add("text-white/80")
+          if (isActive) {
+            btn.classList.remove("border-transparent")
+            btn.classList.add("border-[#FF6B00]", "text-[#FF6B00]")
+            if (icon) icon.classList.add("text-[#FF6B00]")
+          }
+        })
+      }
+
+      function getFavoriteProductIdsFromHistory() {
+        try {
+          const logs = JSON.parse(localStorage.getItem("orderLogs") || "[]")
+          if (!Array.isArray(logs) || logs.length === 0) return []
+          const counts = new Map()
+          for (const o of logs.slice(-30)) {
+            const items = o && Array.isArray(o.items) ? o.items : []
+            for (const it of items) {
+              const id = it && it.id != null ? Number(it.id) : null
+              if (id == null || !Number.isFinite(id)) continue
+              const qty = it && it.qty != null ? Number(it.qty) : 1
+              counts.set(id, (counts.get(id) || 0) + (Number.isFinite(qty) ? qty : 1))
+            }
+          }
+          return Array.from(counts.entries())
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 50)
+            .map(([id]) => id)
+        } catch {
+          return []
+        }
       }
 
       // --- 4. Cart Logic ---
@@ -786,10 +1098,25 @@
           return ""
         }
       }
+      const DEVICE_KEY = "embair_device_id"
+      function getDeviceId() {
+        try {
+          let id = localStorage.getItem(DEVICE_KEY)
+          if (!id) {
+            id = "dev_" + Math.random().toString(36).slice(2) + Date.now().toString(36)
+            localStorage.setItem(DEVICE_KEY, id)
+          }
+          return id
+        } catch {
+          return ""
+        }
+      }
       async function trackEvent(type, meta, emailOverride) {
         try {
           const existing = getCustomerData() || {}
           const email = typeof emailOverride === "string" ? emailOverride : (existing.email || "")
+          const m = meta || {}
+          if (!m.path) m.path = window.location.pathname + window.location.search
           await fetch("/api/events", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -797,7 +1124,8 @@
               type,
               sessionId: getSessionId(),
               email,
-              meta: meta || {}
+              deviceId: getDeviceId(),
+              meta: m
             })
           })
         } catch {}
@@ -857,7 +1185,9 @@
           tipo: customer && customer.tipo ? customer.tipo : "",
           direccion: customer && customer.direccion ? customer.direccion : "",
           entrega: customer && customer.entrega ? customer.entrega : "",
-          source: source || ""
+          source: source || "",
+          sessionId: getSessionId(),
+          deviceId: getDeviceId()
         }
         fetch("/api/public/client", {
           method: "POST",
@@ -878,7 +1208,8 @@
           entrega: customer && customer.entrega ? customer.entrega : "",
           interesado: true,
           source: source || "",
-          sessionId: getSessionId()
+          sessionId: getSessionId(),
+          deviceId: getDeviceId()
         }
         fetch("/api/public/lead", {
           method: "POST",
@@ -1150,7 +1481,7 @@
                 const res = await fetch("/api/auth/check", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ phone })
+                    body: JSON.stringify({ phone, sessionId: getSessionId(), deviceId: getDeviceId() })
                 })
                 const data = await res.json()
                 
@@ -1431,6 +1762,7 @@
       if (categorySelect) {
         categorySelect.addEventListener("change", () => {
           renderGrid()
+          syncCategoryChips()
           if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
           window.__searchTrackTimer = setTimeout(() => {
             const m = window.__lastGridMetrics || {}
@@ -1454,6 +1786,35 @@
         searchInput.addEventListener("focus", () => {
           const m = window.__lastGridMetrics || {}
           trackEvent("search_focus", { q: m.q || "", cat: m.cat || "" })
+        })
+      }
+
+      if (searchBtn) {
+        searchBtn.addEventListener("click", () => {
+          renderGrid()
+          try { document.getElementById("prod-grid").scrollIntoView({ behavior: "smooth", block: "start" }) } catch {}
+          if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
+          window.__searchTrackTimer = setTimeout(() => {
+            const m = window.__lastGridMetrics || {}
+            trackEvent("catalog_search_submit", { q: m.q || "", cat: m.cat || "", count: m.count || 0 })
+          }, 150)
+        })
+      }
+
+      if (categoryChips.length && categorySelect) {
+        categoryChips.forEach(btn => {
+          btn.addEventListener("click", () => {
+            const cat = btn.getAttribute("data-cat-chip")
+            categorySelect.value = String(cat || "")
+            renderGrid()
+            syncCategoryChips()
+            try { document.getElementById("prod-grid").scrollIntoView({ behavior: "smooth", block: "start" }) } catch {}
+            if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
+            window.__searchTrackTimer = setTimeout(() => {
+              const m = window.__lastGridMetrics || {}
+              trackEvent("catalog_filter", { q: m.q || "", cat: m.cat || "", count: m.count || 0 })
+            }, 150)
+          })
         })
       }
 
@@ -1615,9 +1976,10 @@
         console.error("Error loading logo:", e)
       }
 
-      getProducts().then(p => {
+      Promise.all([getProducts(), getPortalCatalogOrder()]).then(([p, portalOrder]) => {
         PRODUCTS = p
         window.PRODUCTS = PRODUCTS
+        window.__portalCatalogOrder = portalOrder || { categories: {}, subcategories: {} }
         renderFeatured()
         renderHeroSlider()
 
@@ -1640,6 +2002,7 @@
         // --------------------------------------
 
         renderGrid()
+        syncCategoryChips()
       }).catch(err => {
         console.error("Init Error:", err)
         // Force remove spinner

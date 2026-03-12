@@ -29,11 +29,15 @@ app.use(express.json())
 function requireAdmin(req, res, next) {
   const user = process.env.ADMIN_USER || "admin"
   const pass = process.env.ADMIN_PASS || "admin"
+  const passHash = process.env.ADMIN_PASS_HASH || ""
   const header = req.headers.authorization || ""
   const token = header.split(" ")[1] || ""
   const decoded = Buffer.from(token || "", "base64").toString()
   const [u, p] = decoded.split(":")
-  if (u === user && p === pass) return next()
+  const ok =
+    u === user &&
+    (passHash ? hashPassword(p) === passHash : p === pass)
+  if (ok) return next()
   const isApi = req.path && req.path.startsWith("/api/")
   if (isApi) {
     return res.status(401).json({ error: "unauthorized" })
@@ -44,6 +48,26 @@ function requireAdmin(req, res, next) {
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "landing.html"))
+})
+
+const protectedAdminPages = new Set([
+  "/admin.html",
+  "/productos.html",
+  "/clientes.html",
+  "/analytics.html",
+  "/admin-bot.html",
+  "/admin-ia.html",
+  "/leads.html",
+  "/crm.html",
+  "/seo.html",
+  "/editor.html",
+  "/reportes.html",
+  "/campaigns.html"
+])
+
+app.use((req, res, next) => {
+  if (protectedAdminPages.has(req.path)) return requireAdmin(req, res, next)
+  return next()
 })
 
 app.use(express.static(path.join(__dirname, "..", "public")))
@@ -90,8 +114,10 @@ app.post("/api/events", (req, res) => {
     type: req.body.type || "unknown",
     sessionId: req.body.sessionId || "",
     email: req.body.email || "",
+    deviceId: req.body.deviceId || "",
     meta: req.body.meta || {},
-    ip: req.ip
+    ip: req.ip,
+    userAgent: req.headers["user-agent"] || ""
   }
   const events = readData(eventsFile)
   events.unshift(event)
@@ -221,7 +247,7 @@ app.post("/api/config", requireAdmin, (req, res) => {
   res.json({ ok: true })
 })
 
-app.get("/api/ia/config", (req, res) => {
+app.get("/api/ia/config", requireAdmin, (req, res) => {
   let data = readData(iaConfigFile)
   if (Array.isArray(data)) data = {}
   if (!data.keywords) data.keywords = []
@@ -251,6 +277,7 @@ function findMatches(text, products, limit = 5) {
     const mat = String(p.material || "").toLowerCase()
     const brand = String(p.brand || "").toLowerCase()
     const desc = String(p.desc || "").toLowerCase()
+    const tags = (Array.isArray(p.tags) ? p.tags.join(" ") : String(p.tags || "")).toLowerCase()
     
     // Exact code match
     if (p.code && String(p.code).toLowerCase() === q) {
@@ -267,6 +294,7 @@ function findMatches(text, products, limit = 5) {
       else if (sub.includes(w)) { score += 5; wordFound = true }
       else if (mat.includes(w)) { score += 5; wordFound = true }
       else if (brand.includes(w)) { score += 5; wordFound = true }
+      else if (tags.includes(w)) { score += 3; wordFound = true }
       else if (desc.includes(w)) { score += 2; wordFound = true }
       
       if (wordFound) foundWords++
@@ -289,7 +317,7 @@ function findMatches(text, products, limit = 5) {
 let botProcessWA = null
 let botProcessMP = null
 
-app.get("/api/bot/status", (req, res) => {
+app.get("/api/bot/status", requireAdmin, (req, res) => {
   res.json({
     wa: !!botProcessWA,
     meli: !!botProcessMP
@@ -356,7 +384,7 @@ app.post("/api/bot/control", requireAdmin, (req, res) => {
   res.json({ ok: false })
 })
 
-app.get("/api/bot/config", (req, res) => {
+app.get("/api/bot/config", requireAdmin, (req, res) => {
   const data = readData(botConfigFile)
   // Default values
   const def = { 
@@ -716,7 +744,8 @@ app.post("/api/public/lead", (req, res) => {
     source,
     campaignId,
     catalogId,
-    sessionId
+    sessionId,
+    deviceId
   } = req.body || {}
 
   const src = String(source || "").trim()
@@ -737,6 +766,9 @@ app.post("/api/public/lead", (req, res) => {
 
   const leads = readData(leadsFile)
   const now = new Date().toISOString()
+  const ip = req.ip
+  const ua = req.headers["user-agent"] || ""
+  const cleanDeviceId = String(deviceId || "").trim()
 
   let lead = leads.find(l => matchByEmailOrPhone(l, emailKey, phoneKey)) || null
 
@@ -760,7 +792,12 @@ app.post("/api/public/lead", (req, res) => {
       visits: 1,
       convertedToClient: false,
       clientId: null,
-      convertedAt: null
+      convertedAt: null,
+      firstIp: ip || "",
+      lastIp: ip || "",
+      firstDeviceId: cleanDeviceId || "",
+      lastDeviceId: cleanDeviceId || "",
+      lastUserAgent: ua || ""
     }
     leads.push(lead)
   } else {
@@ -778,6 +815,11 @@ app.post("/api/public/lead", (req, res) => {
     if (campaignId) lead.campaignId = lead.campaignId || campaignId
     lead.lastSeenAt = now
     lead.visits = typeof lead.visits === "number" ? lead.visits + 1 : 1
+    if (!lead.firstIp && ip) lead.firstIp = ip
+    if (ip) lead.lastIp = ip
+    if (!lead.firstDeviceId && cleanDeviceId) lead.firstDeviceId = cleanDeviceId
+    if (cleanDeviceId) lead.lastDeviceId = cleanDeviceId
+    if (ua) lead.lastUserAgent = ua
   }
 
   const trimmedLeads = leads.slice(-5000)
@@ -788,6 +830,7 @@ app.post("/api/public/lead", (req, res) => {
     type: src && src.includes("assistant") ? "assistant_lead" : "lead_capture",
     sessionId: sessionId || "",
     email: lead.email || "",
+    deviceId: cleanDeviceId || "",
     meta: {
       zona: lead.zona || "",
       tipo: lead.tipo || "",
@@ -795,7 +838,9 @@ app.post("/api/public/lead", (req, res) => {
       campaignId: campaignId || "",
       catalogId: catalogId || ""
     },
-    createdAt: now
+    createdAt: now,
+    ip,
+    userAgent: ua
   })
   const trimmedEvents = events.slice(-5000)
   writeData(eventsFile, trimmedEvents)
@@ -817,7 +862,9 @@ app.post("/api/public/lead", (req, res) => {
       sessionId: sessionId || "",
       email: lead.email || "",
       meta: { catalogId, source: src || "" },
-      createdAt: now
+      createdAt: now,
+      ip,
+      userAgent: ua
     })
     const trimmed2 = events2.slice(-5000)
     writeData(eventsFile, trimmed2)
@@ -827,7 +874,7 @@ app.post("/api/public/lead", (req, res) => {
 })
 
 app.post("/api/public/client", (req, res) => {
-  const { email, nombre, apellido, celular, zona, tipo, campaignId, catalogId, source } = req.body
+  const { email, nombre, apellido, celular, zona, tipo, campaignId, catalogId, source, deviceId, sessionId } = req.body || {}
   if (!email) {
     return res.status(400).json({ error: "missing_email" })
   }
@@ -836,6 +883,10 @@ app.post("/api/public/client", (req, res) => {
   let client = clients.find(c => c.email === email)
 
   const now = new Date().toISOString()
+  const ip = req.ip
+  const ua = req.headers["user-agent"] || ""
+  const cleanDeviceId = String(deviceId || "").trim()
+  const cleanSessionId = String(sessionId || "").trim()
   const safeNombre = nombre && String(nombre).trim() ? nombre : (client && client.nombre) || email.split("@")[0] || "Sin nombre"
 
   if (client) {
@@ -848,6 +899,12 @@ app.post("/api/public/client", (req, res) => {
     if (req.body.direccion) client.direccion = req.body.direccion
     if (req.body.entrega) client.entrega = req.body.entrega
     client.updated_at = now
+    if (!client.firstIp && ip) client.firstIp = ip
+    if (ip) client.lastIp = ip
+    if (!client.firstDeviceId && cleanDeviceId) client.firstDeviceId = cleanDeviceId
+    if (cleanDeviceId) client.lastDeviceId = cleanDeviceId
+    if (ua) client.lastUserAgent = ua
+    client.lastSeenAt = now
     if (campaignId) {
       if (!client.campaigns) client.campaigns = []
       if (!client.campaigns.includes(campaignId)) client.campaigns.push(campaignId)
@@ -865,7 +922,13 @@ app.post("/api/public/client", (req, res) => {
       direccion: req.body.direccion || "",
       entrega: req.body.entrega || "",
       created_at: now,
-      campaigns: campaignId ? [campaignId] : []
+      campaigns: campaignId ? [campaignId] : [],
+      firstIp: ip || "",
+      lastIp: ip || "",
+      firstDeviceId: cleanDeviceId || "",
+      lastDeviceId: cleanDeviceId || "",
+      lastUserAgent: ua || "",
+      lastSeenAt: now
     }
     clients.push(client)
   }
@@ -891,7 +954,10 @@ app.post("/api/public/client", (req, res) => {
       sessionId: "",
       email,
       meta: { catalogId, source: source || "" },
-      createdAt: now
+      createdAt: now,
+      ip,
+      userAgent: ua,
+      deviceId: cleanDeviceId || ""
     })
     const trimmed = events.slice(-5000)
     writeData(eventsFile, trimmed)
@@ -1026,17 +1092,50 @@ app.post("/api/portal/register", async (req, res) => {
 
 // --- AUTH / GATE CHECK ---
 app.post("/api/auth/check", (req, res) => {
-  const { phone } = req.body
+  const { phone, deviceId, sessionId } = req.body || {}
   if (!phone) return res.status(400).json({ error: "missing_phone" })
   
   const cleanPhone = String(phone).replace(/\D/g, "")
   if (cleanPhone.length < 8) return res.json({ exists: false })
+  const cleanDeviceId = String(deviceId || "").trim()
+  const cleanSessionId = String(sessionId || "").trim()
+  const now = new Date().toISOString()
+  const ip = req.ip
+  const ua = req.headers["user-agent"] || ""
   
   // Check Clients
   const clients = readData(clientsFile)
   const client = clients.find(c => String(c.celular || "").replace(/\D/g, "").includes(cleanPhone))
   
   if (client) {
+    let changed = false
+    if (cleanDeviceId) {
+      if (!client.firstDeviceId) { client.firstDeviceId = cleanDeviceId; changed = true }
+      if (client.lastDeviceId && client.lastDeviceId !== cleanDeviceId) {
+        const events = readData(eventsFile)
+        events.unshift({
+          id: Date.now().toString(),
+          createdAt: now,
+          type: "portal_phone_device_mismatch",
+          sessionId: cleanSessionId,
+          email: client.email || "",
+          deviceId: cleanDeviceId,
+          meta: { kind: "client", phoneLast4: cleanPhone.slice(-4), prevDeviceId: client.lastDeviceId },
+          ip,
+          userAgent: ua
+        })
+        if (events.length > 1000) events.length = 1000
+        writeData(eventsFile, events)
+      }
+      if (client.lastDeviceId !== cleanDeviceId) { client.lastDeviceId = cleanDeviceId; changed = true }
+    }
+    if (ip && client.lastIp !== ip) { client.lastIp = ip; changed = true }
+    if (!client.firstIp && ip) { client.firstIp = ip; changed = true }
+    if (ua && client.lastUserAgent !== ua) { client.lastUserAgent = ua; changed = true }
+    client.portalLastCheckAt = now
+    client.portalCheckCount = typeof client.portalCheckCount === "number" ? client.portalCheckCount + 1 : 1
+    changed = true
+    if (changed) writeData(clientsFile, clients)
     return res.json({
       exists: true,
       type: "client",
@@ -1059,6 +1158,34 @@ app.post("/api/auth/check", (req, res) => {
   const lead = leads.find(l => String(l.celular || "").replace(/\D/g, "").includes(cleanPhone))
   
   if (lead) {
+     let changed = false
+     if (cleanDeviceId) {
+       if (!lead.firstDeviceId) { lead.firstDeviceId = cleanDeviceId; changed = true }
+       if (lead.lastDeviceId && lead.lastDeviceId !== cleanDeviceId) {
+         const events = readData(eventsFile)
+         events.unshift({
+           id: Date.now().toString(),
+           createdAt: now,
+           type: "portal_phone_device_mismatch",
+           sessionId: cleanSessionId,
+           email: lead.email || "",
+           deviceId: cleanDeviceId,
+           meta: { kind: "lead", phoneLast4: cleanPhone.slice(-4), prevDeviceId: lead.lastDeviceId },
+           ip,
+           userAgent: ua
+         })
+         if (events.length > 1000) events.length = 1000
+         writeData(eventsFile, events)
+       }
+       if (lead.lastDeviceId !== cleanDeviceId) { lead.lastDeviceId = cleanDeviceId; changed = true }
+     }
+     if (ip && lead.lastIp !== ip) { lead.lastIp = ip; changed = true }
+     if (!lead.firstIp && ip) { lead.firstIp = ip; changed = true }
+     if (ua && lead.lastUserAgent !== ua) { lead.lastUserAgent = ua; changed = true }
+     lead.portalLastCheckAt = now
+     lead.portalCheckCount = typeof lead.portalCheckCount === "number" ? lead.portalCheckCount + 1 : 1
+     changed = true
+     if (changed) writeData(leadsFile, leads)
      return res.json({
       exists: true,
       type: "lead",
@@ -1217,10 +1344,19 @@ app.get("/api/bot/check-stock", (req, res) => {
     if (p) results.push(p)
   } else if (q) {
     const term = String(q).toLowerCase()
-    results = products.filter(p => {
+    const primary = products.filter(p => {
       const hay = (p.name + " " + (p.desc || "") + " " + (p.category || "")).toLowerCase()
       return hay.includes(term)
-    }).slice(0, 5) // Limit to 5
+    })
+    results = primary.slice(0, 5)
+    if (results.length < 5) {
+      const complement = products.filter(p => {
+        if (results.some(x => x && x.id != null && p && p.id != null && x.id === p.id)) return false
+        const tags = Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || "")
+        return String(tags || "").toLowerCase().includes(term)
+      })
+      results = results.concat(complement.slice(0, 5 - results.length))
+    }
   }
   
   res.json({
@@ -1363,27 +1499,17 @@ app.get("/api/clients", requireAdmin, (req, res) => {
   res.json(data)
 })
 
-app.post("/api/clients", (req, res) => {
-  // Allow public access for adding new clients (from checkout), restrict full update if needed
-  // For simplicity now, we just merge or overwrite.
-  // Ideally, split into POST (add) and PUT (update whole list).
-  // Here we assume the client sends the FULL list (Admin) or we handle single upsert.
-  // To keep it compatible with current frontend logic (sending full list), we require admin OR special handling.
-  // But wait, frontend sends full list. Let's stick to Admin only for full list update.
-  // The checkout process only *reads* clients to see if exists, then *adds* one.
-  // We need a specific endpoint for "upsert client" from public checkout without auth.
-  
-  // If headers has auth, it's admin saving full list
-  const header = req.headers.authorization || ""
-  if (header.includes("Basic")) {
-    const data = req.body
-    if (!Array.isArray(data)) return res.status(400).json({ error: "array_required" })
+app.post("/api/clients", (req, res, next) => {
+  if (Array.isArray(req.body)) return requireAdmin(req, res, next)
+  return next()
+}, (req, res) => {
+  const data = req.body
+  if (Array.isArray(data)) {
     writeData(clientsFile, data)
     return res.json({ ok: true })
   }
-  
-  // If public, we expect a single client object to upsert
-  const client = req.body
+
+  const client = data
   if (!client || !client.celular) return res.status(400).json({ error: "invalid_client" })
   
   const list = readData(clientsFile)
@@ -1507,7 +1633,8 @@ function findBestProductMatchForText(text, products) {
   let bestScore = 0
   for (const p of list) {
     const name = String(p.name || "").toLowerCase()
-    const hay = `${p.name || ""} ${p.desc || ""}`.toLowerCase()
+    const tags = Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || "")
+    const hay = `${p.name || ""} ${p.desc || ""} ${tags}`.toLowerCase()
     let score = 0
     const words = q.split(/\s+/).filter(Boolean)
     for (const w of words) {
@@ -1531,7 +1658,8 @@ function recommendProductsForQueryText(query, products) {
   const filtered = []
   for (const p of list) {
     if (p.available && p.available !== "Disponible") continue
-    const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""}`.toLowerCase()
+    const tags = Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || "")
+    const hay = `${p.name || ""} ${p.desc || ""} ${p.category || ""} ${p.subcategory || ""} ${p.material || ""} ${p.brand || ""} ${tags}`.toLowerCase()
     let score = 0
     if (!words.length) score += 1
     for (const w of words) {

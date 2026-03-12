@@ -160,11 +160,30 @@
     let ORDERS = []
     let currentOrderId = null
 
+    function getAdminToken() {
+      try {
+        const saved = localStorage.getItem("admin_token")
+        if (saved) return saved
+      } catch {}
+      return ""
+    }
+
+    async function fetchAdmin(path, options) {
+      const token = getAdminToken()
+      const baseHeaders = options && options.headers ? options.headers : {}
+      const headers = token ? { ...baseHeaders, "Authorization": "Basic " + token } : baseHeaders
+      const res = await fetch(path, { ...(options || {}), headers })
+      if (res.status !== 401 && res.status !== 403) return res
+      const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
+      if (!newToken) return res
+      try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
+      const headers2 = { ...baseHeaders, "Authorization": "Basic " + btoa(newToken) }
+      return fetch(path, { ...(options || {}), headers: headers2 })
+    }
+
     async function loadOrders() {
       try {
-        const res = await fetch("/api/crm/orders", {
-             headers: { "Authorization": "Basic " + btoa("admin:admin") }
-        })
+        const res = await fetchAdmin("/api/crm/orders")
         if (res.ok) {
             ORDERS = await res.json()
             renderBoard()
@@ -298,11 +317,10 @@
 
     async function updateStatus(id, newStatus) {
       try {
-        await fetch("/api/crm/orders/" + id, {
+        await fetchAdmin("/api/crm/orders/" + id, {
           method: "PUT",
           headers: { 
-            "Content-Type": "application/json",
-            "Authorization": "Basic " + btoa("admin:admin")
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({ status: newStatus })
         })
@@ -314,10 +332,7 @@
       if (!currentOrderId) return
       
       try {
-        await fetch("/api/crm/orders/" + currentOrderId, {
-            method: "DELETE",
-            headers: { "Authorization": "Basic " + btoa("admin:admin") }
-        })
+        await fetchAdmin("/api/crm/orders/" + currentOrderId, { method: "DELETE" })
         closeModal()
         loadOrders()
       } catch(e) { alert("Error al eliminar") }

@@ -178,9 +178,7 @@
     let CLIENTS = []
     async function loadClients() {
         try {
-            const res = await fetch("/api/clients", {
-                headers: { "Authorization": "Basic " + btoa("admin:admin") }
-            })
+            const res = await fetch("/api/clients")
             if (res.ok) CLIENTS = await res.json()
         } catch {}
     }

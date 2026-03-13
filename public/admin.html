@@ -1668,7 +1668,7 @@
           const id = Number(b.getAttribute("data-id"))
           const act = b.getAttribute("data-action")
           if (act === "edit") {
-            const p = PRODUCTS.find(x=>x.id===id)
+            const p = PRODUCTS.find(x=>Number(x && x.id)===id)
             if (!p) return
             idEl.value = String(p.id)
             nameEl.value = p.name
@@ -1700,6 +1700,7 @@
       fd.append("file", file)
       const res = await fetchAdmin("/api/upload", { method: "POST", body: fd })
       const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((data && data.error) ? data.error : `http_${res.status}`)
       if (data && data.ok && data.url) return data.url
       throw new Error(data && data.error ? data.error : "upload_failed")
     }
@@ -1719,13 +1720,23 @@
       const brand = brandEl.value.trim()
       const sku = skuEl.value.trim()
       if (imgFileEl.files && imgFileEl.files[0]) {
-        try { img = await uploadFile(imgFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error")) }
+        try {
+          img = await uploadFile(imgFileEl.files[0])
+          imgEl.value = img
+        } catch (e) {
+          alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error"))
+          return
+        }
       }
       if (packFileEl.files && packFileEl.files[0]) {
-        try { pack = await uploadFile(packFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error")) }
+        try {
+          pack = await uploadFile(packFileEl.files[0])
+          packEl.value = pack
+        } catch (e) {
+          alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error"))
+          return
+        }
       }
-      if (!id && !img) img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
-      if (!id && !pack) pack = "https://via.placeholder.com/400x300?text=Sin+Imagen"
       const desc = descEl.value.trim()
       const specs = specsEl.value.split("\n").map(s=>s.trim()).filter(Boolean)
       if (!name) return

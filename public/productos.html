@@ -362,12 +362,23 @@
     // Ficha Logic
     const fichaModal = document.getElementById("ficha-modal")
     const fichaCapture = document.getElementById("ficha-capture")
+    const DEFAULT_IMG_URL = "https://via.placeholder.com/600x600?text=Sin+Imagen"
+    const DEFAULT_THUMB_URL = "https://via.placeholder.com/50?text=%20"
     
     window.openFicha = (id) => {
-      const p = PRODUCTS.find(x => x.id === id)
+      const pid = Number(id)
+      const p = PRODUCTS.find(x => Number(x && x.id) === pid)
       if (!p) return
       
-      document.getElementById("ficha-img").src = p.img || "/uploads/placeholder.png"
+      const fichaImg = document.getElementById("ficha-img")
+      if (fichaImg) {
+        fichaImg.onerror = null
+        fichaImg.src = p.img || DEFAULT_IMG_URL
+        fichaImg.onerror = () => {
+          fichaImg.onerror = null
+          fichaImg.src = DEFAULT_IMG_URL
+        }
+      }
       document.getElementById("ficha-name").textContent = p.name
       document.getElementById("ficha-cat").textContent = p.category || "General"
       document.getElementById("ficha-price").textContent = `$${Number(p.price).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -916,6 +927,7 @@
       updateSubcategoryAndTagFilters()
       const items = getFilteredProductsSorted()
       for (const p of items) {
+        const thumb = p && p.img ? p.img : DEFAULT_THUMB_URL
         const tr = document.createElement("tr")
         const price = p.price == null ? "Cotizar" : "$" + Number(p.price).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         const st = stockStatus(p)
@@ -923,7 +935,7 @@
         const tagsLine = Array.isArray(p.tags) && p.tags.length ? `<div class="text-[11px] text-gray-500 mt-1">Etiquetas: ${p.tags.slice(0, 8).map(t => String(t)).join(", ")}${p.tags.length > 8 ? "…" : ""}</div>` : ""
         tr.innerHTML = `
           <td class="px-3 py-2">
-            <img src="${p.img || 'https://via.placeholder.com/50'}" class="w-10 h-10 object-cover rounded border" alt="">
+            <img src="${thumb}" class="w-10 h-10 object-cover rounded border" alt="">
           </td>
           <td class="px-3 py-2">
             <div class="font-medium">${p.name}</div>
@@ -998,6 +1010,7 @@
       fd.append("file", file)
       const res = await fetchAdmin("/api/upload", { method: "POST", body: fd })
       const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error((data && data.error) ? data.error : `http_${res.status}`)
       if (data && data.ok && data.url) return data.url
       throw new Error(data && data.error ? data.error : "upload_failed")
     }
@@ -1030,13 +1043,23 @@
       const brand = brandEl.value.trim()
       const sku = skuEl.value.trim()
       if (imgFileEl.files && imgFileEl.files[0]) {
-        try { img = await uploadFile(imgFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error")) }
+        try {
+          img = await uploadFile(imgFileEl.files[0])
+          imgEl.value = img
+        } catch (e) {
+          alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error"))
+          return
+        }
       }
       if (packFileEl.files && packFileEl.files[0]) {
-        try { pack = await uploadFile(packFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error")) }
+        try {
+          pack = await uploadFile(packFileEl.files[0])
+          packEl.value = pack
+        } catch (e) {
+          alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error"))
+          return
+        }
       }
-      if (!id && !img) img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
-      if (!id && !pack) pack = "https://via.placeholder.com/400x300?text=Sin+Imagen"
       const desc = descEl.value.trim()
       const specs = specsEl.value.split("\n").map(s => s.trim()).filter(Boolean)
       if (!name) return

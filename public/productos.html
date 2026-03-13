@@ -943,7 +943,7 @@
           </td>
           <td class="px-3 py-2">
             <button data-id="${p.id}" data-action="edit" class="bg-blue-600 text-white px-2 py-1 rounded mr-2">Editar</button>
-            <button onclick="deleteProduct(${p.id})" class="text-red-600 hover:text-red-800" title="Eliminar">
+            <button data-id="${p.id}" data-action="del" class="text-red-600 hover:text-red-800" title="Eliminar">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
             <button onclick="openFicha(${p.id})" class="text-green-600 hover:text-green-800" title="Generar Ficha">
@@ -958,7 +958,7 @@
           const id = Number(b.getAttribute("data-id"))
           const act = b.getAttribute("data-action")
           if (act === "edit") {
-            const p = PRODUCTS.find(x => x.id === id)
+            const p = PRODUCTS.find(x => Number(x.id) === id)
             if (!p) return
             idEl.value = String(p.id)
             nameEl.value = p.name
@@ -984,6 +984,7 @@
             specsEl.value = (p.specs || []).join("\n")
             window.scrollTo({ top: 0, behavior: "smooth" })
           } else if (act === "del") {
+            if (!confirm("¿Eliminar este producto?")) return
             PRODUCTS = PRODUCTS.filter(x => Number(x.id) !== id)
             saveProducts(PRODUCTS)
             renderProducts()

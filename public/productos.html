@@ -436,6 +436,24 @@
       return ""
     }
 
+    function base64EncodeUtf8(str) {
+      try {
+        return btoa(str)
+      } catch {}
+      try {
+        return btoa(unescape(encodeURIComponent(str)))
+      } catch {}
+      try {
+        if (typeof TextEncoder !== "undefined") {
+          const bytes = new TextEncoder().encode(String(str || ""))
+          let bin = ""
+          for (const b of bytes) bin += String.fromCharCode(b)
+          return btoa(bin)
+        }
+      } catch {}
+      return ""
+    }
+
     window.resetAdminToken = () => {
       try { localStorage.removeItem("admin_token") } catch {}
     }
@@ -450,7 +468,8 @@
       if (!u) return res
       const p = prompt("Clave admin:")
       if (!p) return res
-      const nextToken = btoa(`${u}:${p}`)
+      const nextToken = base64EncodeUtf8(`${u}:${p}`)
+      if (!nextToken) return res
       try { localStorage.setItem("admin_token", nextToken) } catch {}
       const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + nextToken }
       return fetch(path, { ...(options || {}), headers: headers2 })
@@ -1009,10 +1028,16 @@
       const fd = new FormData()
       fd.append("file", file)
       const res = await fetchAdmin("/api/upload", { method: "POST", body: fd })
+      const clone = res.clone()
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error((data && data.error) ? data.error : `http_${res.status}`)
+      if (!res.ok) {
+        const text = await clone.text().catch(() => "")
+        const msg = (data && data.error) ? data.error : (text ? text.slice(0, 200) : `http_${res.status}`)
+        throw new Error(msg)
+      }
       if (data && data.ok && data.url) return data.url
-      throw new Error(data && data.error ? data.error : "upload_failed")
+      const text = await clone.text().catch(() => "")
+      throw new Error((data && data.error) ? data.error : (text ? text.slice(0, 200) : "upload_failed"))
     }
 
     saveBtn.addEventListener("click", async (e) => {

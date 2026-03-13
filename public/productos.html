@@ -425,16 +425,23 @@
       return ""
     }
 
+    window.resetAdminToken = () => {
+      try { localStorage.removeItem("admin_token") } catch {}
+    }
+
     async function fetchAdmin(path, options) {
       const token = getAdminToken()
       const baseHeaders = options && options.headers ? options.headers : {}
       const headers = token ? { ...baseHeaders, "Authorization": "Basic " + token } : baseHeaders
       const res = await fetch(path, { ...(options || {}), headers })
       if (res.status !== 401 && res.status !== 403) return res
-      const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
-      if (!newToken) return res
-      try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
-      const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + btoa(newToken) }
+      const u = prompt("Usuario admin:")
+      if (!u) return res
+      const p = prompt("Clave admin:")
+      if (!p) return res
+      const nextToken = btoa(`${u}:${p}`)
+      try { localStorage.setItem("admin_token", nextToken) } catch {}
+      const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + nextToken }
       return fetch(path, { ...(options || {}), headers: headers2 })
     }
 
@@ -488,7 +495,7 @@
         }
       } catch (e) {
         console.error("Failed to sync products", e)
-        alert("No se pudo guardar en el servidor. Revisa credenciales de admin.")
+        alert("No se pudo guardar en el servidor: " + (e && e.message ? e.message : "error"))
       }
     }
 
@@ -1022,13 +1029,13 @@
       const brand = brandEl.value.trim()
       const sku = skuEl.value.trim()
       if (imgFileEl.files && imgFileEl.files[0]) {
-        try { img = await uploadFile(imgFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del producto.") }
+        try { img = await uploadFile(imgFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error")) }
       }
       if (packFileEl.files && packFileEl.files[0]) {
-        try { pack = await uploadFile(packFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del empaque.") }
+        try { pack = await uploadFile(packFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error")) }
       }
-      img = img || "https://picsum.photos/seed/p"+Date.now()+"/400/300"
-      pack = pack || "https://picsum.photos/seed/pp"+Date.now()+"/400/300"
+      if (!id && !img) img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
+      if (!id && !pack) pack = "https://via.placeholder.com/400x300?text=Sin+Imagen"
       const desc = descEl.value.trim()
       const specs = specsEl.value.split("\n").map(s => s.trim()).filter(Boolean)
       if (!name) return

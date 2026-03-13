@@ -70,6 +70,13 @@ app.use((req, res, next) => {
   return next()
 })
 
+app.use((req, res, next) => {
+  if (req.path && req.path.endsWith(".html")) {
+    res.setHeader("Cache-Control", "no-store")
+  }
+  return next()
+})
+
 app.use(express.static(path.join(__dirname, "..", "public")))
 
 function shouldRequireAdminView(req) {

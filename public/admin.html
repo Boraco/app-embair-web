@@ -1360,6 +1360,35 @@
       { id: 1, name: "Cable eléctrico 2x1.5mm", category: "Electricidad", subcategory: "Cables", material: "Cobre", price: 1200, available: "Disponible", img: "https://picsum.photos/seed/cable/400/300", pack: "https://picsum.photos/seed/cablepack/400/300", desc: "Cable de cobre multipolar 2x1.5mm", specs: ["Voltaje 220V", "Norma IRAM"] },
       { id: 2, name: "Interruptor simple", category: "Electricidad", subcategory: "Iluminación", material: "Plástico", price: 800, available: "Disponible", img: "https://picsum.photos/seed/switch/400/300", pack: "https://picsum.photos/seed/switchpack/400/300", desc: "Interruptor de pared de 10A", specs: ["Color blanco", "Montaje embutido"] }
     ]
+
+    function getAdminToken() {
+      try {
+        const saved = localStorage.getItem("admin_token")
+        if (saved) return saved
+      } catch {}
+      return ""
+    }
+
+    window.resetAdminToken = () => {
+      try { localStorage.removeItem("admin_token") } catch {}
+    }
+
+    async function fetchAdmin(path, options) {
+      const token = getAdminToken()
+      const baseHeaders = options && options.headers ? options.headers : {}
+      const headers = token ? { ...baseHeaders, "Authorization": "Basic " + token } : baseHeaders
+      const res = await fetch(path, { ...(options || {}), headers })
+      if (res.status !== 401 && res.status !== 403) return res
+      const u = prompt("Usuario admin:")
+      if (!u) return res
+      const p = prompt("Clave admin:")
+      if (!p) return res
+      const nextToken = btoa(`${u}:${p}`)
+      try { localStorage.setItem("admin_token", nextToken) } catch {}
+      const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + nextToken }
+      return fetch(path, { ...(options || {}), headers: headers2 })
+    }
+
     async function loadProducts() {
        try {
          const res = await fetch("/api/products")
@@ -1402,15 +1431,20 @@
     async function saveProducts(list) {
        localStorage.setItem("products", JSON.stringify(list))
        try {
-         await fetch("/api/products", {
+         const res = await fetchAdmin("/api/products", {
            method: "POST",
            headers: { 
             "Content-Type": "application/json"
            },
            body: JSON.stringify(list)
          })
+         if (!res.ok) {
+           const err = await res.json().catch(() => ({}))
+           throw new Error(err.error || "sync_failed")
+         }
        } catch (e) {
          console.error("Failed to sync products", e)
+         alert("No se pudo guardar en el servidor: " + (e && e.message ? e.message : "error"))
        }
      }
     let PRODUCTS = []
@@ -1654,7 +1688,7 @@
             specsEl.value = (p.specs || []).join("\n")
             window.scrollTo({ top: 0, behavior: "smooth" })
           } else if (act === "del") {
-            PRODUCTS = PRODUCTS.filter(x=>x.id!==id)
+            PRODUCTS = PRODUCTS.filter(x=>Number(x.id)!==id)
             saveProducts(PRODUCTS)
             renderProducts()
           }
@@ -1664,10 +1698,10 @@
     async function uploadFile(file) {
       const fd = new FormData()
       fd.append("file", file)
-      const res = await fetch("/api/upload", { method: "POST", body: fd })
-      const data = await res.json()
+      const res = await fetchAdmin("/api/upload", { method: "POST", body: fd })
+      const data = await res.json().catch(() => ({}))
       if (data && data.ok && data.url) return data.url
-      throw new Error("upload failed")
+      throw new Error(data && data.error ? data.error : "upload_failed")
     }
     saveBtn.addEventListener("click", async (e)=>{
       e.preventDefault()
@@ -1685,21 +1719,21 @@
       const brand = brandEl.value.trim()
       const sku = skuEl.value.trim()
       if (imgFileEl.files && imgFileEl.files[0]) {
-        try { img = await uploadFile(imgFileEl.files[0]) } catch {}
+        try { img = await uploadFile(imgFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del producto: " + (e && e.message ? e.message : "error")) }
       }
       if (packFileEl.files && packFileEl.files[0]) {
-        try { pack = await uploadFile(packFileEl.files[0]) } catch {}
+        try { pack = await uploadFile(packFileEl.files[0]) } catch (e) { alert("No se pudo subir la imagen del empaque: " + (e && e.message ? e.message : "error")) }
       }
-      img = img || "https://picsum.photos/seed/p"+Date.now()+"/400/300"
-      pack = pack || "https://picsum.photos/seed/pp"+Date.now()+"/400/300"
+      if (!id && !img) img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
+      if (!id && !pack) pack = "https://via.placeholder.com/400x300?text=Sin+Imagen"
       const desc = descEl.value.trim()
       const specs = specsEl.value.split("\n").map(s=>s.trim()).filter(Boolean)
       if (!name) return
       if (id) {
-        const idx = PRODUCTS.findIndex(x=>x.id===id)
+        const idx = PRODUCTS.findIndex(x=>Number(x.id)===id)
         if (idx>=0) PRODUCTS[idx] = { id, name, code, brand, sku, category, subcategory, material, price, available, img, pack, packInfo, desc, specs }
       } else {
-        const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x=>x.id))+1 : 1
+        const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x=>Number(x.id)||0))+1 : 1
         PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, price, available, img, pack, packInfo, desc, specs })
       }
       saveProducts(PRODUCTS)

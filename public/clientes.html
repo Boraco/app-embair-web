@@ -9,7 +9,7 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <header class="bg-white shadow">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <div class="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
           <img id="admin-logo" src="/uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
@@ -20,7 +20,7 @@
           <p class="text-xs text-gray-500">Altas, edición, listado y exportación de clientes.</p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <a href="/admin.html" class="text-sm text-gray-600 hover:text-gray-900">Panel principal</a>
         <a href="/productos.html" class="text-sm text-blue-600 hover:text-blue-800">Gestión de productos</a>
         <a href="/" class="text-sm text-gray-600 hover:text-gray-900">Volver a la tienda</a>
@@ -101,6 +101,7 @@
             <th class="px-3 py-2">Nombre y apellido</th>
             <th class="px-3 py-2">Cédula</th>
             <th class="px-3 py-2">Tipo</th>
+            <th class="px-3 py-2">Pedidos</th>
             <th class="px-3 py-2">Celular</th>
             <th class="px-3 py-2">Zona</th>
             <th class="px-3 py-2">Dirección</th>
@@ -338,6 +339,7 @@
           <td class="px-3 py-2">${nombre}</td>
           <td class="px-3 py-2">${c.cedula || ""}</td>
           <td class="px-3 py-2">${c.tipo || ""}</td>
+          <td class="px-3 py-2">${typeof c.pedidos === "number" ? c.pedidos : 0}</td>
           <td class="px-3 py-2">${c.celular || ""}</td>
           <td class="px-3 py-2">${c.zona || ""}</td>
           <td class="px-3 py-2">${c.direccion || ""}</td>

@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <header class="bg-white shadow">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <div class="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
           <img id="admin-logo" src="/uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
@@ -19,7 +19,7 @@
           <p class="text-xs text-slate-500 mt-1">Leads capturados por el asistente de la landing, separados de los clientes del portal.</p>
         </div>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex flex-wrap items-center gap-3">
         <a href="/admin" class="text-sm text-blue-600 hover:text-blue-800">Resumen Admin</a>
         <a href="/clientes.html" class="text-sm text-blue-600 hover:text-blue-800">Gestión de clientes</a>
         <a href="/productos.html" class="text-sm text-blue-600 hover:text-blue-800">Gestión de productos</a>
@@ -61,6 +61,7 @@
           <label class="block text-xs mb-1 text-slate-600">Origen</label>
           <select id="filter-source" class="border rounded px-3 py-1.5 text-xs">
             <option value="">Todos</option>
+            <option value="portal">Portal</option>
             <option value="whats">WhatsApp</option>
             <option value="insta">Instagram</option>
             <option value="face">Facebook</option>
@@ -82,7 +83,7 @@
 
     <section>
       <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="max-h-[500px] overflow-y-auto">
+        <div class="max-h-[500px] overflow-y-auto overflow-x-auto">
           <table class="min-w-full text-xs">
             <thead class="bg-gray-50">
               <tr>
@@ -93,6 +94,7 @@
                 <th class="px-3 py-2 text-left">Contacto</th>
                 <th class="px-3 py-2 text-left">Origen</th>
                 <th class="px-3 py-2 text-left">Estado</th>
+                <th class="px-3 py-2 text-left">Acciones</th>
               </tr>
             </thead>
             <tbody id="lead-rows"></tbody>
@@ -137,6 +139,7 @@
     function formatLeadSource(s) {
       const v = String(s || "").toLowerCase()
       if (!v) return "-"
+      if (v.includes("portal")) return "Portal"
       if (v.includes("whats")) return "WhatsApp"
       if (v.includes("insta")) return "Instagram"
       if (v.includes("face")) return "Facebook"
@@ -184,15 +187,25 @@
     function renderLeads(list) {
       if (!leadRowsEl) return
       if (!Array.isArray(list) || list.length === 0) {
-        leadRowsEl.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-center text-slate-400 text-xs">Aún no hay leads registrados.</td></tr>`
+        leadRowsEl.innerHTML = `<tr><td colspan="8" class="px-3 py-3 text-center text-slate-400 text-xs">Aún no hay leads registrados.</td></tr>`
         return
       }
       leadRowsEl.innerHTML = list.map(l => {
         const dt = l.createdAt ? new Date(l.createdAt) : null
         const dateStr = dt ? dt.toLocaleDateString() + " " + dt.toLocaleTimeString() : "-"
-        const contact = l.email || l.celular || "-"
+        const phone = l.celular ? String(l.celular) : ""
+        const email = l.email ? String(l.email) : ""
+        const contact = (phone || email)
+          ? `<div class="leading-tight">
+              <div class="font-medium text-slate-900">${phone || "-"}</div>
+              <div class="text-[11px] text-slate-500">${email || "-"}</div>
+            </div>`
+          : "-"
         const sourceLabel = formatLeadSource(l.source || "")
         const status = l.convertedToClient ? "Convertido a cliente portal" : "Lead"
+        const actions = l.convertedToClient
+          ? `<span class="text-[11px] text-slate-400">-</span>`
+          : `<button type="button" data-action="convert" data-id="${l.id}" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1 rounded">Pasar a clientes</button>`
         return `
           <tr class="border-t hover:bg-gray-50">
             <td class="px-3 py-1.5 whitespace-nowrap">${dateStr}</td>
@@ -202,9 +215,33 @@
             <td class="px-3 py-1.5 whitespace-nowrap">${contact}</td>
             <td class="px-3 py-1.5 whitespace-nowrap">${sourceLabel}</td>
             <td class="px-3 py-1.5 whitespace-nowrap">${status}</td>
+            <td class="px-3 py-1.5 whitespace-nowrap">${actions}</td>
           </tr>
         `
       }).join("")
+      leadRowsEl.querySelectorAll("button[data-action='convert']").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = Number(btn.getAttribute("data-id") || 0)
+          if (!id) return
+          btn.disabled = true
+          try {
+            const res = await fetchAdmin("/api/leads/convert", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ leadId: id })
+            })
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}))
+              throw new Error(err.error || "http_error")
+            }
+            await loadLeads()
+          } catch (e) {
+            alert("No se pudo convertir el lead a cliente.")
+          } finally {
+            btn.disabled = false
+          }
+        })
+      })
     }
 
     async function loadLeads() {

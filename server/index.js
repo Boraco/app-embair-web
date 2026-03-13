@@ -164,9 +164,47 @@ function matchByEmailOrPhone(item, email, phone) {
   const itemEmail = normalizeEmail(item && item.email)
   const itemPhone = normalizePhone(item && item.celular)
   if (email && itemEmail && email === itemEmail) return true
-  if (phone && itemPhone && itemPhone.includes(phone)) return true
-  if (phone && itemPhone && phone.includes(itemPhone)) return true
+  if (phone && itemPhone) {
+    if (phone === itemPhone) return true
+    const a = phone.length > 8 ? phone.slice(-8) : phone
+    const b = itemPhone.length > 8 ? itemPhone.slice(-8) : itemPhone
+    if (a && b && a === b) return true
+  }
   return false
+}
+
+function upsertClientFromLead(lead) {
+  const now = new Date().toISOString()
+  const list = readData(clientsFile)
+  const ced = String(lead && lead.cedula ? lead.cedula : "").trim()
+  const cel = String(lead && lead.celular ? lead.celular : "").trim()
+  const celKey = normalizePhone(cel)
+  const emailKey = normalizeEmail(lead && lead.email ? lead.email : "")
+  let found = null
+  for (const c of list) {
+    if (ced && String(c.cedula || "").trim() === ced) { found = c; break }
+    if (!found && emailKey && normalizeEmail(c.email) === emailKey) found = c
+    if (!found && celKey && normalizePhone(c.celular) === celKey) found = c
+  }
+  if (!found) {
+    const newId = list.length ? Math.max(...list.map(x => Number(x.id) || 0)) + 1 : 1
+    found = { id: newId, created_at: now }
+    list.push(found)
+  }
+  if (lead && lead.nombre) found.nombre = String(lead.nombre || "").trim() || found.nombre
+  if (lead && lead.apellido) found.apellido = String(lead.apellido || "").trim() || found.apellido
+  if (ced) found.cedula = ced
+  if (emailKey) found.email = emailKey
+  if (cel) found.celular = cel
+  if (lead && lead.direccion) found.direccion = String(lead.direccion || "").trim() || found.direccion
+  if (lead && lead.entrega) found.entrega = String(lead.entrega || "").trim() || found.entrega
+  if (lead && lead.zona) found.zona = String(lead.zona || "").trim() || found.zona
+  if (lead && lead.tipo) found.tipo = String(lead.tipo || "").trim() || found.tipo
+  found.interesado = true
+  found.updated_at = now
+  if (typeof found.pedidos !== "number") found.pedidos = 0
+  writeData(clientsFile, list)
+  return found
 }
 
 function readData(file) {
@@ -745,6 +783,38 @@ app.get("/api/leads", requireAdmin, (req, res) => {
     return tb - ta
   })
   res.json(sorted.slice(0, 1000))
+})
+
+app.post("/api/leads/convert", requireAdmin, (req, res) => {
+  const { leadId } = req.body || {}
+  const id = Number(leadId)
+  if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: "invalid_lead" })
+  const leads = readData(leadsFile)
+  const idx = leads.findIndex(l => Number(l && l.id) === id)
+  if (idx < 0) return res.status(404).json({ error: "not_found" })
+  const lead = leads[idx]
+  if (lead && lead.convertedToClient && lead.clientId) return res.json({ ok: true, clientId: lead.clientId })
+  if (!lead || !lead.celular) return res.status(400).json({ error: "missing_phone" })
+  const client = upsertClientFromLead(lead)
+  const now = new Date().toISOString()
+  lead.convertedToClient = true
+  lead.clientId = client.id
+  lead.convertedAt = now
+  leads[idx] = lead
+  writeData(leadsFile, leads.slice(-5000))
+  try {
+    const events = readData(eventsFile)
+    events.push({
+      id: Date.now(),
+      type: "lead_converted",
+      sessionId: "",
+      email: client.email || "",
+      meta: { leadId: id, clientId: client.id },
+      createdAt: now
+    })
+    writeData(eventsFile, events.slice(-5000))
+  } catch {}
+  res.json({ ok: true, clientId: client.id })
 })
 
 app.post("/api/public/lead", (req, res) => {
@@ -1345,6 +1415,49 @@ app.post("/api/crm/orders", (req, res) => {
   })
   const trimmed = events.slice(-5000)
   writeData(eventsFile, trimmed)
+
+  try {
+    const c = client || {}
+    const emailKey = normalizeEmail(c.email)
+    const phoneKey = normalizePhone(c.phone || c.celular)
+    if (emailKey || phoneKey) {
+      const clients = readData(clientsFile)
+      let found = null
+      for (const it of clients) {
+        if (emailKey && normalizeEmail(it.email) === emailKey) { found = it; break }
+        if (!found && phoneKey && matchByEmailOrPhone(it, "", phoneKey)) found = it
+      }
+      if (!found) {
+        const newId = clients.length ? Math.max(...clients.map(x => Number(x.id) || 0)) + 1 : 1
+        found = { id: newId, created_at: now }
+        clients.push(found)
+      }
+      const fullName = String(c.name || "").trim()
+      if (fullName && !found.nombre) found.nombre = fullName
+      if (emailKey) found.email = emailKey
+      if (phoneKey) found.celular = String(c.phone || c.celular || "").trim()
+      if (c.zona) found.zona = String(c.zona || "").trim()
+      if (c.address && !found.direccion) found.direccion = String(c.address || "").trim()
+      found.updated_at = now
+      found.interesado = true
+      found.pedidos = (typeof found.pedidos === "number" ? found.pedidos : 0) + 1
+      writeData(clientsFile, clients)
+      try {
+        const leads = readData(leadsFile)
+        let updated = false
+        leads.forEach(l => {
+          if (l.convertedToClient) return
+          if (matchByEmailOrPhone(l, emailKey, phoneKey)) {
+            l.convertedToClient = true
+            l.clientId = found.id
+            l.convertedAt = now
+            updated = true
+          }
+        })
+        if (updated) writeData(leadsFile, leads.slice(-5000))
+      } catch {}
+    }
+  } catch {}
   
   res.json({ ok: true, orderId: order.id })
 })

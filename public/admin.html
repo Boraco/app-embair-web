@@ -10,7 +10,7 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <header class="bg-white shadow">
-    <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div class="flex items-center gap-3">
         <div class="relative w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold overflow-hidden">
            <img id="admin-logo" src="/uploads/logo.png" class="absolute inset-0 w-full h-full object-contain bg-white hidden" onerror="this.classList.add('hidden')">
@@ -18,7 +18,7 @@
       </div>
       <h1 class="text-2xl font-semibold">Panel de Administración</h1>
     </div>
-    <div class="flex items-center gap-4">
+    <div class="flex flex-wrap items-center gap-3">
       <label for="logo-upload" class="cursor-pointer text-sm text-blue-600 hover:text-blue-800 font-medium">Cambiar Logo</label>
       <input type="file" id="logo-upload" accept="image/*" class="hidden" />
       <a href="/clientes.html" class="text-sm text-blue-600 hover:text-blue-800">Gestión de clientes</a>
@@ -915,6 +915,7 @@
         else if (e.type === "catalog_link_click") typeLabel = "Click enlace catálogo"
         else if (e.type === "catalog_download_confirmed") typeLabel = "Descarga catálogo"
         else if (e.type === "portal_register") typeLabel = "Registro Portal"
+        else if (e.type === "portal_register_confirmed") typeLabel = "Registro Portal"
         else if (e.type === "portal_login") typeLabel = "Login Portal"
         else if (e.type === "portal_approved") typeLabel = "Portal aprobado"
         else if (e.type === "order_sent") typeLabel = "Pedido enviado"
@@ -947,7 +948,7 @@
       const landing = list.filter(e => e.type === "landing_visit").length
       const assistantMsgs = list.filter(e => e.type === "assistant_message").length
       const catalogDownloads = list.filter(e => e.type === "catalog_download_confirmed").length
-      const portalRegs = list.filter(e => e.type === "portal_register").length
+      const portalRegs = list.filter(e => e.type === "portal_register" || e.type === "portal_register_confirmed").length
       const ordersSent = list.filter(e => e.type === "order_sent").length
 
       if (statLandingEl) statLandingEl.textContent = String(landing)

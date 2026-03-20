@@ -1458,8 +1458,18 @@
            body: JSON.stringify(list)
          })
          if (!res.ok) {
-           const err = await res.json().catch(() => ({}))
-           throw new Error(err.error || "sync_failed")
+           const clone = res.clone()
+           const ct = (res.headers.get("content-type") || "").toLowerCase()
+           let msg = ""
+           if (ct.includes("application/json")) {
+             const err = await res.json().catch(() => ({}))
+             msg = (err && (err.error || err.message)) ? String(err.error || err.message) : ""
+           }
+           if (!msg) {
+             msg = await clone.text().catch(() => "")
+           }
+           msg = String(msg || "").trim()
+           throw new Error(msg ? msg.slice(0, 200) : `http_${res.status}`)
          }
        } catch (e) {
          console.error("Failed to sync products", e)

@@ -17,7 +17,14 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.set('trust proxy', 1) // Confía en el primer proxy (Nginx)
-app.use(express.json())
+app.use(express.json({ limit: "10mb" }))
+
+app.use((err, req, res, next) => {
+  if (err && (err.type === "entity.too.large" || err.status === 413)) {
+    return res.status(413).json({ error: "payload_too_large" })
+  }
+  return next(err)
+})
 
 // const limiter = rateLimit({
 //   windowMs: 60 * 1000,

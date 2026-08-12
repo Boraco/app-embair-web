@@ -15,7 +15,14 @@
     "portalApproved": true,
     "portalApprovedAt": "2026-02-24T02:28:58.414Z",
     "portalLastLoginAt": "2026-02-24T03:38:26.533Z",
-    "portalLoginCount": 14
+    "portalLoginCount": 14,
+    "firstDeviceId": "dev_0iywlv57czlsmmm5umks",
+    "lastDeviceId": "dev_4a680ynfyzsmsibx0g7",
+    "lastIp": "127.0.0.1",
+    "firstIp": "127.0.0.1",
+    "lastUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "portalLastCheckAt": "2026-08-07T02:32:07.825Z",
+    "portalCheckCount": 19
   },
   {
     "id": 1770735310279,
@@ -27,5 +34,10 @@
     "tipo": "Particular",
     "portalRequestedAt": "2026-02-24T02:17:33.832Z",
     "portalApproved": false
+  },
+  {
+    "id": 1770735310280,
+    "nombre": "Test",
+    "celular": "3000000000"
   }
 ]

@@ -8,14 +8,14 @@
   <meta property="og:title" content="EMBAIR • Mayorista Eléctrico y Ferretero">
   <meta property="og:description" content="Explora nuestros catálogos y realiza tu pedido por WhatsApp.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://embair.es/">
-  <meta property="og:image" content="https://embair.es/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
-  <meta property="og:image:secure_url" content="https://embair.es/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
+  <meta property="og:url" content="http://217.160.212.31/">
+  <meta property="og:image" content="http://217.160.212.31/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
+  <meta property="og:image:secure_url" content="http://217.160.212.31/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
   <meta property="og:image:alt" content="EMBAIR • Catálogo Digital">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="EMBAIR • Mayorista Eléctrico y Ferretero">
   <meta name="twitter:description" content="Explora nuestros catálogos y realiza tu pedido por WhatsApp.">
-  <meta name="twitter:image" content="https://embair.es/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
+  <meta name="twitter:image" content="http://217.160.212.31/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png">
   <meta name="theme-color" content="#0A2647">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
@@ -47,14 +47,13 @@
   <section class="mb-12" id="hero">
     <div class="grid md:grid-cols-2 gap-8 items-center bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-2xl px-6 md:px-10 py-10 shadow-xl relative overflow-hidden">
       <div class="relative z-10">
-        <!-- EDITABLE: Texto del banner principal (Hero) -->
         <h2 id="hero-title" class="text-3xl md:text-4xl font-bold mb-3">Materiales eléctricos y plomería, ordenados y listos para tu cliente</h2>
         <p id="hero-subtitle" class="text-sm md:text-base text-blue-100 mb-6 max-w-xl">Explora el catálogo, arma el pedido y envíalo por WhatsApp en segundos. Pensado para mostrar precios, fotos y disponibilidad de forma clara.</p>
         <div class="flex flex-wrap gap-3">
           <a id="cta-wa" href="https://wa.me/584242240909" target="_blank" rel="noopener" class="bg-white text-blue-700 hover:bg-blue-50 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
             <span>💬</span> WhatsApp
           </a>
-          <a href="/catalogos.html" class="bg-blue-800/80 hover:bg-blue-900 text-white border border-blue-400/30 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm">
+          <a href="/catalogos.html" id="hero-catalog-cta" class="bg-blue-800/80 hover:bg-blue-900 text-white border border-blue-400/30 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm">
             <span>📥</span> Descargar Catálogos
           </a>
         </div>
@@ -65,7 +64,6 @@
       </div>
       <div class="relative h-64 md:h-80 w-full rounded-2xl overflow-hidden shadow-lg border-4 border-white/20 bg-white/10 backdrop-blur-sm">
         <div id="hero-slider" class="absolute inset-0 w-full h-full">
-          <!-- Images will be injected by JS -->
            <img src="https://images.unsplash.com/photo-1558402529-d2638a7023e9?auto=format&fit=crop&q=80&w=1000" class="absolute inset-0 w-full h-full object-cover opacity-100 transition-opacity duration-1000" alt="Slide 1">
         </div>
         <div id="hero-indicators" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10"></div>
@@ -73,7 +71,7 @@
     </div>
   </section>
 
-  <!-- Dynamic Sections Container -->
+  <!-- Contenedor de Secciones Dinámicas -->
   <div id="dynamic-sections" class="space-y-16 mb-16 container mx-auto px-4"></div>
 
   <section class="py-16 container mx-auto px-6">
@@ -94,60 +92,50 @@
   </section>
 
   <footer class="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
-  <div class="container mx-auto px-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Col 1: NAP & Contact -->
-      <div>
-        <h3 class="text-xl font-bold text-white mb-4 store-name">COMERCIALIZADORA EMBAIR</h3>
-        <address class="not-italic mb-4 text-sm leading-relaxed">
-          <p class="mb-2"><strong class="text-blue-400">Dirección:</strong> <span id="footer-address">Av. Intercomunal La Boyera, El Hatillo, Caracas 1083, Miranda.</span></p>
-          <p class="mb-2"><strong class="text-blue-400">Teléfono:</strong> <a id="footer-phone" href="tel:+584120000000" class="hover:text-white transition">+58 412-000-0000</a></p>
-          <p class="mb-2"><strong class="text-blue-400">Email:</strong> <span id="footer-email">contacto@embair.com</span></p>
-        </address>
-        <div class="flex gap-4 mt-4">
-           <a href="#" class="text-slate-400 hover:text-white transition" aria-label="Facebook"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
-           <a href="#" class="text-slate-400 hover:text-white transition" aria-label="Instagram"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.072 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+    <div class="container mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4 store-name">COMERCIALIZADORA EMBAIR</h3>
+          <address class="not-italic mb-4 text-sm leading-relaxed">
+            <p class="mb-2"><strong class="text-blue-400">Dirección:</strong> <span id="footer-address">Av. Intercomunal La Boyera, El Hatillo, Caracas 1083, Miranda.</span></p>
+            <p class="mb-2"><strong class="text-blue-400">Teléfono:</strong> <a id="footer-phone" href="tel:+584120000000" class="hover:text-white transition">+58 412-000-0000</a></p>
+            <p class="mb-2"><strong class="text-blue-400">Email:</strong> <span id="footer-email">contacto@embair.com</span></p>
+          </address>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Nuestros Servicios</h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span>La mejor <strong>Ferretería en El Hatillo</strong> para tus proyectos.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span>Todo en <strong>Materiales eléctricos La Boyera</strong> y alrededores.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-blue-400">✓</span>
+              <span>Asesoría experta para <strong>Remodelaciones en Caracas</strong>.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-white mb-4">Ubicación</h3>
+          <div class="w-full h-48 bg-slate-800 rounded-lg overflow-hidden shadow-lg border border-slate-700">
+            <iframe id="footer-map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.633554462947!2d-66.8329606241477!3d10.45053798967916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c2a58adcd824807%3A0x93dd2f50a45b770!2sLa%20Boyera%2C%20Caracas%201083%2C%20Miranda!5e0!3m2!1ses!2sve!4v1708790000000!5m2!1ses!2sve" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+          </div>
         </div>
       </div>
 
-      <!-- Col 2: Local SEO Keywords -->
-      <div>
-        <h3 class="text-xl font-bold text-white mb-4">Nuestros Servicios</h3>
-        <ul class="space-y-2 text-sm">
-          <li class="flex items-start gap-2">
-            <span class="text-blue-400">✓</span>
-            <span>La mejor <strong>Ferretería en El Hatillo</strong> para tus proyectos.</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="text-blue-400">✓</span>
-            <span>Todo en <strong>Materiales eléctricos La Boyera</strong> y alrededores.</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="text-blue-400">✓</span>
-            <span>Asesoría experta para <strong>Remodelaciones en Caracas</strong>.</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="text-blue-400">✓</span>
-            <span>Ventas al mayor y detal con despacho a domicilio.</span>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Col 3: Map -->
-      <div>
-        <h3 class="text-xl font-bold text-white mb-4">Ubicación</h3>
-        <div class="w-full h-48 bg-slate-800 rounded-lg overflow-hidden shadow-lg border border-slate-700">
-          <iframe id="footer-map-iframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3923.633554462947!2d-66.8329606241477!3d10.45053798967916!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8c2a58adcd824807%3A0x93dd2f50a45b770!2sLa%20Boyera%2C%20Caracas%201083%2C%20Miranda!5e0!3m2!1ses!2sve!4v1708790000000!5m2!1ses!2sve" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
+      <div class="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
+        <p>© 2026 COMERCIALIZADORA EMBAIR. Expertos en Suministros Eléctricos.</p>
       </div>
     </div>
+  </footer>
 
-    <div class="border-t border-slate-800 mt-12 pt-8 text-center text-sm text-slate-500">
-      <p>© 2026 COMERCIALIZADORA EMBAIR. Expertos en Suministros Eléctricos.</p>
-    </div>
-  </div>
-</footer>
-
+  <!-- Panel del Asistente Flotante -->
   <div id="assistant-root" class="fixed bottom-6 right-4 md:right-6 z-40">
     <div id="assistant-panel" class="hidden w-80 md:w-[26rem] max-h-[75vh] bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden">
       <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
@@ -159,7 +147,7 @@
       </div>
       <div id="assistant-messages" class="flex-1 px-3 py-3 space-y-2 overflow-y-auto text-sm bg-slate-50"></div>
       <div class="border-t border-slate-200 p-3 bg-white">
-        <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Contame qué materiales estás buscando para tu hogar u obra"></textarea>
+        <textarea id="assistant-input" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" placeholder="Consulta material, precio o stock..."></textarea>
         <div class="flex justify-end mt-2">
           <button id="assistant-send" class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-1.5 text-xs font-medium">Enviar</button>
         </div>
@@ -181,28 +169,15 @@
     const SESSION_KEY = "embair_session_id"
     const PORTAL_URL = "/app?portal=1"
     const WHATSAPP_PHONE = "584242240909"
-    const FAMILY_PITCH = "En EMBAIR trabajamos Tableros, Cables, Tubería, Cajetines, Breakers, Luminarias, Tomacorrientes, entre otros artículos; la idea es que salgas con el paquete completo de materiales para tu instalación."
     const heroCatalogCta = document.getElementById("hero-catalog-cta")
 
     const leadState = {
+      phone: "",
       name: "",
-      segment: "",
-      contact: "",
-      need: "",
-      needFamily: "",
-      zone: "",
-      source: "",
-      stockHint: "",
-      stage: "welcome",
-      pending: "",
-      lastQuery: "",
-      cablePending: "",
-      cableQuery: "",
-      sentClient: false,
-      ctaShown: false,
-      ctaStage: "",
       segmentType: "",
-      businessName: ""
+      initialQuery: "",
+      isRegistered: false,
+      stage: "check_phone"
     }
 
     function getSessionId() {
@@ -220,44 +195,16 @@
         await fetch("/api/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type,
-            sessionId: getSessionId(),
-            meta: meta || {}
-          })
+          body: JSON.stringify({ type, sessionId: getSessionId(), meta: meta || {} })
         })
       } catch {}
-    }
-
-    async function loadAssistantProducts() {
-      try {
-        const res = await fetch("/api/products")
-        if (!res.ok) return
-        const arr = await res.json()
-        if (Array.isArray(arr)) window.PRODUCTS = arr
-      } catch {}
-    }
-
-    function describeProductShort(p) {
-      const parts = []
-      if (p.category) parts.push(p.category)
-      if (p.subcategory) parts.push(p.subcategory)
-      if (p.material) parts.push(p.material)
-      const extra = parts.length ? " (" + parts.join(" • ") + ")" : ""
-      let stockText = ""
-      if (p.available && p.available !== "Disponible") {
-        stockText = " – Actualmente figura como no disponible"
-      } else if (p.available === "Disponible") {
-        stockText = " – Figura como disponible en el catálogo"
-      }
-      return p.name + extra + stockText
     }
 
     function addSegmentButtons() {
       if (!window.Assistant.elements.messages) return
       const row = document.createElement("div")
       row.className = "flex flex-wrap gap-2 mt-2"
-      const types = ["Particular", "Revendedor", "Contratista", "Constructora", "Distribuidor", "Ferretería"]
+      const types = ["Particular", "Contratista", "Ferretería", "Constructora", "Distribuidor"]
       types.forEach(t => {
         const btn = document.createElement("button")
         btn.type = "button"
@@ -274,604 +221,230 @@
       window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
     }
 
-    function addNeedFamilyButtons() {
+    // Botón de acción para llevar al usuario al Portal a armar el pedido
+    function addPortalActionBtn() {
       if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "flex flex-wrap gap-2 mt-2"
-      const types = ["Electricidad", "Plomería", "Ferretería", "Otros"]
-      types.forEach(t => {
-        const btn = document.createElement("button")
-        btn.type = "button"
-        btn.className = "px-3 py-1.5 rounded-full border text-xs bg-white hover:bg-blue-50 text-slate-700 border-slate-300"
-        btn.textContent = t
-        btn.addEventListener("click", () => {
-          window.Assistant.addMessage("user", t)
-          row.remove()
-          handleAssistantFlow(t)
-        })
-        row.appendChild(btn)
-      })
-      window.Assistant.elements.messages.appendChild(row)
+      const div = document.createElement("div")
+      div.className = "mt-3 flex justify-center"
+      const btn = document.createElement("a")
+      btn.href = PORTAL_URL
+      btn.target = "_blank"
+      btn.className = "w-full text-center px-4 py-2 rounded-xl bg-embair-orange hover:bg-orange-600 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2"
+      btn.innerHTML = `<span>🛒</span> Armar pedido completo en el Portal`
+      div.appendChild(btn)
+      window.Assistant.elements.messages.appendChild(div)
       window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
     }
 
-    function addZoneOriginButtons() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "flex flex-wrap gap-2 mt-2"
-      const options = [
-        { label: "Sí, de Caracas", value: "__ZONA_CCS__" },
-        { label: "No, otro estado de Venezuela", value: "__ZONA_INT__" }
-      ]
-      options.forEach(opt => {
-        const btn = document.createElement("button")
-        btn.type = "button"
-        btn.className = "px-3 py-1.5 rounded-full border text-xs bg-white hover:bg-blue-50 text-slate-700 border-slate-300"
-        btn.textContent = opt.label
-        btn.addEventListener("click", () => {
-          window.Assistant.addMessage("user", opt.label)
-          row.remove()
-          handleAssistantFlow(opt.value)
-        })
-        row.appendChild(btn)
-      })
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function addCaracasZoneButtons() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "flex flex-wrap gap-2 mt-2"
-      const zones = ["El Hatillo", "Baruta", "La Guaira", "Los Teques", "San Antonio", "Centro", "Catia"]
-      zones.forEach(z => {
-        const btn = document.createElement("button")
-        btn.type = "button"
-        btn.className = "px-3 py-1.5 rounded-full border text-xs bg-white hover:bg-blue-50 text-slate-700 border-slate-300"
-        btn.textContent = z
-        btn.addEventListener("click", () => {
-          window.Assistant.addMessage("user", z)
-          row.remove()
-          handleAssistantFlow(z)
-        })
-        row.appendChild(btn)
-      })
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function addStateZoneButtons() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "flex flex-wrap gap-2 mt-2"
-      const states = ["Miranda", "La Guaira", "Aragua", "Carabobo", "Lara", "Zulia", "Otro estado"]
-      states.forEach(s => {
-        const btn = document.createElement("button")
-        btn.type = "button"
-        btn.className = "px-3 py-1.5 rounded-full border text-xs bg-white hover:bg-blue-50 text-slate-700 border-slate-300"
-        btn.textContent = s
-        btn.addEventListener("click", () => {
-          window.Assistant.addMessage("user", s)
-          row.remove()
-          handleAssistantFlow(s)
-        })
-        row.appendChild(btn)
-      })
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function addCatalogButton() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "mt-2"
-      const btn = document.createElement("button")
-      btn.type = "button"
-      btn.className = "px-3 py-1.5 rounded-full border text-xs bg-blue-600 text-white hover:bg-blue-700"
-      btn.textContent = "Ver catálogos"
-      btn.addEventListener("click", () => window.open("/catalogos.html", "_blank"))
-      row.appendChild(btn)
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function addPortalButton() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "mt-2"
-      const btn = document.createElement("button")
-      btn.type = "button"
-      btn.className = "px-3 py-1.5 rounded-full border text-xs bg-blue-600 text-white hover:bg-blue-700"
-      btn.textContent = "Portal de Clientes"
-      btn.addEventListener("click", () => window.open(PORTAL_URL, "_blank"))
-      row.appendChild(btn)
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function buildWhatsappLeadUrl() {
-      const name = leadState.name || "un cliente"
-      const contact = leadState.contact || ""
-      const type = leadState.segmentType || ""
-      const zona = (leadState.zone || "").trim()
-      const need = (leadState.need || "").trim()
-      const source = (leadState.source || "").trim()
-      const stockHint = leadState.stockHint || ""
-
-      const lines = []
-      if (type && zona) {
-        lines.push("Hola, soy " + name + " (" + type + ") de la zona " + zona + ".")
-      } else if (type) {
-        lines.push("Hola, soy " + name + " (" + type + ").")
-      } else {
-        lines.push("Hola, soy " + name + ".")
+    async function ensureProductsLoaded() {
+      if (!Array.isArray(window.PRODUCTS) || window.PRODUCTS.length === 0) {
+        try {
+          const res = await fetch("/api/products")
+          if (res.ok) {
+            window.PRODUCTS = await res.json()
+          }
+        } catch (e) {}
       }
-      lines.push("Vengo del asistente EMBAIR en la web y quiero concretar la compra de materiales.")
-      if (contact) lines.push("Contacto: " + contact + ".")
-      if (need) lines.push("Mi requerimiento principal es: " + need + ".")
-      else lines.push("Mi requerimiento principal es: (lo describo a continuación).")
+    }
+
+    async function processProductQuery(queryText) {
+      await ensureProductsLoaded()
+      const serverRes = await window.Assistant.askServer(queryText)
       
-      if (stockHint === "disponible") lines.push("Según el asistente, hay stock disponible para lo que estoy consultando.")
-      else if (stockHint === "sin_stock") lines.push("Según el asistente, no hay stock actual para lo que necesito y requiero alternativas.")
-      
-      if (source) lines.push("Canal de origen: " + source + ".")
-
-      return "https://wa.me/" + WHATSAPP_PHONE + "?text=" + encodeURIComponent(lines.join("\n"))
-    }
-
-    function addWhatsappButton() {
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "mt-2"
-      const btn = document.createElement("button")
-      btn.type = "button"
-      btn.className = "px-3 py-1.5 rounded-full border text-xs bg-green-500 text-white hover:bg-green-600"
-      btn.textContent = "Abrir WhatsApp con mis datos"
-      btn.addEventListener("click", () => window.open(buildWhatsappLeadUrl(), "_blank"))
-      row.appendChild(btn)
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    function showClosingCta() {
-      if (leadState.ctaShown) return
-      leadState.ctaShown = true
-      leadState.ctaStage = "intent"
-      window.Assistant.addMessage("bot", "¿Te gustaría concretar la compra?")
-      if (!window.Assistant.elements.messages) return
-      const row = document.createElement("div")
-      row.className = "flex flex-wrap gap-2 mt-2"
-      const options = [
-        { label: "Sí, quiero concretar", token: "__CTA_YES__" },
-        { label: "No por ahora", token: "__CTA_NO__" }
-      ]
-      options.forEach(opt => {
-        const btn = document.createElement("button")
-        btn.type = "button"
-        btn.className = "px-3 py-1.5 rounded-full border text-xs bg-white hover:bg-blue-50 text-slate-700 border-slate-300"
-        btn.textContent = opt.label
-        btn.addEventListener("click", () => {
-          window.Assistant.addMessage("user", opt.label)
-          row.remove()
-          handleAssistantFlow(opt.token)
-        })
-        row.appendChild(btn)
-      })
-      window.Assistant.elements.messages.appendChild(row)
-      window.Assistant.elements.messages.scrollTop = window.Assistant.elements.messages.scrollHeight
-    }
-
-    async function registerLeadIfNeeded() {
-      if (leadState.sentClient) return
-      const name = (leadState.name || "").trim()
-      const contact = (leadState.contact || "").trim()
-      if (!contact) return
-      const tipo = leadState.segmentType || "Particular"
-      const zona = (leadState.zone || "").trim()
-      const source = (leadState.source || "").trim()
-      const payload = {
-        nombre: name || "Lead asistente",
-        apellido: "",
-        cedula: "",
-        email: "",
-        direccion: "Origen: Asistente landing",
-        celular: "",
-        tipo,
-        zona: zona || "Asistente landing",
-        source: source || "assistant_landing",
-        interesado: true
+      if (!serverRes) {
+        window.Assistant.addMessage("bot", "No pude verificar la información del catálogo. Intenta nuevamente.")
+        return
       }
-      if (/@/.test(contact)) payload.email = contact
-      else payload.celular = contact
+
+      const getStockBadge = (local, prod) => {
+        let text = "Disponible"
+        let bgClass = "bg-green-100 text-green-800 border-green-300"
+
+        if (local) {
+          const val = local.available !== undefined ? local.available : local.stock
+          if (typeof val === "number") {
+            if (val <= 0) {
+              text = "Agotado"
+              bgClass = "bg-red-100 text-red-800 border-red-300"
+            } else if (val <= 5) {
+              text = `Pocas unidades (${val})`
+              bgClass = "bg-orange-100 text-orange-800 border-orange-300"
+            } else {
+              text = `Disponible (${val})`
+              bgClass = "bg-green-100 text-green-800 border-green-300"
+            }
+          } else if (typeof val === "string") {
+            text = val
+            if (/poco|agot/i.test(val)) bgClass = "bg-orange-100 text-orange-800 border-orange-300"
+          }
+        } else if (prod.stock || prod.available) {
+          text = prod.stock || prod.available
+        }
+
+        return `<span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-semibold rounded border ${bgClass}">${text}</span>`
+      }
+
+      const renderCardWithBadge = (prod) => {
+        const localMatch = (window.PRODUCTS || []).find(p => String(p.id) === String(prod.id) || (p.code && p.code === prod.code))
+        const badgeHtml = getStockBadge(localMatch, prod)
+        
+        const fullProduct = {
+          id: prod.id,
+          name: prod.name,
+          price: prod.price,
+          available: prod.stock || "Disponible",
+          img: localMatch ? (localMatch.img || localMatch.image || localMatch.photo || "") : (prod.img || prod.image || ""),
+          link: PORTAL_URL // Redirige al portal al hacer clic en la tarjeta
+        }
+
+        window.Assistant.addProductCard(fullProduct)
+
+        const messages = window.Assistant.elements.messages
+        if (messages) {
+          const lastCard = messages.querySelector('.product-card:last-child') || messages.lastElementChild
+          if (lastCard) {
+            const priceEl = lastCard.querySelector('.text-blue-600, .font-bold, p') || lastCard
+            const badgeDiv = document.createElement('div')
+            badgeDiv.innerHTML = badgeHtml
+            priceEl.appendChild(badgeDiv)
+          }
+        }
+      }
+
+      if (serverRes.type === "multiple_products" && Array.isArray(serverRes.products) && serverRes.products.length > 0) {
+        window.Assistant.addMessage("bot", "Encontré las siguientes opciones disponibles:")
+        serverRes.products.forEach(prod => renderCardWithBadge(prod))
+        window.Assistant.addMessage("bot", "¿Deseas sumar estos u otros materiales a tu carrito de cotización?")
+        addPortalActionBtn()
+        return
+      }
+
+      if (serverRes.type === "product" && serverRes.product) {
+        window.Assistant.addMessage("bot", "Aquí tienes el detalle del producto:")
+        renderCardWithBadge(serverRes.product)
+        addPortalActionBtn()
+        return
+      }
+
+      if (serverRes.text) {
+        window.Assistant.addMessage("bot", serverRes.text)
+      }
+    }
+
+    async function saveLead() {
       try {
         await fetch("/api/public/lead", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({
+            nombre: leadState.name || "Cliente Portal",
+            celular: leadState.phone,
+            tipo: leadState.segmentType || "Particular",
+            source: "landing_gate_check",
+            sessionId: getSessionId()
+          })
         })
-        leadState.sentClient = true
       } catch {}
     }
 
-    function getCableStockPromo(p) {
-      const v = p.stock == null ? null : Number(p.stock)
-      if (v == null || Number.isNaN(v)) return ""
-      if (v <= 10) return "Poco stock, ideal aprovecharlo en promo."
-      if (v <= 50) return "Stock intermedio, se mueve rápido."
-      return "Buen stock disponible para tu proyecto."
-    }
-
-    function extractCalibre(text) {
-      const lower = String(text || "").toLowerCase()
-      const m = lower.match(/#\s*(\d+)|calibre\s*(\d+)|(\d+)\s*mm2|(\d+)\s*mm²|awg\s*(\d+)/)
-      if (!m) return ""
-      for (let i = 1; i < m.length; i++) if (m[i]) return m[i]
-      return ""
-    }
-
-    function filterCableOptions(text) {
-      const recs = window.Assistant.recommendProducts(text)
-      const out = []
-      for (const p of recs) {
-        const name = String(p.name || "").toLowerCase()
-        const sub = String(p.subcategory || "").toLowerCase()
-        if (name.includes("cable") || sub.includes("cable")) out.push(p)
-      }
-      return out
-    }
-
-    function handleProductSuggestion(textRaw) {
-      const text = String(textRaw || "").trim()
-      const lower = window.Assistant.normalizeText(text)
-      if (!text) return
-
-      leadState.stockHint = ""
-      const hasProducts = Array.isArray(window.PRODUCTS) && window.PRODUCTS.length > 0
-
-      if (!hasProducts) {
-        window.Assistant.addMessage("bot", "Estoy conectando con el catálogo interno. Si no ves sugerencias todavía, puedes probar de nuevo en unos segundos o entrar al Portal Clientes para ver todos los productos.")
-        return
-      }
-
-      const wantsCable = /cable/.test(lower)
-
-      if (wantsCable || leadState.cablePending === "1") {
-        const calibre = extractCalibre(text)
-        if (!calibre && leadState.cablePending !== "1") {
-          leadState.cablePending = "1"
-          leadState.cableQuery = text
-          window.Assistant.addMessage("bot", "Perfecto, trabajamos cables eléctricos. ¿Qué calibre necesitás (por ejemplo THHN #8, #10, #12 o en mm²) y para cuántos metros aproximadamente?")
-          return
-        }
-        const combined = (leadState.cableQuery || "") + " " + text
-        leadState.cablePending = ""
-        leadState.cableQuery = combined
-        const cableRecs = filterCableOptions(combined)
-        if (!cableRecs.length) {
-          leadState.stockHint = "sin_stock"
-          window.Assistant.addMessage("bot", "Al parecer no tenemos disponible ese calibre en almacén en este momento.")
-          window.Assistant.addMessage("bot", "Si tu requerimiento es más técnico y puedes contar con un lapso de entrega, te puedo comunicar con un asesor especializado para revisarlo en detalle.")
-          const otros = filterCableOptions("cable")
-          if (otros.length) {
-            window.Assistant.addMessage("bot", "Mientras tanto, te muestro algunos cables similares que podrían servirte como alternativa:")
-            otros.forEach(p => window.Assistant.addProductCard(p))
-          }
-          window.Assistant.addMessage("bot", FAMILY_PITCH + " También, si quieres otras opciones, puedo ayudarte a buscar alternativas según el trabajo que vayas a realizar.")
-          showClosingCta()
-          return
-        }
-        const bestCable = cableRecs[0]
-        const promo = getCableStockPromo(bestCable)
-        let msg = "Para ese calibre veo disponible en catálogo: " + describeProductShort(bestCable) + "."
-        if (promo) msg += " " + promo
-        leadState.stockHint = "disponible"
-        window.Assistant.addMessage("bot", msg)
-        window.Assistant.addMessage("bot", FAMILY_PITCH + " Si te parece, con este cable como base podemos sumar tubería, cajetines, tableros, breakers y tomas para que te lleves todo armado. Te dejo una referencia visual del tipo de cable que vemos en catálogo:")
-        window.Assistant.addProductCard(bestCable)
-        showClosingCta()
-        return
-      }
-
-      if (leadState.pending === "tablero-detalle") {
-        const combined = (leadState.lastQuery || "") + " " + text
-        const recs = window.Assistant.recommendProducts(combined)
-        leadState.pending = ""
-        if (!recs.length) {
-          window.Assistant.addMessage("bot", "Con esos datos no encuentro un tablero claro en el catálogo. Si puedes, indícame si es para interior o exterior y aproximado de módulos, así afinamos mejor.")
-          return
-        }
-        window.Assistant.addMessage("bot", "Perfecto, con lo que me comentas veo estas opciones de tableros disponibles en el catálogo:")
-        recs.forEach(p => window.Assistant.addProductCard(p))
-        window.Assistant.addMessage("bot", "Además de los tableros, también trabajamos breakers, cables, tubería, cajetines, tomacorrientes y luminarias para que salgas con el paquete completo. Si me dices cuántos circuitos o qué consumo vas a manejar, te ayudo a sumar esos materiales.")
-        showClosingCta()
-        return
-      }
-
-      if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
-        leadState.lastQuery = text
-        leadState.pending = "tablero-detalle"
-        window.Assistant.addMessage("bot", "Para ayudarte mejor con tableros, indicame si lo necesitás empotrado o de superficie y para cuántos módulos aproximadamente.")
-        return
-      }
-
-      const wantsTuberia = /tuber[ií]a|tubo/.test(lower)
-      const wantsCajetin = /cajet[ií]n|cajetin/.test(lower)
-      const wantsBreaker = /breaker|termomagn|disyuntor/.test(lower)
-      const wantsLuz = /luminaria|l[aá]mpara|lampara|foco|bombillo/.test(lower)
-      const wantsToma = /tomacorriente|toma corriente|enchufe|interruptor|interruptores/.test(lower)
-
-      if (wantsTuberia || wantsCajetin || wantsBreaker || wantsLuz || wantsToma) {
-        const all = Array.isArray(window.PRODUCTS) ? window.PRODUCTS : []
-        const family = []
-        for (const p of all) {
-          if (p.available && p.available !== "Disponible") continue
-          const textProd = `${p.name || ""} ${p.subcategory || ""} ${p.category || ""}`.toLowerCase()
-          let ok = false
-          if (wantsTuberia && (textProd.includes("tubo") || textProd.includes("tuber"))) ok = true
-          if (wantsCajetin && textProd.includes("cajet")) ok = true
-          if (wantsBreaker && (textProd.includes("breaker") || textProd.includes("termo") || textProd.includes("disyuntor"))) ok = true
-          if (wantsToma && (textProd.includes("interruptor") || textProd.includes("toma") || textProd.includes("enchufe"))) ok = true
-          if (wantsLuz && (textProd.includes("luminaria") || textProd.includes("lampara") || textProd.includes("lámpara") || textProd.includes("foco") || textProd.includes("bombillo"))) ok = true
-          if (ok) family.push(p)
-        }
-        const recs = family.slice(0, 6)
-        if (recs.length) {
-          leadState.stockHint = "disponible"
-          window.Assistant.addMessage("bot", "Sí, tenemos opciones disponibles en esa línea. Mira algunos de los productos que veo ahora en el catálogo:")
-          recs.forEach(p => window.Assistant.addProductCard(p))
-          window.Assistant.addMessage("bot", FAMILY_PITCH + " Si me cuentas un poco más del tramo o ambiente que quieres resolver, te ayudo a cerrar la lista completa de materiales.")
-          showClosingCta()
-        } else {
-          leadState.stockHint = "sin_stock"
-          window.Assistant.addMessage("bot", "En este momento no veo productos cargados para ese tipo de material en el catálogo.")
-          window.Assistant.addMessage("bot", "Si tu requerimiento es más técnico y puede esperar un lapso de entrega, te puedo comunicar con un asesor especializado para evaluar alternativas.")
-          window.Assistant.addMessage("bot", FAMILY_PITCH + " También, si quieres, puedo ayudarte a buscar opciones similares según el trabajo que vayas a realizar.")
-          showClosingCta()
-        }
-        return
-      }
-
-      if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
-        const prod = window.Assistant.findBestProductMatch(text)
-        if (prod) {
-          if (prod.available && prod.available !== "Disponible") {
-            const altQuery = `${prod.category || ""} ${prod.subcategory || ""}`.trim()
-            const recsAlt = altQuery ? window.Assistant.recommendProducts(altQuery) : []
-            let msg = "Ese producto en particular figura como agotado en el catálogo: " + prod.name + "."
-            leadState.stockHint = "sin_stock"
-            window.Assistant.addMessage("bot", msg)
-            window.Assistant.addMessage("bot", "Al parecer no tenemos disponibilidad inmediata en almacén. Si tu requerimiento es más técnico y puede esperar un lapso de entrega, te puedo comunicar con un asesor especializado para revisarlo.")
-            if (recsAlt.length) {
-              window.Assistant.addMessage("bot", "Te dejo algunas alternativas que podrían servirte según lo que trabajamos:")
-              recsAlt.forEach(r => window.Assistant.addMessage("bot", "• " + describeProductShort(r)))
-            } else {
-              window.Assistant.addMessage("bot", "Si me das algún detalle extra de la instalación, intento buscar otra opción similar.")
-            }
-            showClosingCta()
-            return
-          }
-          leadState.stockHint = "disponible"
-          window.Assistant.addMessage("bot", "Sí, en el catálogo interno figura como disponible: " + describeProductShort(prod) + ".")
-          window.Assistant.addMessage("bot", FAMILY_PITCH + " Si te parece, con este producto como base podemos sumar los complementos que te falten y dejar armado el pedido.")
-          showClosingCta()
-          return
-        }
-      }
-
-      const recs = window.Assistant.recommendProducts(text)
-      if (!recs.length) {
-        window.Assistant.addMessage("bot", "Con lo que me cuentas no encontré algo claro en el catálogo. Prueba diciéndome qué ambiente o instalación quieres armar (por ejemplo: tablero para casa, acometida de servicio, cambio de grifería de baño).")
-        return
-      }
-      window.Assistant.addMessage("bot", "Según lo que me dices, estas opciones podrían encajar bien:")
-      recs.forEach(p => window.Assistant.addProductCard(p))
-      window.Assistant.addMessage("bot", FAMILY_PITCH + " Si me cuentas un poco más de la instalación (distancias, cantidad de puntos, tipo de ambiente), te ayudo a completar el pedido y dejar todo listo para la cotización.")
-      showClosingCta()
-    }
-
-    // New helper to check FAQs within landing context if needed
-    // But since customHandler calls handleAssistantFlow, we can add FAQ check there or rely on default
-    // Currently, if handleAssistantFlow returns nothing, it might fall through.
-    // We should make handleAssistantFlow return 'true' if it handled it, or 'false' if it didn't.
-    
     async function handleAssistantFlow(text) {
-      const lower = text.toLowerCase()
+      const cleanText = text.trim()
+      if (!cleanText) return true
 
-      // 0. Consultar al Cerebro Central PRIMERO (para FAQs y Respuestas Inteligentes)
-      // Esto asegura que si el usuario pregunta "¿Dónde están?" responda igual que en WhatsApp
-      // A menos que estemos esperando datos específicos (como el Nombre o la Zona)
-      
-      const isWaitingData = ["welcome", "segment", "zone_ask", "zone_ccs", "zone_int", "need_ask"].includes(leadState.stage)
-      // Permitir preguntas generales incluso si estamos esperando datos, si es una pregunta clara
-      const isQuestion = text.includes("?") || /dond|ubic|precio|horario|envio/.test(lower)
-      
-      if (!isWaitingData || isQuestion) {
-          const serverRes = await window.Assistant.askServer(text)
-          if (serverRes.type === "faq") {
-             window.Assistant.addMessage("bot", serverRes.text)
-             // No avanzamos el estado del lead, solo respondemos la duda
-             return true
+      if (leadState.stage === "check_phone") {
+        const digits = cleanText.replace(/\D/g, "")
+        
+        if (digits.length < 7) {
+          leadState.initialQuery = cleanText
+          window.Assistant.addMessage("bot", "Para consultar inventario y precios en tiempo real, ingresa tu número de WhatsApp o celular:")
+          return true
+        }
+
+        leadState.phone = digits
+        window.Assistant.addMessage("bot", "Verificando acceso al portal...")
+
+        try {
+          const res = await fetch("/api/auth/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: digits, sessionId: getSessionId() })
+          })
+          const data = await res.json()
+
+          if (data.exists && data.data) {
+            leadState.isRegistered = true
+            leadState.name = data.data.nombre || "Cliente"
+            leadState.stage = "ready"
+
+            window.Assistant.addMessage("bot", `¡Hola de nuevo, ${leadState.name}! Acceso al portal verificado.`)
+            
+            if (leadState.initialQuery) {
+              await processProductQuery(leadState.initialQuery)
+              leadState.initialQuery = ""
+            } else {
+              window.Assistant.addMessage("bot", "¿Qué material o producto estás buscando hoy?")
+            }
+            return true
           }
+        } catch (e) {}
+
+        leadState.stage = "ask_name"
+        window.Assistant.addMessage("bot", "Te damos la bienvenida a EMBAIR. Para darte de alta en el portal, ¿cuál es tu nombre y apellido?")
+        return true
       }
-      
-      // If we are in specific stages, we trap the input.
-      // If stage is 'open' or 'product_search', we might want to allow FAQs.
-      
-      if (leadState.stage === "welcome") {
-        leadState.name = text
-        leadState.stage = "segment"
-        window.Assistant.addMessage("bot", `Gusto en saludarte ${leadState.name}. ¿Qué tipo de cliente eres?`)
+
+      if (leadState.stage === "ask_name") {
+        leadState.name = cleanText
+        leadState.stage = "ask_segment"
+        window.Assistant.addMessage("bot", `Gusto en saludarte, ${leadState.name}. ¿Qué tipo de cliente eres?`)
         addSegmentButtons()
         return true
       }
-      
-      if (leadState.stage === "segment") {
-        leadState.segmentType = text
-        leadState.stage = "zone_ask"
-        window.Assistant.addMessage("bot", "Entendido. ¿Desde dónde nos escribes? (Selecciona o escribe)")
-        addZoneOriginButtons()
-        return true
-      }
 
-      if (leadState.stage === "zone_ask") {
-        if (text === "__ZONA_CCS__") {
-          leadState.stage = "zone_ccs"
-          window.Assistant.addMessage("bot", "¿En qué zona de Caracas?")
-          addCaracasZoneButtons()
-        } else if (text === "__ZONA_INT__") {
-          leadState.stage = "zone_int"
-          window.Assistant.addMessage("bot", "¿De qué estado?")
-          addStateZoneButtons()
+      if (leadState.stage === "ask_segment") {
+        leadState.segmentType = cleanText
+        leadState.stage = "ready"
+
+        await saveLead()
+
+        window.Assistant.addMessage("bot", "¡Registro completado exitosamente!")
+
+        if (leadState.initialQuery) {
+          await processProductQuery(leadState.initialQuery)
+          leadState.initialQuery = ""
         } else {
-           leadState.zone = text
-           leadState.stage = "need_ask"
-           window.Assistant.addMessage("bot", `Perfecto. ¿Qué materiales estás buscando hoy?`)
-           addNeedFamilyButtons()
+          window.Assistant.addMessage("bot", "¿En qué productos puedo ayudarte?")
         }
         return true
       }
-      
-      if (leadState.stage === "zone_ccs" || leadState.stage === "zone_int") {
-        leadState.zone = text
-        leadState.stage = "need_ask"
-        window.Assistant.addMessage("bot", `Gracias. ¿Qué materiales estás buscando?`)
-        addNeedFamilyButtons()
+
+      if (leadState.stage === "ready") {
+        await processProductQuery(cleanText)
         return true
       }
 
-      if (leadState.stage === "need_ask") {
-        leadState.need = text
-        leadState.stage = "contact"
-        window.Assistant.addMessage("bot", "¿A qué número de WhatsApp o correo te podemos enviar la cotización?")
-        return true
-      }
-
-      if (leadState.stage === "contact") {
-        leadState.contact = text
-        leadState.stage = "product_search" // Open mode
-        
-        // Save Lead
-        try {
-            const contact = String(leadState.contact || "").trim()
-            const looksLikeEmail = contact.includes("@")
-            await fetch("/api/public/lead", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    nombre: leadState.name,
-                    email: looksLikeEmail ? contact : "",
-                    celular: looksLikeEmail ? "" : contact,
-                    tipo: leadState.segmentType,
-                    zona: leadState.zone,
-                    interesado: true,
-                    source: leadState.source || "landing_assistant",
-                    sessionId: getSessionId()
-                })
-            })
-            leadState.sentClient = true
-        } catch {}
-
-        window.Assistant.addMessage("bot", "¡Gracias! Hemos registrado tus datos. Ahora, dime qué producto buscas específicamente (ej: cable #12, tubería pvc) o revisa nuestro catálogo.")
-        addCatalogButton()
-        addPortalButton()
-        return true
-      }
-      
-      // If we are here, we are in 'product_search' or free mode.
-      // Return false so the default assistant logic (FAQs + Search) takes over.
       return false
     }
 
-    async function updateHeroCatalogLink() {
-      if (!heroCatalogCta) return
-      try {
-        const res = await fetch("/api/public/catalogs")
-        if (!res.ok) return
-        const list = await res.json()
-        if (!Array.isArray(list) || list.length === 0) return
-        const first = list[0]
-        if (!first || !first.url) return
-        const href = "/download.html?pdf=" + encodeURIComponent(first.url) + "&catalogId=" + encodeURIComponent(first.id)
-        heroCatalogCta.href = href
-      } catch {}
-    }
-
-    // Initialization
-    document.addEventListener("DOMContentLoaded", async () => {
-        await loadAssistantProducts()
-        
-        window.Assistant.init({
-      customHandler: async (text, assistant) => {
-        trackEvent("assistant_message", { stage: leadState.stage, segmentType: leadState.segmentType || "" })
-        return handleAssistantFlow(text)
-      },
-      onInit: (assistant) => {
-        const params = new URLSearchParams(window.location.search)
-        const rawSource = params.get("source") || params.get("utm_source") || ""
-        const rawName = params.get("name") || ""
-        const rawPhone = params.get("phone") || ""
-
-        if (rawSource) leadState.source = rawSource
-        else leadState.source = "assistant_landing"
-        
-        trackEvent("landing_visit", { path: window.location.pathname, query: window.location.search || "" })
-        
-        // Bot Integration Logic: If coming from Bot with Name
-        if (rawSource === 'bot' && rawName) {
-            leadState.name = rawName
-            leadState.contact = rawPhone
-            const rawType = params.get("type") || ""
-            
-            if (rawType) {
-                 leadState.segmentType = rawType
-                 leadState.stage = "zone_ask" // Skip name and segment
-            } else {
-                 leadState.stage = "segment" // Skip name
-            }
-            
-            // Auto open
-            setTimeout(() => assistant.open(), 500)
-            
-            // Override open
-            const originalOpen = assistant.open.bind(assistant)
-            assistant.open = function() {
-                originalOpen()
-                if (assistant.elements.messages && !assistant.elements.messages.dataset.landingInit) {
-                     if (rawType) {
-                         window.Assistant.addMessage("bot", `Hola ${rawName}, bienvenido de nuevo. Veo que eres ${rawType}. Para coordinar el despacho, ¿desde dónde nos escribes?`)
-                         addZoneOriginButtons()
-                     } else {
-                         window.Assistant.addMessage("bot", `Hola ${rawName}, bienvenido al portal. Veo que vienes del chat. Para asignarte un vendedor y precios correctos, ¿qué tipo de cliente eres?`)
-                         addSegmentButtons()
-                     }
-                     assistant.elements.messages.dataset.landingInit = "1"
-                     assistant.elements.messages.dataset.init = "1" 
-                     trackEvent("assistant_open_bot", { name: rawName })
-                }
-            }
-            return
-        }
-        
-        if (params.get("assistant") === "1") {
-            assistant.open()
-        }
-
-        // Override open to track event and show custom welcome (Normal Flow)
-        const originalOpen = assistant.open.bind(assistant)
-        assistant.open = function() {
+    document.addEventListener("DOMContentLoaded", () => {
+      window.Assistant.init({
+        customHandler: async (text, assistant) => {
+          trackEvent("assistant_message", { stage: leadState.stage })
+          return await handleAssistantFlow(text)
+        },
+        onInit: (assistant) => {
+          const originalOpen = assistant.open.bind(assistant)
+          assistant.open = function() {
             originalOpen()
             if (assistant.elements.messages && !assistant.elements.messages.dataset.landingInit) {
-                 window.Assistant.addMessage("bot", "Hola, soy el asistente virtual de EMBAIR. Para ayudarte con materiales y cotización, empecemos por tu nombre.")
-                 assistant.elements.messages.dataset.landingInit = "1"
-                 // Mark generic init as done so generic welcome doesn't show
-                 assistant.elements.messages.dataset.init = "1" 
-                 trackEvent("assistant_open", { path: window.location.pathname })
+              window.Assistant.addMessage("bot", "Hola, bienvenido al asistente de EMBAIR. Para consultar precios y disponibilidad, ingresa tu número de WhatsApp:")
+              assistant.elements.messages.dataset.landingInit = "1"
+              assistant.elements.messages.dataset.init = "1"
+              trackEvent("assistant_open", { path: window.location.pathname })
             }
+          }
         }
-      }
-        })
-        
-        updateHeroCatalogLink()
+      })
     })
   </script>
   <script src="/js/config-loader.js"></script>

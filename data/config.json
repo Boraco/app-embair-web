@@ -60,5 +60,29 @@
   "address": "Caracas-Venezuela\nMunicpio Baruta",
   "phone": "+584242240909",
   "email": "ventas.embair@gmail.com",
-  "mapUrl": ""
+  "mapUrl": "",
+  "portalCatalogOrder": {
+    "categories": {
+      "Electricidad": 0,
+      "Iluminación": 0,
+      "Plomería": 0,
+      "MAT. ELECTRICO": 0
+    },
+    "subcategories": {
+      "Electricidad": {
+        "ACCESORIOS": 8,
+        "BREAKERS": 4,
+        "Cables": 7,
+        "CINTA ELECTRICA": 9,
+        "CONDUIT": 2,
+        "EMT": 3,
+        "SPT": 1,
+        "TABLEROS": 4,
+        "THHN": 6,
+        "TOMA E INTERRUPTORES": 10,
+        "TOMAS E INTERRUPTORES": 11
+      },
+      "General": {}
+    }
+  }
 }

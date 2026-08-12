@@ -26,13 +26,6 @@ app.use((err, req, res, next) => {
   return next(err)
 })
 
-// const limiter = rateLimit({
-//   windowMs: 60 * 1000,
-//   max: 60,
-//   validate: { xForwardedForHeader: false }
-// })
-// app.use(limiter)
-
 function requireAdmin(req, res, next) {
   const user = process.env.ADMIN_USER || "admin"
   const pass = process.env.ADMIN_PASS || "admin"
@@ -116,8 +109,6 @@ app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "admin.html"))
 })
 
-// Endpoints de agenda y clientes deshabilitados temporalmente
-
 const uploadDir = path.join(__dirname, "..", "public", "uploads")
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
 
@@ -130,11 +121,12 @@ const catalogsFile = path.join(dataDir, "catalogs.json")
 const eventsFile = path.join(dataDir, "events.json")
 const leadsFile = path.join(dataDir, "leads.json")
 const ordersFile = path.join(dataDir, "orders.json")
+const cartsFile = path.join(dataDir, "carts.json")
+const tasksFile = path.join(dataDir, "tasks.json")
 
 // Analytics & Events
 app.get("/api/events", requireAdmin, (req, res) => {
   const data = readData(eventsFile)
-  // Sort by date desc
   data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   res.json(data)
 })
@@ -153,7 +145,6 @@ app.post("/api/events", (req, res) => {
   }
   const events = readData(eventsFile)
   events.unshift(event)
-  // Keep last 1000 events
   if (events.length > 1000) events.length = 1000
   writeData(eventsFile, events)
   res.json({ ok: true })
@@ -303,7 +294,6 @@ const botConfigFile = path.join(dataDir, "bot-config.json")
 
 app.get("/api/config", (req, res) => {
   let data = readData(configFile)
-  // Return default if empty or array
   if (Array.isArray(data)) data = {}
   if (!data.logoUrl) data.logoUrl = ""
   res.json(data)
@@ -349,7 +339,6 @@ function findMatches(text, products, limit = 5) {
     const desc = String(p.desc || "").toLowerCase()
     const tags = (Array.isArray(p.tags) ? p.tags.join(" ") : String(p.tags || "")).toLowerCase()
     
-    // Exact code match
     if (p.code && String(p.code).toLowerCase() === q) {
       return [{ product: p, score: 100 }]
     }
@@ -370,10 +359,8 @@ function findMatches(text, products, limit = 5) {
       if (wordFound) foundWords++
     }
     
-    // Bonus for matching multiple words
     if (foundWords === words.length) score += 20
     
-    // Threshold to consider it a match
     if (score > 5) {
       matches.push({ product: p, score })
     }
@@ -396,8 +383,6 @@ app.get("/api/bot/status", requireAdmin, (req, res) => {
 
 app.post("/api/bot/control", requireAdmin, (req, res) => {
   const { action, type } = req.body
-  // action: "start" | "stop"
-  // type: "wa" | "meli"
 
   const botPath = path.join(__dirname, "..", "bot_ventas", "Bot Asistente Ventas")
 
@@ -406,7 +391,6 @@ app.post("/api/bot/control", requireAdmin, (req, res) => {
       if (botProcessWA) return res.json({ ok: true, message: "already_running" })
       
       console.log("Starting WA Bot at:", botPath)
-      // Usamos node directo para evitar problemas de permisos con npm run
       botProcessWA = spawn("node", ["whatsapp_bot.js"], { cwd: botPath, shell: true })
       
       botProcessWA.stdout.on("data", (data) => console.log(`[WA-BOT]: ${data}`))
@@ -423,7 +407,6 @@ app.post("/api/bot/control", requireAdmin, (req, res) => {
        if (botProcessMP) return res.json({ ok: true, message: "already_running" })
        
        console.log("Starting Marketplace Bot at:", botPath)
-       // Usamos node directo para evitar problemas de permisos con npm run
        botProcessMP = spawn("node", ["marketplace_bot.js"], { cwd: botPath, shell: true })
        
        botProcessMP.stdout.on("data", (data) => console.log(`[MP-BOT]: ${data}`))
@@ -439,7 +422,6 @@ app.post("/api/bot/control", requireAdmin, (req, res) => {
   
   if (action === "stop") {
     if (type === "wa" && botProcessWA) {
-      // Use taskkill to ensure tree is killed on Windows
       spawn("taskkill", ["/pid", botProcessWA.pid, "/f", "/t"])
       botProcessWA = null
       return res.json({ ok: true })
@@ -456,12 +438,11 @@ app.post("/api/bot/control", requireAdmin, (req, res) => {
 
 app.get("/api/bot/config", requireAdmin, (req, res) => {
   const data = readData(botConfigFile)
-  // Default values
   const def = { 
     connections: { wa: false, meli: false }, 
     forcePortal: false, 
     training: "",
-    showPrices: true // Default to showing prices
+    showPrices: true
   }
   res.json({ ...def, ...data })
 })
@@ -472,6 +453,7 @@ app.post("/api/bot/config", requireAdmin, (req, res) => {
   res.json({ ok: true })
 })
 
+// --- ENDPOINT PRINCIPAL DE CHAT Y BOTS ---
 app.post("/api/bot/chat", (req, res) => {
   const { text: message, sender, name } = req.body
   
@@ -482,34 +464,31 @@ app.post("/api/bot/chat", (req, res) => {
   const botConfig = readData(botConfigFile)
   const products = readData(productsFile)
   
-  // --- Client Recognition ---
-  let clientName = ""
-  let clientType = "" // e.g. "Ferretería", "Particular"
-  let isClient = false // true if they have bought (in clients.json)
-  let isLead = false   // true if they are just a lead (in leads.json)
+  let clientName = name || ""
+  let clientType = ""
+  let isClient = false
+  let isLead = false
   
   if (sender) {
       const cleanSender = String(sender).replace(/\D/g, "")
-      // Check Clients
       const clients = readData(clientsFile)
       const foundClient = clients.find(c => String(c.celular || "").replace(/\D/g, "").includes(cleanSender))
       if (foundClient) {
-          clientName = foundClient.nombre || ""
+          clientName = foundClient.nombre || clientName
           clientType = foundClient.tipo || ""
           isClient = true
       } else {
-          // Check Leads
           const leads = readData(leadsFile)
           const foundLead = leads.find(l => String(l.celular || "").replace(/\D/g, "").includes(cleanSender))
           if (foundLead) {
-              clientName = foundLead.nombre || ""
+              clientName = foundLead.nombre || clientName
               clientType = foundLead.tipo || ""
               isLead = true
           }
       }
   }
 
-  // 1. Check FAQs first
+  // 1. FAQs
   const faqs = Array.isArray(config.faqs) ? config.faqs : []
   const bestFaq = faqs.find(f => {
       const q = f.question.toLowerCase()
@@ -519,31 +498,21 @@ app.post("/api/bot/chat", (req, res) => {
   
   if (bestFaq) {
     let ans = bestFaq.answer
-    // Personalize greeting if detected
     if (clientName && (text.includes("hola") || text.includes("buenos"))) {
-        if (isClient) {
-            ans = `Hola ${clientName}, gracias por contactarnos nuevamente. ${ans}`
-        } else {
-            ans = `Hola ${clientName}, ${ans}`
-        }
+        ans = `Hola ${clientName}, ${ans}`
     }
     return res.json({ type: "faq", text: ans })
   }
   
-  // 2. Check Force Portal (Sales Bot Mode)
+  // 2. Modo Forzar Portal
   if (botConfig.forcePortal) {
-    let msg = botConfig.training || "Hola, para brindarte una mejor atención y cotización personalizada, por favor indícame tu Nombre y Apellido."
+    let msg = botConfig.training || "Hola, para brindarte la lista de precios y cotización personalizada, por favor ingresa al portal."
     let linkParams = "?source=bot"
     
     if (clientName) {
-       linkParams += `&name=${encodeURIComponent(clientName)}&phone=${encodeURIComponent(sender)}`
+       linkParams += `&name=${encodeURIComponent(clientName)}&phone=${encodeURIComponent(sender || "")}`
        if (clientType) linkParams += `&type=${encodeURIComponent(clientType)}`
-       
-       if (isClient) {
-           msg = `Hola ${clientName}, es un gusto saludarte de nuevo. Un asesor revisará tu historial y te atenderá en breve.`
-       } else {
-           msg = `Hola ${clientName}, un asesor te atenderá en breve para retomar tu consulta.`
-       }
+       msg = `Hola ${clientName}, puedes consultar el catálogo completo e inventario en tiempo real ingresando aquí:`
     }
     
     return res.json({
@@ -553,22 +522,21 @@ app.post("/api/bot/chat", (req, res) => {
     })
   }
 
-  // 3. Check Products (Multi-match)
-  // Use findMatches instead of findBestMatch
+  // 3. Búsqueda de Productos con Stock y Precio
   const matches = findMatches(text, products)
-  const showPrice = botConfig.showPrices !== false // Default true
+  const showPrice = botConfig.showPrices !== false
 
   if (matches.length > 0) {
     if (matches.length === 1) {
-        // Single Match
         const p = matches[0].product
-        const stock = p.available || "Consultar"
-        const priceText = showPrice ? ` Precio: $${p.price}.` : ""
+        const stockStatus = (p.available === "Disponible" || p.available === true) ? "Disponible en stock" : (p.available || "Consultar disponibilidad")
+        const priceFormatted = Number(p.price || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        const priceText = showPrice ? `\n• Precio: $${priceFormatted}` : ""
         
-        let responseText = `Encontré: ${p.name}.${priceText} Disponibilidad: ${stock}.`
-        if (clientName && (text.includes("hola") || text.includes("precio"))) {
-             if (isClient) responseText = `Hola ${clientName}, qué bueno verte. ${responseText}`
-             else responseText = `Hola ${clientName}, ${responseText}`
+        let responseText = `*${p.name}*${priceText}\n• Stock: ${stockStatus}`
+        
+        if (clientName && (text.includes("hola") || text.includes("precio") || text.includes("cuanto") || text.includes("cuánto"))) {
+             responseText = `Hola ${clientName}, aquí tienes la información:\n\n${responseText}`
         }
         
         return res.json({
@@ -578,32 +546,31 @@ app.post("/api/bot/chat", (req, res) => {
                 id: p.id,
                 name: p.name,
                 price: p.price,
-                stock,
+                stock: stockStatus,
                 link: `/producto/${p.id}`
             }
         })
     } else {
-        // Multiple Matches
-        let responseText = "Encontré estas opciones:\n"
-        if (clientName) {
-            if (isClient) responseText = `Hola ${clientName}, encontré estas opciones para ti:\n`
-            else responseText = `Hola ${clientName}, encontré estas opciones:\n`
-        }
+        let responseText = clientName ? `Hola ${clientName}, encontré estas opciones de materiales:\n\n` : "Encontré las siguientes opciones:\n\n"
         const items = []
         
         matches.forEach(m => {
             const p = m.product
-            const priceText = showPrice ? ` - $${p.price}` : ""
-            responseText += `• *${p.name}*${priceText}\n`
+            const stockStatus = (p.available === "Disponible" || p.available === true) ? "Stock" : "Agotado/Consultar"
+            const priceFormatted = Number(p.price || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            const priceText = showPrice ? ` - *$${priceFormatted}*` : ""
+            
+            responseText += `• *${p.name}*${priceText} (${stockStatus})\n`
             items.push({
                 id: p.id,
                 name: p.name,
                 price: p.price,
+                stock: p.available,
                 link: `/producto/${p.id}`
             })
         })
         
-        responseText += "\n¿Te interesa alguno de estos?"
+        responseText += "\n¿Deseas agregar alguno de estos a tu lista o ver más detalles?"
         
         return res.json({
             type: "multiple_products",
@@ -613,11 +580,10 @@ app.post("/api/bot/chat", (req, res) => {
     }
   }
 
-  // 4. Fallback / Default
-  let fallback = "Lo siento, no encontré información sobre eso. ¿Podrías ser más específico o preguntar por un producto?"
-  // If it's just a greeting like "Hola", we should probably respond nicely even if no FAQ matched
-  if (text === "hola" || text === "buenas") {
-      fallback = clientName ? `Hola ${clientName}, ¿en qué puedo ayudarte hoy?` : "Hola, ¿en qué puedo ayudarte hoy?"
+  // 4. Mensajes por defecto / Saludos
+  let fallback = "Lo siento, no encontré ese material en el catálogo rápido. Indícame el código, medida o nombre exacto del producto (ej: Cable 12, Breaker 20A, Tubo PVC)."
+  if (text === "hola" || text === "buenas" || text === "buenos dias" || text === "buenas noches" || text === "buenas tardes") {
+      fallback = clientName ? `Hola ${clientName}, ¿qué materiales o insumos estás buscando hoy?` : "Hola, bienvenido a EMBAIR. ¿Qué materiales o insumos estás buscando hoy?"
   }
   
   return res.json({
@@ -626,16 +592,11 @@ app.post("/api/bot/chat", (req, res) => {
   })
 })
 
-// Webhook for Bot Messages (Logging/Dashboard)
 app.post("/api/chat/webhook", (req, res) => {
-  // TODO: Save message to CRM/Dashboard
-  // console.log("Webhook received:", req.body)
   res.json({ ok: true })
 })
 
-// Endpoint for pending replies (Polling)
 app.get("/api/chat/pending-replies/:platform", (req, res) => {
-  // Returns empty list for now. In future, this would fetch from DB/Queue
   res.json([])
 })
 
@@ -661,16 +622,14 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
     pdfUrl,
     total: emails.length,
     sent: 0,
-    opens: {}, // email -> timestamp
-    clicks: {} // email -> timestamp
+    opens: {},
+    clicks: {}
   }
 
-  // Save initial
   const campaigns = readData(campaignsFile)
   campaigns.unshift(campaign)
   writeData(campaignsFile, campaigns)
 
-  // Configure Transporter
   let transporter
   if (smtpConfig && smtpConfig.host) {
     transporter = nodemailer.createTransport({
@@ -686,12 +645,10 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
       }
     })
 
-    // Verify SMTP connection before proceeding
     try {
       await transporter.verify()
     } catch (error) {
       console.error("SMTP Error:", error)
-      // Remove the failed campaign entry since we are aborting
       const currentCampaigns = readData(campaignsFile)
       const filtered = currentCampaigns.filter(x => x.id !== campaignId)
       writeData(campaignsFile, filtered)
@@ -704,7 +661,6 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
     }
 
   } else {
-    // Simulation / Log mode
     console.log("No SMTP config provided. Simulating emails.")
     transporter = {
       sendMail: async (opts) => {
@@ -714,10 +670,8 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
     }
   }
 
-  // Send in background (don't wait for all)
   const ip = getLocalIp()
   const port = process.env.PORT || 3002
-  // Use provided publicUrl (ngrok) or fallback to local IP
   let baseUrl = publicUrl ? publicUrl.replace(/\/$/, "") : `http://${ip}:${port}`
   
   res.json({ ok: true, id: campaignId, status: "sending_started" })
@@ -758,7 +712,6 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
     }
   }
   
-  // Update sent count
   const currentCampaigns = readData(campaignsFile)
   const c = currentCampaigns.find(x => x.id === campaignId)
   if (c) {
@@ -778,7 +731,6 @@ app.get("/api/track/open/:id/:email", (req, res) => {
       writeData(campaignsFile, campaigns)
     }
   }
-  // Transparent 1x1 GIF
   const img = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64")
   res.writeHead(200, {
     "Content-Type": "image/gif",
@@ -786,8 +738,6 @@ app.get("/api/track/open/:id/:email", (req, res) => {
   })
   res.end(img)
 })
-
-
 
 app.get("/api/leads", requireAdmin, (req, res) => {
   const list = readData(leadsFile)
@@ -988,7 +938,6 @@ app.post("/api/public/client", (req, res) => {
   const ip = req.ip
   const ua = req.headers["user-agent"] || ""
   const cleanDeviceId = String(deviceId || "").trim()
-  const cleanSessionId = String(sessionId || "").trim()
   const safeNombre = nombre && String(nombre).trim() ? nombre : (client && client.nombre) || email.split("@")[0] || "Sin nombre"
 
   if (client) {
@@ -1046,9 +995,6 @@ app.post("/api/public/client", (req, res) => {
       item.lastDownloadEmail = email
       writeData(catalogsFile, list)
     }
-  }
-
-  if (catalogId) {
     const events = readData(eventsFile)
     events.push({
       id: Date.now(),
@@ -1128,66 +1074,6 @@ app.post("/api/portal/register", async (req, res) => {
   })
   const trimmed = events.slice(-5000)
   writeData(eventsFile, trimmed)
-  try {
-    const leads = readData(leadsFile)
-    let updated = false
-    const normPhone = (v) => String(v || "").replace(/\D+/g, "")
-    const emailLower = email ? String(email).toLowerCase() : ""
-    const phoneKey = normPhone(celular)
-    leads.forEach(l => {
-      const leadEmail = l.email ? String(l.email).toLowerCase() : ""
-      const leadPhone = normPhone(l.celular)
-      if (l.convertedToClient) return
-      if (emailLower && leadEmail && emailLower === leadEmail) {
-        l.convertedToClient = true
-        l.clientId = client.id
-        l.convertedAt = now
-        updated = true
-        return
-      }
-      if (phoneKey && leadPhone && phoneKey === leadPhone) {
-        l.convertedToClient = true
-        l.clientId = client.id
-        l.convertedAt = now
-        updated = true
-      }
-    })
-    if (updated) {
-      const trimmedLeads = leads.slice(-5000)
-      writeData(leadsFile, trimmedLeads)
-    }
-  } catch {}
-  const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || ""
-  const smtpHost = process.env.SMTP_HOST || ""
-  const smtpUser = process.env.SMTP_USER || ""
-  const smtpPass = process.env.SMTP_PASS || ""
-  if (adminEmail && smtpHost && smtpUser && smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: Number(process.env.SMTP_PORT || 587),
-        secure: false,
-        auth: { user: smtpUser, pass: smtpPass },
-        tls: { rejectUnauthorized: false }
-      })
-      const subject = "Nueva solicitud de acceso al portal EMBAIR"
-      const lines = []
-      lines.push("Nueva solicitud de acceso al portal:")
-      lines.push(`Nombre: ${nombre} ${apellido || ""}`.trim())
-      lines.push(`Email: ${email}`)
-      lines.push(`Celular: ${celular}`)
-      if (zona) lines.push(`Zona: ${zona}`)
-      if (tipo) lines.push(`Tipo: ${tipo}`)
-      lines.push(`ID cliente: ${client.id}`)
-      await transporter.sendMail({
-        from: smtpUser,
-        to: adminEmail,
-        subject,
-        text: lines.join("\n")
-      })
-    } catch (e) {
-    }
-  }
 
   return res.json({ ok: true })
 })
@@ -1205,7 +1091,6 @@ app.post("/api/auth/check", (req, res) => {
   const ip = req.ip
   const ua = req.headers["user-agent"] || ""
   
-  // Check Clients
   const clients = readData(clientsFile)
   const client = clients.find(c => String(c.celular || "").replace(/\D/g, "").includes(cleanPhone))
   
@@ -1255,7 +1140,6 @@ app.post("/api/auth/check", (req, res) => {
     })
   }
   
-  // Check Leads (Optional: if you want to allow leads to enter as "returning")
   const leads = readData(leadsFile)
   const lead = leads.find(l => String(l.celular || "").replace(/\D/g, "").includes(cleanPhone))
   
@@ -1387,11 +1271,296 @@ app.post("/api/portal/login", (req, res) => {
   })
 })
 
-// --- CRM API ---
+function getClientFromRequest(req) {
+  try {
+    const auth = req.headers["x-client-auth"] || req.headers.authorization || ""
+    const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : auth
+    const decoded = Buffer.from(bearer || "", "base64").toString("utf8")
+    const parts = decoded.split(":")
+    if (parts.length < 2) return null
+    const clientId = Number(parts[0])
+    const email = String(parts[1] || "").toLowerCase()
+    if (!Number.isFinite(clientId) || !email) return null
+    const list = readData(clientsFile)
+    const c = list.find(x => Number(x.id) === clientId && String(x.email || "").toLowerCase() === email)
+    return c || null
+  } catch {
+    return null
+  }
+}
+
+function requireClient(req, res, next) {
+  const c = getClientFromRequest(req)
+  if (!c) return res.status(401).json({ error: "unauthorized_client" })
+  req.client = c
+  return next()
+}
+
+// --- CARTS (CLIENT) ---
+function getActiveCart(clientId) {
+  const carts = readData(cartsFile)
+  return carts.find(c => Number(c.clientId) === Number(clientId) && String(c.status || "active") === "active") || null
+}
+
+function ensureActiveCart(clientId) {
+  const carts = readData(cartsFile)
+  let cart = carts.find(c => Number(c.clientId) === Number(clientId) && String(c.status || "active") === "active")
+  const now = new Date().toISOString()
+  if (!cart) {
+    cart = {
+      id: Date.now().toString() + "-" + Math.random().toString(36).slice(2, 6),
+      clientId: Number(clientId),
+      status: "active",
+      items: [],
+      notes: "",
+      createdAt: now,
+      updatedAt: now
+    }
+    carts.push(cart)
+    writeData(cartsFile, carts)
+  }
+  return cart
+}
+
+function enrichCart(cart) {
+  if (!cart) return null
+  const products = readData(productsFile)
+  const items = Array.isArray(cart.items) ? cart.items : []
+  let subtotal = 0
+  const withProduct = items.map(i => {
+    const p = products.find(x => Number(x.id) === Number(i.productId)) || null
+    const unitPrice = Number(i.unitPrice ?? (p && p.price) ?? 0)
+    const qty = Math.max(1, Number(i.qty || 1))
+    subtotal += unitPrice * qty
+    return {
+      productId: Number(i.productId),
+      qty,
+      unitPrice,
+      name: p ? p.name : (i.name || "Producto"),
+      img: p ? (p.img || "") : (i.img || ""),
+      category: p ? (p.category || "") : ""
+    }
+  })
+  return { ...cart, items: withProduct, subtotal }
+}
+
+app.get("/api/client/cart", requireClient, (req, res) => {
+  const c = getActiveCart(req.client.id)
+  res.json({ ok: true, cart: enrichCart(c) })
+})
+
+app.post("/api/client/cart/item", requireClient, (req, res) => {
+  const { productId, qty } = req.body || {}
+  const pid = Number(productId)
+  const q = Math.max(1, Number(qty || 1))
+  if (!Number.isFinite(pid) || pid <= 0) return res.status(400).json({ error: "invalid_product" })
+  const carts = readData(cartsFile)
+  const cart = ensureActiveCart(req.client.id)
+  const idx = carts.findIndex(x => x.id === cart.id)
+  if (idx < 0) return res.status(500).json({ error: "cart_missing" })
+  const working = carts[idx]
+  const products = readData(productsFile)
+  const p = products.find(x => Number(x.id) === pid)
+  const item = (Array.isArray(working.items) ? working.items : []).find(i => Number(i.productId) === pid)
+  if (item) {
+    item.qty = q
+    if (p && p.price != null) item.unitPrice = Number(p.price)
+  } else {
+    if (!working.items) working.items = []
+    working.items.push({
+      productId: pid,
+      qty: q,
+      unitPrice: p && p.price != null ? Number(p.price) : 0,
+      name: p ? p.name : "",
+      img: p ? (p.img || "") : ""
+    })
+  }
+  working.updatedAt = new Date().toISOString()
+  writeData(cartsFile, carts)
+  const events = readData(eventsFile)
+  events.push({ id: Date.now().toString(), type: "cart_item_add", sessionId: "", email: req.client.email || "", meta: { productId: pid, qty: q, clientId: req.client.id }, createdAt: new Date().toISOString(), ip: req.ip })
+  writeData(eventsFile, events.slice(-5000))
+  res.json({ ok: true, cart: enrichCart(working) })
+})
+
+app.post("/api/client/cart/item/remove", requireClient, (req, res) => {
+  const { productId } = req.body || {}
+  const pid = Number(productId)
+  if (!Number.isFinite(pid) || pid <= 0) return res.status(400).json({ error: "invalid_product" })
+  const carts = readData(cartsFile)
+  const cart = getActiveCart(req.client.id)
+  if (!cart) return res.json({ ok: true, cart: null })
+  const idx = carts.findIndex(x => x.id === cart.id)
+  carts[idx].items = (carts[idx].items || []).filter(i => Number(i.productId) !== pid)
+  carts[idx].updatedAt = new Date().toISOString()
+  writeData(cartsFile, carts)
+  res.json({ ok: true, cart: enrichCart(carts[idx]) })
+})
+
+app.post("/api/client/cart/clear", requireClient, (req, res) => {
+  const carts = readData(cartsFile)
+  const cart = getActiveCart(req.client.id)
+  if (cart) {
+    const idx = carts.findIndex(x => x.id === cart.id)
+    carts[idx].items = []
+    carts[idx].updatedAt = new Date().toISOString()
+    writeData(cartsFile, carts)
+    return res.json({ ok: true, cart: enrichCart(carts[idx]) })
+  }
+  res.json({ ok: true, cart: null })
+})
+
+app.post("/api/client/cart/order", requireClient, (req, res) => {
+  const carts = readData(cartsFile)
+  const cart = getActiveCart(req.client.id)
+  if (!cart || !cart.items || cart.items.length === 0) {
+    return res.status(400).json({ error: "empty_cart" })
+  }
+  const idx = carts.findIndex(x => x.id === cart.id)
+  const enriched = enrichCart(cart)
+  const total = Number(enriched.subtotal || 0)
+  const now = new Date().toISOString()
+  const order = {
+    id: Date.now().toString(),
+    createdAt: now,
+    updatedAt: now,
+    status: "new",
+    client: {
+      id: req.client.id,
+      name: `${req.client.nombre || ""} ${req.client.apellido || ""}`.trim(),
+      email: req.client.email || "",
+      phone: req.client.celular || "",
+      zona: req.client.zona || "",
+      tipo: req.client.tipo || "",
+      address: req.client.direccion || "",
+      entrega: req.client.entrega || ""
+    },
+    items: enriched.items.map(i => ({
+      productId: i.productId,
+      name: i.name,
+      qty: i.qty,
+      unitPrice: i.unitPrice,
+      subtotal: i.qty * i.unitPrice
+    })),
+    total,
+    source: "portal_cart",
+    cartId: cart.id,
+    paymentMethod: "",
+    deliveryMethod: req.body && req.body.deliveryMethod ? String(req.body.deliveryMethod) : "",
+    notes: req.body && req.body.notes ? String(req.body.notes) : (cart.notes || "")
+  }
+  const orders = readData(ordersFile)
+  orders.unshift(order)
+  writeData(ordersFile, orders)
+  carts[idx].status = "ordered"
+  carts[idx].orderedAt = now
+  carts[idx].orderId = order.id
+  carts[idx].updatedAt = now
+  writeData(cartsFile, carts)
+  const clients = readData(clientsFile)
+  const ci = clients.findIndex(x => Number(x.id) === Number(req.client.id))
+  if (ci >= 0) {
+    clients[ci].pedidos = (typeof clients[ci].pedidos === "number" ? clients[ci].pedidos : 0) + 1
+    clients[ci].updated_at = now
+    writeData(clientsFile, clients)
+  }
+  const events = readData(eventsFile)
+  events.push({ id: Date.now().toString(), type: "order_from_cart", sessionId: "", email: req.client.email || "", meta: { orderId: order.id, total, clientId: req.client.id }, createdAt: now, ip: req.ip })
+  writeData(eventsFile, events.slice(-5000))
+  res.json({ ok: true, orderId: order.id, order })
+})
+
+// --- CRM / ADMIN ---
+app.get("/api/admin/clients/:id/cart", requireAdmin, (req, res) => {
+  const clientId = Number(req.params.id)
+  if (!Number.isFinite(clientId)) return res.status(400).json({ error: "invalid_client" })
+  const cart = getActiveCart(clientId)
+  res.json({ ok: true, cart: enrichCart(cart) })
+})
+
+app.get("/api/admin/carts", requireAdmin, (req, res) => {
+  const carts = readData(cartsFile)
+  const { abandoned } = req.query
+  const nowMs = Date.now()
+  const result = carts
+    .filter(c => {
+      if (!c) return false
+      if (String(abandoned) === "true") {
+        if (String(c.status || "active") !== "active") return false
+        const h = Number(c.updatedAt ? new Date(c.updatedAt).getTime() : 0)
+        return nowMs - h > 20 * 60 * 60 * 1000
+      }
+      return true
+    })
+    .map(enrichCart)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+  res.json({ ok: true, carts: result })
+})
+
+app.get("/api/admin/tasks", requireAdmin, (req, res) => {
+  const list = readData(tasksFile)
+  const { clientId } = req.query
+  let out = list.slice()
+  if (clientId) out = out.filter(t => Number(t.clientId) === Number(clientId))
+  out.sort((a, b) => {
+    const da = a.dueAt ? new Date(a.dueAt).getTime() : Infinity
+    const db = b.dueAt ? new Date(b.dueAt).getTime() : Infinity
+    if (da !== db) return da - db
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+  res.json({ ok: true, tasks: out })
+})
+
+app.post("/api/admin/tasks", requireAdmin, (req, res) => {
+  const { title, clientId, leadId, dueAt, assignee, notes, kind } = req.body || {}
+  if (!title || !String(title).trim()) return res.status(400).json({ error: "title_required" })
+  const tasks = readData(tasksFile)
+  const now = new Date().toISOString()
+  const task = {
+    id: Date.now().toString() + "-" + Math.random().toString(36).slice(2, 6),
+    title: String(title).trim(),
+    clientId: clientId ? Number(clientId) : null,
+    leadId: leadId ? Number(leadId) : null,
+    kind: String(kind || "general"),
+    dueAt: dueAt ? String(dueAt) : "",
+    assignee: String(assignee || ""),
+    notes: String(notes || ""),
+    done: false,
+    createdAt: now,
+    updatedAt: now
+  }
+  tasks.push(task)
+  writeData(tasksFile, tasks)
+  res.json({ ok: true, task })
+})
+
+app.put("/api/admin/tasks/:id", requireAdmin, (req, res) => {
+  const { id } = req.params
+  const tasks = readData(tasksFile)
+  const t = tasks.find(x => x.id === id)
+  if (!t) return res.status(404).json({ error: "not_found" })
+  const fields = ["title", "dueAt", "assignee", "notes", "done", "kind"]
+  for (const f of fields) {
+    if (Object.prototype.hasOwnProperty.call(req.body || {}, f)) t[f] = req.body[f]
+  }
+  t.updatedAt = new Date().toISOString()
+  writeData(tasksFile, tasks)
+  res.json({ ok: true, task: t })
+})
+
+app.delete("/api/admin/tasks/:id", requireAdmin, (req, res) => {
+  const { id } = req.params
+  const tasks = readData(tasksFile)
+  const before = tasks.length
+  const filtered = tasks.filter(x => x.id !== id)
+  if (filtered.length === before) return res.status(404).json({ error: "not_found" })
+  writeData(tasksFile, filtered)
+  res.json({ ok: true })
+})
 
 app.get("/api/crm/orders", requireAdmin, (req, res) => {
   const data = readData(ordersFile)
-  // Sort by date desc
   data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   res.json(data)
 })
@@ -1404,7 +1573,7 @@ app.post("/api/crm/orders", (req, res) => {
     id: Date.now().toString(),
     createdAt: now,
     updatedAt: now,
-    status: "new", // new, received, processing, ready, completed
+    status: "new",
     client: client || {},
     items: items || [],
     total: total || 0,
@@ -1418,7 +1587,6 @@ app.post("/api/crm/orders", (req, res) => {
   orders.unshift(order)
   writeData(ordersFile, orders)
   
-  // Create event
   const events = readData(eventsFile)
   events.push({
     id: Date.now().toString(),
@@ -1476,7 +1644,6 @@ app.post("/api/crm/orders", (req, res) => {
   res.json({ ok: true, orderId: order.id })
 })
 
-// --- EXTERNAL BOT INTEGRATION ---
 app.get("/api/bot/check-stock", (req, res) => {
   const { q, code } = req.query
   if (!q && !code) return res.status(400).json({ error: "missing_query" })
@@ -1518,8 +1685,6 @@ app.get("/api/bot/check-stock", (req, res) => {
   })
 })
 
-
-
 app.put("/api/crm/orders/:id", requireAdmin, (req, res) => {
   const { id } = req.params
   const updates = req.body
@@ -1556,11 +1721,11 @@ app.post("/api/campaign/public", requireAdmin, (req, res) => {
     date: new Date().toISOString(),
     subject,
     pdfUrl,
-    total: 0, // No emails sent
+    total: 0,
     sent: 0,
     opens: {},
     clicks: {},
-    type: "qr" // Mark as QR/Public campaign
+    type: "qr"
   }
   
   const campaigns = readData(campaignsFile)
@@ -1583,7 +1748,6 @@ app.get("/api/public/go/:id", (req, res) => {
     const campaigns = readData(campaignsFile)
     const c = campaigns.find(x => x.id === id)
     if (c) {
-        // Redirect to download form without email (user must enter it)
         const redirectUrl = `/download.html?cid=${encodeURIComponent(id)}&pdf=${encodeURIComponent(c.pdfUrl)}`
         return res.redirect(redirectUrl)
     }
@@ -1600,7 +1764,6 @@ app.get("/api/track/link/:id/:email", (req, res) => {
       c.clicks[email] = new Date().toISOString()
       writeData(campaignsFile, campaigns)
     }
-    // Redirect to download form instead of direct PDF
     const redirectUrl = `/download.html?email=${encodeURIComponent(email)}&cid=${encodeURIComponent(id)}&pdf=${encodeURIComponent(c.pdfUrl)}`
     return res.redirect(redirectUrl)
   }
@@ -1637,80 +1800,6 @@ app.post("/api/smtp/test", requireAdmin, async (req, res) => {
       response: error.response 
     })
   }
-})
-
-app.get("/api/clients", requireAdmin, (req, res) => {
-  const data = readData(clientsFile)
-  res.json(data)
-})
-
-app.post("/api/clients", (req, res, next) => {
-  if (Array.isArray(req.body)) return requireAdmin(req, res, next)
-  return next()
-}, (req, res) => {
-  const data = req.body
-  if (Array.isArray(data)) {
-    writeData(clientsFile, data)
-    return res.json({ ok: true })
-  }
-
-  const client = data
-  if (!client || !client.celular) return res.status(400).json({ error: "invalid_client" })
-  
-  const list = readData(clientsFile)
-  const ced = (client.cedula || "").trim()
-  const cel = (client.celular || "").trim()
-  
-  let found = null
-  for (const c of list) {
-    if (ced && c.cedula === ced) { found = c; break }
-    if (!found && cel && c.celular === cel) found = c
-  }
-  
-  if (!found) {
-    const newId = list.length ? Math.max(...list.map(x => x.id || 0)) + 1 : 1
-    found = { id: newId }
-    list.push(found)
-  }
-  
-  // Merge fields
-  if (client.nombre) found.nombre = client.nombre
-  if (client.apellido) found.apellido = client.apellido
-  if (client.cedula) found.cedula = client.cedula
-  if (client.email) found.email = client.email
-  if (client.direccion) found.direccion = client.direccion
-  if (client.zona) found.zona = client.zona
-  if (client.celular) found.celular = client.celular
-  if (client.tipo) found.tipo = client.tipo || found.tipo
-  if (client.interesado) found.interesado = true
-  if (client.pedidos) {
-    const prev = typeof found.pedidos === "number" ? found.pedidos : 0
-    found.pedidos = prev + 1
-    found.interesado = true
-  }
-  
-  writeData(clientsFile, list)
-  try {
-    const leads = readData(leadsFile)
-    const emailLower = normalizeEmail(found && found.email)
-    const phoneKey = normalizePhone(found && found.celular)
-    const now = new Date().toISOString()
-    let updated = false
-    leads.forEach(l => {
-      if (l.convertedToClient) return
-      if (matchByEmailOrPhone(l, emailLower, phoneKey)) {
-        l.convertedToClient = true
-        l.clientId = found.id
-        l.convertedAt = now
-        updated = true
-      }
-    })
-    if (updated) {
-      const trimmedLeads = leads.slice(-5000)
-      writeData(leadsFile, trimmedLeads)
-    }
-  } catch {}
-  res.json({ ok: true, id: found.id })
 })
 
 app.get("/api/catalogs", requireAdmin, (req, res) => {
@@ -1854,7 +1943,7 @@ function buildAssistantReplyForWhatsApp(message, products) {
             const desc = parts.length ? ` (${parts.join(" • ")})` : ""
             let priceText = ""
             if (r.price != null && !Number.isNaN(Number(r.price))) {
-              priceText = ` - Precio aprox: $${Number(r.price).toLocaleString("es-AR")}`
+              priceText = ` - Precio aprox: $${Number(r.price).toLocaleString("es-VE")}`
             } else {
               priceText = " - Precio: solicitar cotización"
             }
@@ -1881,7 +1970,7 @@ function buildAssistantReplyForWhatsApp(message, products) {
     const desc = parts.length ? ` (${parts.join(" • ")})` : ""
     let priceText = ""
     if (p.price != null && !Number.isNaN(Number(p.price))) {
-      priceText = ` - Precio aprox: $${Number(p.price).toLocaleString("es-AR")}`
+      priceText = ` - Precio aprox: $${Number(p.price).toLocaleString("es-VE")}`
     } else {
       priceText = " - Precio: solicitar cotización"
     }
@@ -1900,8 +1989,6 @@ app.post("/api/external/chat", requireExternalApiKey, (req, res) => {
   const respuesta = buildAssistantReplyForWhatsApp(mensaje, products)
   res.json({ respuesta_ia: respuesta })
 })
-
-// Webhook de Telegram deshabilitado temporalmente
 
 function getLocalIp() {
   const interfaces = os.networkInterfaces()

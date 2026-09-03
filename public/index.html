@@ -2034,27 +2034,14 @@
         }
       }
 
-      if (isPortal) {
+        if (isPortal) {
+          trackEvent("portal_view", { path: window.location.pathname + window.location.search })
           if (isAdminViewVerified) {
-              // Admin View Mode: Skip Login, Show Indicator
-              const toast = document.createElement("div")
-              toast.className = "fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl z-[70] text-xs font-mono border border-slate-600"
-              toast.innerHTML = `👁️ MODO VISTA ADMIN`
-              document.body.appendChild(toast)
-          } else {
-              // Regular Customer Mode
-              const customer = getCustomerData()
-              trackEvent("portal_view", { path: window.location.pathname + window.location.search })
-              if (customer && customer.recordType === "lead" && customer.celular) {
-                upsertLeadFromCustomer(customer, "portal_visit")
-              }
-              openCustomerModal((data) => {
-                  const toast = document.createElement("div")
-                  toast.className = "fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-xl shadow-xl z-[70] animate-fade-in"
-                  toast.innerHTML = `✅ Bienvenido al Portal, <b>${data.nombre}</b>`
-                  document.body.appendChild(toast)
-                  setTimeout(() => toast.remove(), 3000)
-              }, true, "lead", "portal")
+            // Admin View Mode: Show Indicator
+            const toast = document.createElement("div")
+            toast.className = "fixed top-4 right-4 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl z-[70] text-xs font-mono border border-slate-600"
+            toast.innerHTML = `👁️ MODO VISTA ADMIN`
+            document.body.appendChild(toast)
           }
       }
 

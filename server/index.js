@@ -1748,8 +1748,27 @@ app.get("/api/public/go/:id", (req, res) => {
     const campaigns = readData(campaignsFile)
     const c = campaigns.find(x => x.id === id)
     if (c) {
-        const redirectUrl = `/download.html?cid=${encodeURIComponent(id)}&pdf=${encodeURIComponent(c.pdfUrl)}`
-        return res.redirect(redirectUrl)
+        if (!c.clicks) c.clicks = {}
+        const clickKey = `public-${crypto.createHash("sha256").update(`${req.ip}|${req.headers["user-agent"] || ""}`).digest("hex").slice(0, 16)}`
+        if (!c.clicks[clickKey]) {
+          c.clicks[clickKey] = new Date().toISOString()
+          writeData(campaignsFile, campaigns)
+        }
+        try {
+          const events = readData(eventsFile)
+          events.push({
+            id: Date.now(),
+            type: "campaign_link_click",
+            sessionId: "",
+            email: "",
+            meta: { campaignId: id, channel: "public_link" },
+            createdAt: new Date().toISOString(),
+            ip: req.ip,
+            userAgent: req.headers["user-agent"] || ""
+          })
+          writeData(eventsFile, events.slice(-5000))
+        } catch {}
+        return res.redirect(c.pdfUrl)
     }
     res.status(404).send("Link not found")
 })

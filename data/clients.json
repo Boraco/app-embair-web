@@ -9,7 +9,7 @@
     "celular": "04127077059",
     "tipo": "Particular",
     "zona": "Hogar",
-    "pedidos": 7,
+    "pedidos": 8,
     "interesado": true,
     "portalPasswordHash": "bfbb4038b616c46116400614cf948c580f07484d7c26545a4e03434723bfa990",
     "portalApproved": true,
@@ -20,9 +20,11 @@
     "lastDeviceId": "dev_4a680ynfyzsmsibx0g7",
     "lastIp": "127.0.0.1",
     "firstIp": "127.0.0.1",
-    "lastUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:153.0) Gecko/20100101 Firefox/153.0",
+    "lastUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0",
     "portalLastCheckAt": "2026-08-07T02:32:07.825Z",
-    "portalCheckCount": 19
+    "portalCheckCount": 19,
+    "updated_at": "2026-09-02T15:59:31.357Z",
+    "lastSeenAt": "2026-09-02T15:59:31.357Z"
   },
   {
     "id": 1770735310279,

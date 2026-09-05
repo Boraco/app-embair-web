@@ -21,9 +21,9 @@
     "tipo": "Particular",
     "source": "assistant_landing",
     "createdAt": "2026-02-23T23:39:01.224Z",
-    "convertedToClient": false,
-    "clientId": null,
-    "convertedAt": null
+    "convertedToClient": true,
+    "clientId": 1,
+    "convertedAt": "2026-09-02T15:59:31.347Z"
   },
   {
     "id": 1771890483979,
@@ -47,9 +47,9 @@
     "tipo": "Revendedor",
     "source": "assistant_landing",
     "createdAt": "2026-02-23T23:59:11.434Z",
-    "convertedToClient": false,
-    "clientId": null,
-    "convertedAt": null
+    "convertedToClient": true,
+    "clientId": 1,
+    "convertedAt": "2026-09-02T15:59:31.347Z"
   },
   {
     "id": 1771891400776,
@@ -73,8 +73,8 @@
     "tipo": "Particular",
     "source": "assistant_landing",
     "createdAt": "2026-02-24T01:39:55.801Z",
-    "convertedToClient": false,
-    "clientId": null,
-    "convertedAt": null
+    "convertedToClient": true,
+    "clientId": 1,
+    "convertedAt": "2026-09-02T15:59:31.347Z"
   }
 ]

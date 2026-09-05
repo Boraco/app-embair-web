@@ -1,5 +1,221 @@
 [
   {
+    "id": "1788364773334",
+    "createdAt": "2026-09-02T15:59:33.334Z",
+    "type": "crm_order_created",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "origin": "portal",
+      "orderId": "1788364771347",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364773304",
+    "createdAt": "2026-09-02T15:59:33.304Z",
+    "type": "order_sent",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "",
+    "meta": {
+      "origin": "portal",
+      "zona": "Hogar",
+      "tipo": "Particular",
+      "total": 0.71,
+      "orderNumber": 1,
+      "items": [
+        {
+          "id": 81,
+          "qty": 1
+        }
+      ]
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364771338",
+    "createdAt": "2026-09-02T15:59:31.338Z",
+    "type": "order_confirm_send",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "origin": "portal",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364769531",
+    "createdAt": "2026-09-02T15:59:29.531Z",
+    "type": "order_confirm_open",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "origin": "portal",
+      "items": 1,
+      "qty": 1,
+      "total": 0.71,
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364767978",
+    "createdAt": "2026-09-02T15:59:27.978Z",
+    "type": "cart_add",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "productId": 81,
+      "qty": 1,
+      "origin": "product_modal",
+      "label": "",
+      "category": "Electricidad",
+      "price": 0.71,
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364766805",
+    "createdAt": "2026-09-02T15:59:26.805Z",
+    "type": "product_view",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "productId": 81,
+      "origin": "grid_primary",
+      "label": "",
+      "category": "Electricidad",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364763199",
+    "createdAt": "2026-09-02T15:59:23.199Z",
+    "type": "portal_view",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364684182",
+    "createdAt": "2026-09-02T15:58:04.182Z",
+    "type": "portal_view",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788364682173",
+    "createdAt": "2026-09-02T15:58:02.175Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788268159485",
+    "createdAt": "2026-09-01T13:09:19.486Z",
+    "type": "portal_phone_not_found",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "source": "portal",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788268159473",
+    "createdAt": "2026-09-01T13:09:19.473Z",
+    "type": "portal_phone_submit",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "len": 11,
+      "last4": "7549",
+      "source": "portal",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788268145884",
+    "createdAt": "2026-09-01T13:09:05.884Z",
+    "type": "portal_gate_open",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "force": true,
+      "mode": "lead",
+      "source": "portal",
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788268145865",
+    "createdAt": "2026-09-01T13:09:05.865Z",
+    "type": "portal_view",
+    "sessionId": "sess_i2h0oxnlxrbmsi9y7su",
+    "email": "melgonza88@gmail.com",
+    "deviceId": "dev_4a680ynfyzsmsibx0g7",
+    "meta": {
+      "path": "/app?portal=1"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
+    "id": "1788267952374",
+    "createdAt": "2026-09-01T13:05:52.376Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0"
+  },
+  {
     "id": "1786069941481",
     "createdAt": "2026-08-07T02:32:21.481Z",
     "type": "cart_add",
@@ -5548,6 +5764,16 @@
       "total": 200
     },
     "createdAt": "2026-03-03T01:44:50.219Z",
+    "ip": "127.0.0.1"
+  },
+  {
+    "id": "1788364771350",
+    "type": "new_order",
+    "meta": {
+      "orderId": "1788364771347",
+      "total": 0.71
+    },
+    "createdAt": "2026-09-02T15:59:31.347Z",
     "ip": "127.0.0.1"
   }
 ]

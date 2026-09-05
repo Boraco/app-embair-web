@@ -1,5 +1,32 @@
 [
   {
+    "id": "1788364771347",
+    "createdAt": "2026-09-02T15:59:31.347Z",
+    "updatedAt": "2026-09-02T15:59:31.347Z",
+    "status": "new",
+    "client": {
+      "name": "Manuel Gonzalez",
+      "phone": "04127077059",
+      "email": "melgonza88@gmail.com",
+      "address": "Origen: Asistente landing",
+      "zona": "Hogar"
+    },
+    "items": [
+      {
+        "id": "81",
+        "code": "",
+        "name": "ANILLO EMT GALV. 1\"",
+        "qty": 1,
+        "price": 0.71
+      }
+    ],
+    "total": 0.71,
+    "source": "portal",
+    "paymentMethod": "A convenir",
+    "deliveryMethod": "A convenir",
+    "notes": "Pedido iniciado desde WhatsApp"
+  },
+  {
     "id": "1772502290219",
     "createdAt": "2026-03-03T01:44:50.219Z",
     "updatedAt": "2026-08-07T00:54:05.046Z",

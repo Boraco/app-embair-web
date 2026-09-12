@@ -25,64 +25,72 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="js/config-loader.js" defer></script>
   <style>
+    :root {
+      --portal-ink: #10165c;
+      --portal-coral: #ff4b24;
+      --portal-surface: #f5f7fb;
+    }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .filter-chip { transition: all 0.2s; white-space: nowrap; }
     .filter-chip.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
     .drawer-open { overflow: hidden; }
     .modal-open { overflow: hidden; }
+    .portal-hero {
+      background: linear-gradient(112deg, #0d145b 0%, #43204d 48%, #ff4b24 100%);
+      box-shadow: 0 18px 45px rgba(16, 22, 92, 0.16);
+    }
+    .portal-hero::after {
+      content: "";
+      position: absolute;
+      width: 22rem;
+      height: 22rem;
+      right: 18%;
+      top: -14rem;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2.5rem rgba(255, 255, 255, 0.035), 0 0 0 5rem rgba(255, 255, 255, 0.025);
+      pointer-events: none;
+    }
+    .hero-slide-frame { box-shadow: inset 0 0 0 2px rgba(255,255,255,.55), 0 14px 30px rgba(10, 12, 35, .22); }
+    @media (max-width: 767px) {
+      .portal-hero::after { right: -10rem; top: -9rem; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-  <header class="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="flex items-center gap-3">
         <!-- EDITABLE: Logo de la tienda -->
-        <div class="relative w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 flex items-center justify-center text-white font-bold shadow-sm overflow-hidden border border-slate-200">
-           <img id="app-logo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Logo" class="absolute inset-0 w-full h-full object-contain bg-white hidden">
-           <span id="app-logo-fallback">ME</span>
+          <div class="relative w-32 h-10 md:w-40 md:h-11 flex items-center justify-start overflow-hidden">
+            <img id="app-logo" src="/uploads/logo_embair_original_1771950323213.png" alt="Comercializadora Embair" class="absolute inset-0 w-full h-full object-contain object-left">
+            <span id="app-logo-fallback" class="hidden">ME</span>
         </div>
         <div>
           <!-- EDITABLE: Título y subtítulo de la cabecera -->
-          <h1 class="store-name text-sm md:text-2xl font-semibold leading-tight line-clamp-2">Tienda online de materiales eléctricos y plomería</h1>
-          <p class="text-[10px] md:text-sm text-slate-500 hidden sm:block">Explora el catálogo, arma tu pedido y envíalo directo desde tu dominio.</p>
+          <h1 class="store-name text-sm md:text-lg font-extrabold leading-tight line-clamp-2 tracking-tight">Tienda online de materiales eléctricos y plomería</h1>
+          <p class="text-[10px] md:text-xs text-slate-500 hidden sm:block">Explora el catálogo, arma tu pedido y envíalo directo desde tu dominio.</p>
         </div>
       </div>
       <div class="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-2 md:gap-3">
-        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           <span class="text-xs text-slate-600">Tienda activa en tu dominio</span>
         </div>
-        <input id="store-wa" placeholder="WhatsApp tienda..." class="w-36 sm:w-28 md:w-auto border border-slate-300 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-        <button id="share-store" class="hidden md:block bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-medium transition-colors">Compartir</button>
+        <div class="flex items-center gap-2">
+          <button id="open-cart-header" type="button" class="relative inline-flex items-center gap-2 bg-[#10165c] text-white hover:bg-[#17247a] border border-[#10165c] rounded-full px-3 md:px-4 py-2 text-sm font-semibold transition-colors" aria-label="Ver carrito">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/></svg>
+            <span>Ver carrito</span>
+            <span id="cart-header-badge" class="absolute -top-2 -right-1 bg-[#ff4b24] text-white text-[10px] min-w-[17px] h-[17px] px-1 flex items-center justify-center rounded-full hidden">0</span>
+          </button>
+          <button id="share-store" class="hidden md:block bg-blue-50 text-[#10165c] hover:bg-blue-100 border border-blue-200 rounded-full px-4 py-2 text-sm font-semibold transition-colors">Compartir</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 md:py-10 pb-24 md:pb-10">
-    <section class="mb-12" id="hero">
-      <div class="grid md:grid-cols-2 gap-8 items-center bg-gradient-to-r from-blue-600 to-sky-500 text-white rounded-2xl px-6 md:px-10 py-10 shadow-xl relative overflow-hidden">
-        <div>
-          <!-- EDITABLE: Texto del banner principal (Hero) -->
-          <h2 id="hero-title" class="text-2xl md:text-4xl font-bold mb-3 leading-tight">Materiales eléctricos y plomería, ordenados y listos para tu cliente</h2>
-          <p id="hero-subtitle" class="text-xs md:text-base text-blue-100 mb-6 max-w-xl">Explora el catálogo, arma el pedido y envíalo por WhatsApp en segundos. Pensado para mostrar precios, fotos y disponibilidad de forma clara.</p>
-          <div class="flex flex-wrap gap-3">
-            <a id="cta-wa" href="https://wa.me/584242240909" target="_blank" rel="noopener" class="bg-white text-blue-700 hover:bg-blue-50 rounded-full px-4 py-2 md:px-5 md:py-3 text-sm font-medium shadow-sm transition-colors">Escribir por WhatsApp</a>
-            <div class="flex items-center gap-2 text-xs md:text-sm text-blue-100">
-              <span class="w-6 h-px bg-blue-100/60"></span>
-              <span>Catálogo actualizado y fácil de compartir</span>
-            </div>
-          </div>
-        </div>
-        <div class="relative h-64 md:h-80 w-full rounded-2xl overflow-hidden shadow-lg border-4 border-white/20 bg-white/10 backdrop-blur-sm">
-          <div id="hero-slider" class="absolute inset-0 w-full h-full">
-            <!-- Images will be injected by JS -->
-          </div>
-          <div id="hero-indicators" class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10"></div>
-        </div>
-      </div>
-    </section>
-
+  <main class="max-w-6xl mx-auto px-4 py-3 md:py-5 pb-24 md:pb-8">
     <!-- Marquee Section -->
     <div id="marquee-container" class="mb-12 hidden">
        <!-- Marquee injected by JS -->
@@ -104,9 +112,9 @@
 
     <section id="catalogo" class="mb-10 mt-4">
       <!-- Toolbar -->
-      <div class="sticky top-3 z-40 px-4 md:px-5 py-3 md:py-3.5 rounded-2xl mb-6 bg-[#001B71]/90 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+      <div class="sticky top-[60px] z-40 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl mb-5 bg-[#001B71]/90 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
         <div class="max-w-5xl mx-auto">
-          <div class="flex items-center gap-2 mb-2">
+          <div class="flex items-center gap-2 mb-1">
             <div class="w-5 h-5 text-[#FF6B00] animate-pulse">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h5l2-7 4 14 2-7h5"/></svg>
             </div>
@@ -116,12 +124,12 @@
             <div class="flex items-center pl-3 pr-2 text-white/90">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m20.5 20.5-4.2-4.2m1.7-5.2a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
             </div>
-            <input id="search-prod" placeholder="¿Qué material necesitas hoy? Ej: Cable, Breaker, Tubería..." class="flex-1 h-11 md:h-12 bg-transparent px-2 md:px-3 text-[13px] md:text-sm text-white placeholder:text-white/70 outline-none transition-all" />
-            <button id="search-btn" class="h-11 md:h-12 px-4 md:px-7 bg-gradient-to-r from-[#FF6B00] to-[#E85E00] hover:brightness-110 hover:shadow-[0_0_18px_rgba(255,107,0,0.45)] text-white text-[13px] md:text-sm font-extrabold uppercase tracking-[1px] rounded-xl my-0.5 mr-0.5 active:scale-[0.99] transition-all">BUSCAR</button>
+            <input id="search-prod" placeholder="Ej: necesito un tubo para agua o un breaker" class="flex-1 h-9 md:h-10 bg-transparent px-2 md:px-3 text-[13px] md:text-sm text-white placeholder:text-white/70 outline-none transition-all" />
+            <button id="search-btn" class="h-9 md:h-10 px-3 md:px-6 bg-gradient-to-r from-[#FF6B00] to-[#E85E00] hover:brightness-110 hover:shadow-[0_0_18px_rgba(255,107,0,0.45)] text-white text-[12px] md:text-sm font-extrabold uppercase tracking-[1px] rounded-xl my-0.5 mr-0.5 active:scale-[0.99] transition-all">BUSCAR</button>
           </div>
           <div class="mt-1 text-[11px] md:text-xs text-white/60 italic leading-tight">Busca por referencia, marca o normativa técnica (RETIE/NTC).</div>
 
-          <div class="mt-2 flex flex-col md:flex-row gap-2 md:items-center">
+          <div class="mt-1.5 flex flex-col md:flex-row gap-2 md:items-center">
             <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 flex-1">
               <button type="button" data-cat-chip="__FAV__" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
                 <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27Z"/></svg>
@@ -196,6 +204,9 @@
       </div>
 
       <div class="p-4 border-t border-slate-100 bg-slate-50">
+        <div id="cart-logistics-notice" class="hidden mb-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-800">
+          Este pedido incluye productos de <strong>Solo Despacho</strong>. La entrega o el flete al sitio se coordinarán previamente por WhatsApp.
+        </div>
         <div class="flex items-center justify-between mb-4">
           <span class="text-slate-600">Total estimado</span>
           <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
@@ -385,17 +396,35 @@
       const cartOverlay = document.getElementById("cart-drawer-overlay")
       const closeDrawerBtn = document.getElementById("close-drawer")
       const cartItemsDrawer = document.getElementById("cart-items-drawer")
+      const cartLogisticsNotice = document.getElementById("cart-logistics-notice")
       const drawerTotal = document.getElementById("drawer-total")
       const sendWaDrawer = document.getElementById("send-wa-drawer")
       const openCartMobile = document.getElementById("open-cart-mobile")
+      const openCartHeader = document.getElementById("open-cart-header")
       const shareWebBtn = document.getElementById("share-web")
       const cartBadge = document.getElementById("cart-badge")
+      const cartHeaderBadge = document.getElementById("cart-header-badge")
       
-      const storeWa = document.getElementById("store-wa")
       
       // --- State ---
       let PRODUCTS = []
       let CART = []
+
+      function syncCatalogCategories() {
+        if (!categorySelect) return
+        const known = new Set(Array.from(categorySelect.options).map(option => option.value))
+        const categories = PRODUCTS
+          .map(product => String(product.category || "").trim())
+          .filter(Boolean)
+        for (const category of categories) {
+          if (known.has(category)) continue
+          const option = document.createElement("option")
+          option.value = category
+          option.textContent = category
+          categorySelect.appendChild(option)
+          known.add(category)
+        }
+      }
       
       const productModal = document.getElementById("product-modal")
       const pmImg = document.getElementById("pm-img")
@@ -662,8 +691,12 @@
           let badgeText = "DISPONIBLE"
           let badgeColor = "bg-green-500"
           const stock = p.stock == null ? null : Number(p.stock)
+          const legacyDispatchOnly = p.available === "Solo Despacho"
 
-          if (p.available === "Agotado") {
+           if (p.available === "Bajo Pedido") {
+             badgeText = "BAJO PEDIDO"
+             badgeColor = "bg-amber-500"
+           } else if (p.available === "Agotado") {
              badgeText = "AGOTADO"
              badgeColor = "bg-red-500"
           } else if (stock !== null) {
@@ -680,6 +713,13 @@
           badge.className = `absolute top-2 right-2 text-white text-[10px] px-2 py-1 rounded font-bold backdrop-blur-sm shadow-sm ${badgeColor}`
           badge.textContent = badgeText
           imgContainer.appendChild(badge)
+
+          if (p.deliveryMode === "Solo Despacho" || legacyDispatchOnly) {
+            const deliveryBadge = document.createElement("div")
+            deliveryBadge.className = "absolute top-10 right-2 text-white text-[10px] px-2 py-1 rounded font-bold backdrop-blur-sm shadow-sm bg-sky-600"
+            deliveryBadge.textContent = "SOLO DESPACHO"
+            imgContainer.appendChild(deliveryBadge)
+          }
 
           // Label Badge (New)
           if (p.label && p.label !== "Ninguna") {
@@ -764,22 +804,36 @@
       }
 
       function renderGrid() {
-        const q = (searchInput.value || "").trim().toLowerCase()
+        const rawQuery = (searchInput.value || "").trim()
+        const normalizeSearch = (value) => {
+          const source = typeof window.Assistant?.normalizeText === "function"
+            ? window.Assistant.normalizeText(value)
+            : value
+          return String(source || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, " ")
+            .trim()
+        }
+        const q = normalizeSearch(rawQuery)
         const cat = categorySelect.value
         const favIds = cat === "__FAV__" ? getFavoriteProductIdsFromHistory() : []
         const portalOrder = window.__portalCatalogOrder || { categories: {}, subcategories: {} }
         
-        const qWords = q ? q.split(/\s+/).filter(Boolean) : []
+        const ignoredWords = new Set(["necesito", "busco", "quiero", "dame", "para", "por", "favor", "un", "una", "uno", "unos", "unas", "de", "del", "el", "la", "los", "las", "algo", "que", "con"])
+        const qWords = q ? q.split(/\s+/).filter(word => word.length > 1 && !ignoredWords.has(word)) : []
         const primaryMatch = (p) => {
           if (!q) return true
-          const text = `${p.name || ""} ${(p.code || "")} ${(p.brand || "")} ${(p.sku || "")} ${(p.subcategory || "")} ${(p.material || "")} ${(p.desc || "")}`.toLowerCase()
-          return text.includes(q)
+          const text = normalizeSearch(`${p.name || ""} ${p.code || ""} ${p.brand || ""} ${p.sku || ""} ${p.subcategory || ""} ${p.material || ""} ${p.desc || ""}`)
+          const textWords = text.split(/\s+/).filter(Boolean)
+          return qWords.length === 0 || qWords.every(word => text.includes(word) || textWords.some(textWord => textWord.startsWith(word) || (word.length >= 4 && textWord.includes(word.slice(0, -1)))))
         }
         const tagMatch = (p) => {
           if (!qWords.length) return false
-          const tagsText = (Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || "")).toLowerCase()
+          const tagsText = normalizeSearch(Array.isArray(p.tags) ? p.tags.join(" ") : (p.tags || ""))
           if (!tagsText) return false
-          return qWords.some(w => tagsText.includes(w))
+          return qWords.some(w => tagsText.includes(w) || tagsText.split(/\s+/).some(tag => tag.startsWith(w)))
         }
         
         let primary = PRODUCTS.filter(p => {
@@ -1009,10 +1063,17 @@
             if(totalCount > 0) cartBadge.classList.remove("hidden")
             else cartBadge.classList.add("hidden")
         }
+        if (cartHeaderBadge) {
+          cartHeaderBadge.textContent = totalCount
+          if (totalCount > 0) cartHeaderBadge.classList.remove("hidden")
+          else cartHeaderBadge.classList.add("hidden")
+        }
 
         // Render Drawer Items
         cartItemsDrawer.innerHTML = ""
         let total = 0
+        const hasDispatchOnlyItems = CART.some(item => item.deliveryMode === "Solo Despacho" || item.available === "Solo Despacho")
+        if (cartLogisticsNotice) cartLogisticsNotice.classList.toggle("hidden", !hasDispatchOnlyItems)
 
         if (CART.length === 0) {
           cartItemsDrawer.innerHTML = `
@@ -1186,6 +1247,9 @@
           zona: customer && customer.zona ? customer.zona : "",
           tipo: customer && customer.tipo ? customer.tipo : "",
           direccion: customer && customer.direccion ? customer.direccion : "",
+          empresa: customer && customer.empresa ? customer.empresa : "",
+          rifEmpresa: customer && customer.rifEmpresa ? customer.rifEmpresa : "",
+          direccionFiscal: customer && customer.direccionFiscal ? customer.direccionFiscal : "",
           entrega: customer && customer.entrega ? customer.entrega : "",
           source: source || "",
           sessionId: getSessionId(),
@@ -1354,16 +1418,16 @@
             <h3 class="text-lg font-bold text-slate-900 mb-2">Completa tus datos</h3>
             <p class="text-sm text-slate-500 mb-4">No encontramos tu número. Regístrate para continuar.</p>
             <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
-              <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
-                  <option value="">Tipo de cliente...</option>
-                  <option value="Empresa" ${existing.tipo==='Empresa'?'selected':''}>Empresa</option>
-                  <option value="Gubernamental" ${existing.tipo==='Gubernamental'?'selected':''}>Gubernamental</option>
-                  <option value="Particular" ${existing.tipo==='Particular'?'selected':''}>Particular</option>
-                  <option value="Instalador" ${existing.tipo==='Instalador'?'selected':''}>Instalador</option>
-              </select>
+                <select id="c-type" class="w-full border rounded-lg px-3 py-2 text-sm">
+                  <option value="Particular" ${!existing.tipo || existing.tipo==='Particular' ? 'selected' : ''}>Particular</option>
+                  <option value="Instalador" ${existing.tipo==='Instalador' ? 'selected' : ''}>Instalador</option>
+                </select>
               <input id="c-name" placeholder="Nombre / Empresa" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existingFullName}">
               <input id="c-last" placeholder="Apellido" class="w-full border rounded-lg px-3 py-2 text-sm hidden" value="">
               <input id="c-email" placeholder="Email" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.email||''}">
+              <input id="c-empresa" placeholder="Empresa que representa (opcional)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.empresa||''}">
+              <input id="c-rif-empresa" placeholder="RIF de la empresa (opcional)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.rifEmpresa||''}">
+              <input id="c-direccion-fiscal" placeholder="Dirección fiscal (opcional)" class="w-full border rounded-lg px-3 py-2 text-sm" value="${existing.direccionFiscal||''}">
               <div class="flex gap-2">
                 <select id="c-doc-prefix" class="w-24 border rounded-lg px-3 py-2 text-sm bg-white">
                   <option value=""></option>
@@ -1421,6 +1485,9 @@
         const nameEl = modal.querySelector("#c-name")
         const lastEl = modal.querySelector("#c-last")
         const emailEl = modal.querySelector("#c-email")
+        const empresaEl = modal.querySelector("#c-empresa")
+        const rifEmpresaEl = modal.querySelector("#c-rif-empresa")
+        const direccionFiscalEl = modal.querySelector("#c-direccion-fiscal")
         const zoneEl = modal.querySelector("#c-zone")
 
         const docOptionsByType = (tipo) => {
@@ -1570,6 +1637,9 @@
                 nombre: nameEl ? nameEl.value.trim() : "",
                 apellido: lastEl && !lastEl.classList.contains("hidden") ? lastEl.value.trim() : "",
                 email: emailEl ? emailEl.value.trim() : "",
+                empresa: empresaEl ? empresaEl.value.trim() : "",
+                rifEmpresa: rifEmpresaEl ? rifEmpresaEl.value.trim() : "",
+                direccionFiscal: direccionFiscalEl ? direccionFiscalEl.value.trim() : "",
                 cedula: "",
                 direccion: "",
                 zona: zoneEl ? zoneEl.value.trim() : "",
@@ -1610,7 +1680,10 @@
                   name: `${customer.nombre || ""} ${customer.apellido || ""}`.trim(),
                   phone: customer.celular || "",
                   email: customer.email || "",
+                  company: customer.empresa || "",
+                  companyRif: customer.rifEmpresa || "",
                   address: customer.direccion || "",
+                  fiscalAddress: customer.direccionFiscal || "",
                   zona: customer.zona || ""
               },
               items: CART.map(i => ({
@@ -1660,6 +1733,7 @@
           ? `¡Hola! Te envío la Nota de Pedido N° ${orderCode}:\n\n`
           : "¡Hola! Quiero realizar el siguiente pedido:\n\n"
         let total = 0
+        const hasDispatchOnlyItems = CART.some(item => item.deliveryMode === "Solo Despacho" || item.available === "Solo Despacho")
         CART.forEach(item => {
           const sub = item.price ? item.price * item.qty : 0
           total += sub
@@ -1667,11 +1741,17 @@
           msg += item.price ? `($${sub.toLocaleString("es-AR")})\n` : "(Consultar)\n"
         })
         msg += `\nTotal Estimado: $${total.toLocaleString("es-AR")}\n\n`
+        if (hasDispatchOnlyItems) {
+          msg += `*Logística:* Este pedido incluye productos Solo Despacho. Coordinar entrega o flete al sitio y cotización previa.\n\n`
+        }
         
         msg += `*Datos del Cliente:*\n`
         msg += `Nombre: ${customer.nombre || ""} ${customer.apellido || ""}\n`
+        if (customer.empresa) msg += `Empresa que representa: ${customer.empresa}\n`
+        if (customer.rifEmpresa) msg += `RIF de la empresa: ${customer.rifEmpresa}\n`
         msg += `Cédula: ${customer.cedula || ""}\n`
         msg += `Dirección: ${customer.direccion || ""}\n`
+        if (customer.direccionFiscal) msg += `Dirección fiscal: ${customer.direccionFiscal}\n`
         if (customer.zona) msg += `Zona: ${customer.zona}\n`
         msg += `Tel: ${customer.celular || ""}\n`
         msg += `Entrega: ${customer.entrega || ""}\n`
@@ -1684,7 +1764,7 @@
         generateOrderPdf(customer, CART, orderNumber)
         trackOrderEvent(customer, CART, origin, orderNumber)
         
-        const num = (storeWa && storeWa.value) ? storeWa.value.replace(/\D/g, "") : "584242240909"
+        const num = "584242240909"
         window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank")
       }
 
@@ -1764,9 +1844,11 @@
           openDrawer()
         })
       }
+      if (openCartHeader) openCartHeader.addEventListener("click", openDrawer)
 
       if (categorySelect) {
         categorySelect.addEventListener("change", () => {
+          if (searchInput) searchInput.value = ""
           renderGrid()
           syncCategoryChips()
           if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
@@ -1812,6 +1894,7 @@
           btn.addEventListener("click", () => {
             const cat = btn.getAttribute("data-cat-chip")
             categorySelect.value = String(cat || "")
+            if (searchInput) searchInput.value = ""
             renderGrid()
             syncCategoryChips()
             try { document.getElementById("prod-grid").scrollIntoView({ behavior: "smooth", block: "start" }) } catch {}
@@ -1835,108 +1918,6 @@
         if (e.key === "Escape") closeProductDetail()
       })
       
-      // Store WA persistence
-      if (storeWa) {
-        try { storeWa.value = localStorage.getItem("storeWa") || "" } catch {}
-        storeWa.addEventListener("input", () => localStorage.setItem("storeWa", storeWa.value))
-      }
-
-      // Hero Slider (Dynamic from Products)
-      function renderHeroSlider() {
-        const container = document.getElementById("hero-slider")
-        const indicators = document.getElementById("hero-indicators")
-        if (!container || !indicators) return
-
-        // Get Featured Products or Top 5
-        let slides = PRODUCTS.filter(p => p.label === "Destacado" || p.label === "Oferta" || p.label === "Nuevo")
-        if (slides.length === 0) slides = PRODUCTS.slice(0, 5)
-        
-        // Fallback if no products
-        if (slides.length === 0) {
-            // Use default images if no products exist
-            const defaults = [
-              { img: "https://images.unsplash.com/photo-1621905251189-fc01530c6c5b?auto=format&fit=crop&w=1000&q=80", name: "Materiales Eléctricos", price: null, label: "Calidad" },
-              { img: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1000&q=80", name: "Plomería y Tuberías", price: null, label: "Stock" }
-            ]
-            slides = defaults
-        }
-
-        container.innerHTML = ""
-        indicators.innerHTML = ""
-        
-        slides.forEach((p, idx) => {
-            const div = document.createElement("div")
-            div.className = `absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}`
-            
-            // Image
-            const img = document.createElement("img")
-            img.src = p.img || p.image || "https://via.placeholder.com/1000x400?text=Oferta"
-            img.className = "w-full h-full object-cover"
-            img.alt = p.name
-            
-            // Gradient Overlay & Text
-            const overlay = document.createElement("div")
-            overlay.className = "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-6 md:p-10"
-            
-            let priceHtml = ""
-            if (p.price) priceHtml = `<p class="font-bold text-xl md:text-2xl text-emerald-300 mt-1">${formatPrice(p.price)}</p>`
-            
-            let labelHtml = ""
-            if (p.label && p.label !== "Ninguna") {
-                let color = "bg-blue-600"
-                if(p.label === "Oferta") color = "bg-red-600"
-                if(p.label === "Destacado") color = "bg-purple-600"
-                labelHtml = `<span class="px-2 py-1 rounded ${color} text-white text-[10px] md:text-xs font-bold uppercase mb-2 inline-block shadow-sm">${p.label}</span>`
-            }
-
-            overlay.innerHTML = `
-                <div class="text-white max-w-lg transform transition-transform duration-700 translate-y-0">
-                    ${labelHtml}
-                    <h3 class="text-2xl md:text-4xl font-bold leading-tight mb-1 drop-shadow-sm">${p.name}</h3>
-                    ${priceHtml}
-                </div>
-            `
-            
-            div.appendChild(img)
-            div.appendChild(overlay)
-            container.appendChild(div)
-
-            // Indicator
-            const dot = document.createElement("button")
-            dot.className = `w-2 h-2 md:w-3 md:h-3 rounded-full transition-all border border-white/50 ${idx === 0 ? 'bg-white w-6 md:w-8' : 'bg-white/30 hover:bg-white/60'}`
-            dot.onclick = () => setSlide(idx)
-            indicators.appendChild(dot)
-        })
-
-        // Slider Logic
-        let current = 0
-        const total = slides.length
-        let intervalId = null
-
-        function setSlide(n) {
-            current = n
-            Array.from(container.children).forEach((el, i) => {
-                if (i === current) {
-                    el.classList.remove('opacity-0', 'z-0')
-                    el.classList.add('opacity-100', 'z-10')
-                } else {
-                    el.classList.remove('opacity-100', 'z-10')
-                    el.classList.add('opacity-0', 'z-0')
-                }
-            })
-            Array.from(indicators.children).forEach((el, i) => {
-                el.className = `w-2 h-2 md:w-3 md:h-3 rounded-full transition-all border border-white/50 ${i === current ? 'bg-white w-6 md:w-8' : 'bg-white/30 hover:bg-white/60'}`
-            })
-        }
-
-        // Auto Slide
-        if (intervalId) clearInterval(intervalId)
-        intervalId = setInterval(() => {
-            setSlide((current + 1) % total)
-        }, 5000)
-      }
-
-
       // Share Button
       const shareStoreBtn = document.getElementById("share-store")
       if (shareStoreBtn) {
@@ -1971,12 +1952,6 @@
         const savedLogo = localStorage.getItem("company_logo")
         if (savedLogo) {
             showLogo(savedLogo)
-        } else {
-            // Try default path check
-            const testImg = new Image()
-            testImg.src = "uploads/logo.png"
-            testImg.onload = () => showLogo("uploads/logo.png")
-            // If fails, we just keep the fallback "ME" visible
         }
       } catch (e) {
         console.error("Error loading logo:", e)
@@ -1986,8 +1961,8 @@
         PRODUCTS = p
         window.PRODUCTS = PRODUCTS
         window.__portalCatalogOrder = portalOrder || { categories: {}, subcategories: {} }
+        syncCatalogCategories()
         renderFeatured()
-        renderHeroSlider()
 
         // --- Check URL Params for Filtering ---
         const params = new URLSearchParams(window.location.search)

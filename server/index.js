@@ -63,6 +63,7 @@ const protectedAdminPages = new Set([
   "/editor.html",
   "/reportes.html",
   "/campaigns.html"
+  ,"/mayorista-admin.html"
 ])
 
 app.use((req, res, next) => {
@@ -123,6 +124,226 @@ const leadsFile = path.join(dataDir, "leads.json")
 const ordersFile = path.join(dataDir, "orders.json")
 const cartsFile = path.join(dataDir, "carts.json")
 const tasksFile = path.join(dataDir, "tasks.json")
+const wholesaleProductsFile = path.join(dataDir, "wholesale-products.json")
+const wholesaleCartsFile = path.join(dataDir, "wholesale-carts.json")
+
+function getWholesaleProducts() {
+  return readData(wholesaleProductsFile)
+}
+
+function enrichWholesaleProducts() {
+  const products = readData(productsFile)
+  const config = getWholesaleProducts()
+  return config
+    .filter(item => item && item.enabled !== false)
+    .map(item => {
+      const product = products.find(p => Number(p.id) === Number(item.productId))
+      if (!product) return null
+      return {
+        ...product,
+        wholesale: {
+          productId: Number(product.id),
+          packageName: item.packageName || "Paquete",
+          unitsPerPackage: Number(item.unitsPerPackage || 1),
+          minimumQuantity: Number(item.minimumQuantity || 1),
+          wholesalePrice: item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+          packagePrice: item.packagePrice == null ? null : Number(item.packagePrice),
+          availability: item.availability || "Disponible",
+          requiresDispatch: item.requiresDispatch !== false,
+          notes: item.notes || "",
+          catalogOrder: Number.isFinite(Number(item.catalogOrder)) ? Number(item.catalogOrder) : 999,
+          featured: item.featured === true,
+          offer: item.offer === true,
+          discountPercent: item.discountPercent == null ? null : Number(item.discountPercent)
+        }
+      }
+    })
+    .filter(Boolean)
+}
+
+app.get("/api/wholesale/products", requireClient, (req, res) => {
+  res.json({ ok: true, products: enrichWholesaleProducts() })
+})
+
+app.get("/api/admin/wholesale/products", requireAdmin, (req, res) => {
+  res.json({ ok: true, products: getWholesaleProducts(), catalog: readData(productsFile) })
+})
+
+app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
+  const input = req.body && Array.isArray(req.body.products) ? req.body.products : null
+  if (!input) return res.status(400).json({ error: "products_array_required" })
+  const catalogIds = new Set(readData(productsFile).map(p => Number(p.id)))
+  const normalized = input
+    .map(item => ({
+      productId: Number(item.productId),
+      enabled: item.enabled !== false,
+      packageName: String(item.packageName || "Paquete").trim(),
+      unitsPerPackage: Math.max(1, Number(item.unitsPerPackage || 1)),
+      minimumQuantity: Math.max(1, Number(item.minimumQuantity || 1)),
+      wholesalePrice: item.wholesalePrice === "" || item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+      packagePrice: item.packagePrice === "" || item.packagePrice == null ? null : Number(item.packagePrice),
+      availability: ["Disponible", "Bajo Pedido", "Agotado"].includes(item.availability) ? item.availability : "Disponible",
+      requiresDispatch: true,
+      notes: String(item.notes || "").trim(),
+      catalogOrder: Number.isFinite(Number(item.catalogOrder)) ? Math.max(0, Number(item.catalogOrder)) : 999,
+      featured: item.featured === true,
+      offer: item.offer === true,
+      discountPercent: item.discountPercent === "" || item.discountPercent == null ? null : Math.min(100, Math.max(0, Number(item.discountPercent)))
+    }))
+    .filter(item => catalogIds.has(item.productId) && Number.isFinite(item.productId))
+  writeData(wholesaleProductsFile, normalized)
+  res.json({ ok: true, products: normalized })
+})
+
+app.post("/api/wholesale/login", (req, res) => {
+  const email = normalizeEmail(req.body && req.body.email)
+  const password = String(req.body && req.body.password || "")
+  if (!email || !password) return res.status(400).json({ error: "missing_fields" })
+  const client = readData(clientsFile).find(item => normalizeEmail(item.email) === email)
+  if (!client || !client.portalPasswordHash || client.wholesaleAccess === false) {
+    return res.status(401).json({ error: "invalid_credentials" })
+  }
+  if (hashPassword(password) !== client.portalPasswordHash) return res.status(401).json({ error: "invalid_credentials" })
+  const events = readData(eventsFile)
+  events.unshift({
+    id: Date.now().toString(),
+    type: "wholesale_login",
+    sessionId: "",
+    email,
+    meta: { clientId: client.id },
+    createdAt: new Date().toISOString(),
+    ip: req.ip,
+    userAgent: req.headers["user-agent"] || ""
+  })
+  writeData(eventsFile, events.slice(0, 5000))
+  res.json({ ok: true, token: Buffer.from(`${client.id}:${email}`).toString("base64"), client: { id: client.id, email, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), nombre: client.nombre || "", apellido: client.apellido || "", cedula: client.cedula || "", celular: client.celular || "", zona: client.zona || "", direccion: client.direccion || "", empresa: client.empresa || "", rifEmpresa: client.rifEmpresa || "", direccionFiscal: client.direccionFiscal || "", tipo: client.tipo || "" } })
+})
+
+app.post("/api/wholesale/event", requireClient, (req, res) => {
+  const events = readData(eventsFile)
+  events.unshift({
+    id: Date.now().toString(),
+    type: `wholesale_${String(req.body && req.body.type || "activity").replace(/[^a-z0-9_]/gi, "")}`,
+    sessionId: "",
+    email: req.client.email || "",
+    meta: { ...(req.body && req.body.meta ? req.body.meta : {}), clientId: req.client.id },
+    createdAt: new Date().toISOString(),
+    ip: req.ip,
+    userAgent: req.headers["user-agent"] || ""
+  })
+  writeData(eventsFile, events.slice(0, 5000))
+  res.json({ ok: true })
+})
+
+app.get("/api/admin/wholesale/activity", requireAdmin, (req, res) => {
+  const activity = readData(eventsFile).filter(item => String(item.type || "").startsWith("wholesale_"))
+  activity.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  res.json({ ok: true, activity: activity.slice(0, 200) })
+})
+
+function getWholesaleCart(clientId) {
+  return readData(wholesaleCartsFile).find(item => Number(item.clientId) === Number(clientId) && item.status === "active") || null
+}
+
+function enrichWholesaleCart(cart) {
+  if (!cart) return null
+  const products = enrichWholesaleProducts()
+  let total = 0
+  const items = (cart.items || []).map(item => {
+    const product = products.find(p => Number(p.id) === Number(item.productId))
+    if (!product) return null
+    const qty = Math.max(1, Number(item.qty || 1))
+    const unitPrice = product.wholesale.wholesalePrice == null ? 0 : product.wholesale.wholesalePrice
+    total += unitPrice * qty
+    return { productId: product.id, name: product.name, code: product.code || "", qty, unitPrice, subtotal: unitPrice * qty, packageName: product.wholesale.packageName, unitsPerPackage: product.wholesale.unitsPerPackage, minimumQuantity: product.wholesale.minimumQuantity }
+  }).filter(Boolean)
+  return { ...cart, items, total }
+}
+
+app.get("/api/wholesale/cart", requireClient, (req, res) => {
+  res.json({ ok: true, cart: enrichWholesaleCart(getWholesaleCart(req.client.id)) })
+})
+
+app.post("/api/wholesale/cart/item", requireClient, (req, res) => {
+  const productId = Number(req.body && req.body.productId)
+  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number(req.body && req.body.qty || 1))
+  const product = enrichWholesaleProducts().find(item => Number(item.id) === productId)
+  if (!product) return res.status(404).json({ error: "wholesale_product_not_found" })
+  const carts = readData(wholesaleCartsFile)
+  let cart = carts.find(item => Number(item.clientId) === Number(req.client.id) && item.status === "active")
+  if (!cart) {
+    cart = { id: `w-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, clientId: Number(req.client.id), status: "active", items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    carts.push(cart)
+  }
+  const existing = cart.items.find(item => Number(item.productId) === productId)
+  if (existing) existing.qty = qty
+  else cart.items.push({ productId, qty })
+  cart.updatedAt = new Date().toISOString()
+  writeData(wholesaleCartsFile, carts)
+  res.json({ ok: true, cart: enrichWholesaleCart(cart) })
+})
+
+app.post("/api/wholesale/cart/remove", requireClient, (req, res) => {
+  const cart = getWholesaleCart(req.client.id)
+  if (!cart) return res.json({ ok: true, cart: null })
+  const carts = readData(wholesaleCartsFile)
+  const index = carts.findIndex(item => item.id === cart.id)
+  carts[index].items = (carts[index].items || []).filter(item => Number(item.productId) !== Number(req.body && req.body.productId))
+  carts[index].updatedAt = new Date().toISOString()
+  writeData(wholesaleCartsFile, carts)
+  res.json({ ok: true, cart: enrichWholesaleCart(carts[index]) })
+})
+
+app.post("/api/wholesale/cart/order", requireClient, (req, res) => {
+  const cart = getWholesaleCart(req.client.id)
+  const enriched = enrichWholesaleCart(cart)
+  if (!enriched || !enriched.items.length) return res.status(400).json({ error: "empty_cart" })
+  const now = new Date().toISOString()
+  const order = {
+    id: `VM-${Date.now()}`,
+    createdAt: now,
+    updatedAt: now,
+    status: "received",
+    collectionStatus: "pending",
+    source: "wholesale_portal",
+    client: { id: req.client.id, name: `${req.client.nombre || ""} ${req.client.apellido || ""}`.trim(), email: req.client.email || "", phone: req.client.celular || "", zona: req.client.zona || "", address: req.client.direccion || "", company: req.client.empresa || "", companyRif: req.client.rifEmpresa || "", fiscalAddress: req.client.direccionFiscal || "", type: req.client.tipo || "" },
+    items: enriched.items,
+    total: enriched.total,
+    deliveryMethod: "Solo despacho",
+    notes: String(req.body && req.body.notes || "")
+  }
+  const orders = readData(ordersFile)
+  orders.unshift(order)
+  writeData(ordersFile, orders)
+  const events = readData(eventsFile)
+  events.unshift({ id: Date.now().toString(), type: "wholesale_order_created", sessionId: "", email: req.client.email || "", meta: { orderId: order.id, clientId: req.client.id, total: order.total, items: order.items.length }, createdAt: now, ip: req.ip, userAgent: req.headers["user-agent"] || "" })
+  writeData(eventsFile, events.slice(0, 5000))
+  const carts = readData(wholesaleCartsFile)
+  const index = carts.findIndex(item => item.id === cart.id)
+  if (index >= 0) { carts[index].status = "ordered"; carts[index].orderId = order.id; carts[index].orderedAt = now }
+  writeData(wholesaleCartsFile, carts)
+  res.json({ ok: true, order })
+})
+
+app.get("/api/admin/wholesale/orders", requireAdmin, (req, res) => {
+  const orders = readData(ordersFile).filter(order => order && order.source === "wholesale_portal")
+  orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  res.json({ ok: true, orders })
+})
+
+app.patch("/api/admin/wholesale/orders/:id", requireAdmin, (req, res) => {
+  const orders = readData(ordersFile)
+  const order = orders.find(item => String(item.id) === String(req.params.id) && item.source === "wholesale_portal")
+  if (!order) return res.status(404).json({ error: "order_not_found" })
+  const allowedStatus = ["received", "preparing", "ready_dispatch", "dispatched", "delivered", "cancelled"]
+  const allowedCollection = ["pending", "partial", "paid", "overdue"]
+  if (req.body.status && allowedStatus.includes(req.body.status)) order.status = req.body.status
+  if (req.body.collectionStatus && allowedCollection.includes(req.body.collectionStatus)) order.collectionStatus = req.body.collectionStatus
+  order.dispatchNotes = String(req.body.dispatchNotes || order.dispatchNotes || "")
+  order.updatedAt = new Date().toISOString()
+  writeData(ordersFile, orders)
+  res.json({ ok: true, order })
+})
 
 // Analytics & Events
 app.get("/api/events", requireAdmin, (req, res) => {

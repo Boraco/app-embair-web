@@ -3,14 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Distribución mayorista | EMBAIR</title>
+  <title>Distribuidor | EMBAIR</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
-  <header class="bg-[#10165c] text-white">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-      <div><p class="text-xs uppercase tracking-[.18em] text-amber-300">EMBAIR</p><h1 class="text-xl font-bold">Distribución mayorista</h1></div>
+  <header class="bg-[#10165c] text-white shadow-lg">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-28 h-12 rounded-lg bg-white/95 p-1 flex items-center justify-center">
+          <img src="/uploads/logo_embair_original_1771950323213.png" alt="EMBAIR" class="max-w-full max-h-full object-contain">
+        </div>
+        <div><p class="text-xs uppercase tracking-[.18em] text-amber-300">Distribución</p><h1 class="text-xl md:text-2xl font-bold">Catálogo al mayor</h1></div>
+      </div>
       <div class="flex items-center gap-3"><span id="client-name" class="hidden text-sm text-white/80"></span><button id="logout" class="hidden text-sm border border-white/30 rounded-lg px-3 py-2">Salir</button></div>
     </div>
   </header>
@@ -22,8 +27,8 @@
       <div class="space-y-3"><input id="email" type="email" class="w-full border rounded-lg px-3 py-2" placeholder="Correo electrónico"><input id="password" type="password" class="w-full border rounded-lg px-3 py-2" placeholder="Clave de acceso"><button id="login" class="w-full rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold py-3">Ingresar</button><p id="login-error" class="hidden text-sm text-red-600"></p></div>
     </section>
     <section id="app-panel" class="hidden">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"><div><p class="text-sm text-slate-500">Precios y presentaciones para distribución</p><h2 class="text-2xl font-bold">Catálogo mayorista</h2></div><input id="search" class="w-full md:w-80 border rounded-lg px-3 py-2" placeholder="Buscar producto..."></div>
-      <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start"><div id="products" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4"></div><aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 lg:sticky lg:top-5"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Tu pedido</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div><div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div><div class="border-t mt-4 pt-4 flex justify-between font-bold"><span>Total estimado</span><span id="total">$0</span></div><textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm" rows="3" placeholder="Notas para despacho o entrega"></textarea><button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Formalizar pedido</button><p id="order-message" class="hidden text-sm mt-3"></p></aside></div>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"><div><p class="text-sm text-slate-500">Precios y presentaciones para distribución</p><h2 class="text-2xl font-bold">Catálogo al mayor</h2></div><input id="search" class="w-full md:w-80 border rounded-lg px-3 py-2" placeholder="Buscar producto..."></div>
+      <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start"><div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div><aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Solicitud</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div><div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div><div class="border-t mt-4 pt-4 flex justify-between font-bold"><span>Total estimado</span><span id="total">$0</span></div><textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm" rows="3" placeholder="Notas para despacho o entrega"></textarea><button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button><p id="order-message" class="hidden text-sm mt-3"></p></aside></div>
     </section>
   </main>
 <script>

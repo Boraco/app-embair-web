@@ -212,6 +212,12 @@
           <label class="block text-sm mb-1">Especificaciones (una por línea)</label>
           <textarea id="prod-specs" rows="3" class="w-full border rounded px-3 py-2"></textarea>
         </div>
+        <div class="sm:col-span-2">
+          <label class="block text-sm mb-1">Ficha técnica (PDF) — URL</label>
+          <input id="prod-datasheet" class="w-full border rounded px-3 py-2" placeholder="https://.../ficha.pdf" />
+          <input type="file" id="prod-datasheet-file" accept="application/pdf,.pdf" class="w-full border rounded px-3 py-2 mt-2" />
+          <p id="prod-datasheet-status" class="text-xs text-slate-500 mt-1 hidden"></p>
+        </div>
         <div class="sm:col-span-2 flex gap-3">
           <button id="save-product" class="bg-blue-600 text-white rounded px-4 py-2">Guardar producto</button>
           <button id="reset-form" type="button" class="border border-gray-300 rounded px-4 py-2">Limpiar</button>
@@ -347,6 +353,9 @@
     const tagsEl = document.getElementById("prod-tags")
     const descEl = document.getElementById("prod-desc")
     const specsEl = document.getElementById("prod-specs")
+    const datasheetEl = document.getElementById("prod-datasheet")
+    const datasheetFileEl = document.getElementById("prod-datasheet-file")
+    const datasheetStatusEl = document.getElementById("prod-datasheet-status")
     const saveBtn = document.getElementById("save-product")
     const resetBtn = document.getElementById("reset-form")
     const exportBtn = document.getElementById("export-products")
@@ -1050,8 +1059,10 @@
             if (tagsEl) tagsEl.value = Array.isArray(p.tags) ? p.tags.join(", ") : (p.tags || "")
             subcatEl.value = p.subcategory || ""
             materialEl.value = p.material || ""
-            descEl.value = p.desc
+            descEl.value = p.desc || ""
             specsEl.value = (p.specs || []).join("\n")
+            if (datasheetEl) datasheetEl.value = p.datasheet || ""
+            if (datasheetFileEl) datasheetFileEl.value = ""
             window.scrollTo({ top: 0, behavior: "smooth" })
           } else if (act === "del") {
             if (!confirm("¿Eliminar este producto?")) return
@@ -1102,6 +1113,7 @@
       const order = orderEl.value ? Number(orderEl.value) : 999
       let img = imgEl.value.trim()
       let pack = packEl.value.trim()
+      let datasheet = datasheetEl ? datasheetEl.value.trim() : ""
       const packInfo = packInfoEl.value.trim()
       const unitsBundle = unitsBundleEl.value ? Number(unitsBundleEl.value) : null
       const volume = volumeEl.value ? Number(volumeEl.value) : null
@@ -1125,15 +1137,24 @@
           return
         }
       }
+      if (datasheetFileEl && datasheetFileEl.files && datasheetFileEl.files[0]) {
+        try {
+          datasheet = await uploadFile(datasheetFileEl.files[0])
+          if (datasheetEl) datasheetEl.value = datasheet
+        } catch (e) {
+          alert("No se pudo subir la ficha técnica: " + (e && e.message ? e.message : "error"))
+          return
+        }
+      }
       const desc = descEl.value.trim()
       const specs = specsEl.value.split("\n").map(s => s.trim()).filter(Boolean)
       if (!name) return
       if (id) {
         const idx = PRODUCTS.findIndex(x => Number(x.id) === id)
-        if (idx >= 0) PRODUCTS[idx] = { id, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs }
+        if (idx >= 0) PRODUCTS[idx] = { ...PRODUCTS[idx], id, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet }
       } else {
         const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x => Number(x.id) || 0)) + 1 : 1
-        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs })
+        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet })
       }
       saveProducts(PRODUCTS)
       renderProducts()
@@ -1159,7 +1180,7 @@
     exportCsvBtn.addEventListener("click", () => {
       // Export as Excel instead of CSV if xlsx is available, else fallback
       if (typeof XLSX !== 'undefined') {
-        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Modalidad logística", "Stock", "Etiqueta", "Prioridad", "Unidades/Bulto", "Volumen (ft3)", "Imagen URL", "Empaque URL", "Info Empaque", "Descripción", "Especificaciones"]
+        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Modalidad logística", "Stock", "Etiqueta", "Prioridad", "Unidades/Bulto", "Volumen (ft3)", "Imagen URL", "Empaque URL", "Info Empaque", "Descripción", "Especificaciones", "Ficha Técnica"]
         const data = PRODUCTS.map(p => [
           p.name || "",
           p.code || "",
@@ -1181,7 +1202,8 @@
           p.pack || "",
           p.packInfo || "",
           p.desc || "",
-          (p.specs || []).join("\n")
+          (p.specs || []).join("\n"),
+          p.datasheet || ""
         ])
         const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
         const wb = XLSX.utils.book_new()
@@ -1549,7 +1571,8 @@
               pack: row["Empaque URL"] || row["Empaque"] || "https://via.placeholder.com/400x300?text=Sin+Imagen",
               packInfo: row["Info Empaque"] || row["InfoEmpaque"] || "",
               desc: row["Descripción"] || row["Descripcion"] || "",
-              specs: (row["Especificaciones"] || "").split("\n").filter(Boolean)
+              specs: (row["Especificaciones"] || "").split("\n").filter(Boolean),
+              datasheet: row["Ficha Técnica"] || row["Ficha Tecnica"] || row["datasheet"] || ""
             }))
             
           } else if (name.endsWith(".csv")) {

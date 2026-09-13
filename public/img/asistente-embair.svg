@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 320" width="260" height="320" role="img" aria-label="Asesor EMBAIR tomando notas en su lista">
+ <title>Asesor EMBAIR</title>
+
+ <defs>
+    <linearGradient id="uni" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b4fa0"/>
+      <stop offset="1" stop-color="#0A2647"/>
+    </linearGradient>
+    <linearGradient id="vest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF9A4D"/>
+      <stop offset="1" stop-color="#FF6600"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8cda6"/>
+      <stop offset="1" stop-color="#eeb083"/>
+    </linearGradient>
+    <linearGradient id="folder" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9c6a34"/>
+      <stop offset="1" stop-color="#7a5124"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="62%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#0A2647" flood-opacity="0.28"/>
+    </filter>
+ </defs>
+
+  <!-- Halo suave detrás -->
+ <ellipse cx="130" cy="160" rx="118" ry="150" fill="url(#glow)"/>
+
+ <g filter="url(#soft)">
+    <!-- Sombra en el suelo -->
+    <ellipse cx="132" cy="306" rx="70" ry="12" fill="#0A2647" opacity="0.16"/>
+
+    <!-- Piernas -->
+    <rect x="104" y="228" width="21" height="62" rx="10" fill="#1b2b4a"/>
+    <rect x="136" y="228" width="21" height="62" rx="10" fill="#1b2b4a"/>
+    <!-- Zapatos -->
+    <rect x="98" y="282" width="32" height="17" rx="8" fill="#111827"/>
+    <rect x="132" y="282" width="32" height="17" rx="8" fill="#111827"/>
+
+    <!-- Torso / uniforme -->
+    <path d="M94 164 q36 -24 72 0 v66 q0 19 -19 19 h-34 q-19 0 -19 -19 z" fill="url(#uni)"/>
+
+    <!-- Chaleco de seguridad naranja -->
+    <path d="M104 164 l-10 0 q-9 5 -9 19 v48 q0 9 8 12 l11 2 z" fill="url(#vest)"/>
+    <path d="M156 164 l10 0 q9 5 9 19 v48 q0 9 -8 12 l-11 2 z" fill="url(#vest)"/>
+    <!-- Franjas reflectantes -->
+    <rect x="96" y="220" width="68" height="7" rx="3" fill="#eaf0fb" opacity="0.85"/>
+    <rect x="96" y="232" width="68" height="4" rx="2" fill="#c9d6ee" opacity="0.7"/>
+    <!-- Cordones del chaleco -->
+    <path d="M118 175 v70" stroke="#e8630a" stroke-width="2.5" fill="none" opacity="0.6"/>
+    <path d="M142 175 v70" stroke="#e8630a" stroke-width="2.5" fill="none" opacity="0.6"/>
+
+    <!-- Cuello -->
+    <rect x="118" y="150" width="24" height="18" rx="8" fill="url(#skin)"/>
+
+    <!-- Cabeza -->
+    <circle cx="130" cy="122" r="36" fill="url(#skin)"/>
+    <!-- Orejas -->
+    <circle cx="95" cy="124" r="7.5" fill="#eeb083"/>
+    <circle cx="165" cy="124" r="7.5" fill="#eeb083"/>
+    <!-- Cabello -->
+    <path d="M94 116 q4 -32 36 -32 q32 0 36 32 q-15 -13 -36 -13 q-21 0 -36 13 z" fill="#3a2a1f"/>
+    <!-- Casco de seguridad -->
+    <path d="M90 106 q0 -37 40 -37 q40 0 40 37 z" fill="#FFB020"/>
+    <rect x="86" y="104" width="88" height="11" rx="5.5" fill="#FFCB4D"/>
+    <rect x="127" y="69" width="6" height="32" rx="3" fill="#e6a012"/>
+    <!-- Brillo casco -->
+    <path d="M104 82 q10 -8 24 -9" stroke="#fff6da" stroke-width="3" fill="none" opacity="0.7" stroke-linecap="round"/>
+
+    <!-- Ojos -->
+    <circle cx="117" cy="122" r="5.2" fill="#20304d"/>
+    <circle cx="143" cy="122" r="5.2" fill="#20304d"/>
+    <circle cx="118.6" cy="120.4" r="1.7" fill="#ffffff"/>
+    <circle cx="144.6" cy="120.4" r="1.7" fill="#ffffff"/>
+    <!-- Cejas -->
+    <path d="M109 112 q8 -4 15 -1" stroke="#3a2a1f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M136 111 q8 -3 15 1" stroke="#3a2a1f" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Sonrisa amable -->
+    <path d="M116 137 q14 12 28 0" stroke="#a5563a" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+    <!-- Mejillas -->
+    <circle cx="109" cy="132" r="5" fill="#ff9d7a" opacity="0.5"/>
+    <circle cx="151" cy="132" r="5" fill="#ff9d7a" opacity="0.5"/>
+
+    <!-- ===== Carpeta/lista sostenida frente al torso (en diagonal) ===== -->
+    <g transform="rotate(-9 118 240)">
+      <!-- Tapa trasera -->
+      <rect x="66" y="206" width="104" height="86" rx="9" fill="url(#folder)"/>
+      <!-- Hoja -->
+      <rect x="72" y="212" width="92" height="74" rx="6" fill="#fdf8ee"/>
+      <!-- Pinza superior -->
+      <rect x="102" y="200" width="32" height="13" rx="5" fill="#cfc7b8"/>
+      <rect x="108" y="196" width="20" height="8" rx="4" fill="#b9b1a1"/>
+      <!-- Titulo hoja -->
+      <rect x="80" y="220" width="52" height="5" rx="2.5" fill="#b9c2cf"/>
+      <!-- Renglones con checks -->
+      <path d="M82 236 l4 4 l7 -8" stroke="#1f9d55" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="98" y="234" width="58" height="4" rx="2" fill="#cbd3dd"/>
+      <path d="M82 252 l4 4 l7 -8" stroke="#1f9d55" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="98" y="250" width="58" height="4" rx="2" fill="#cbd3dd"/>
+      <path d="M82 268 l4 4 l7 -8" stroke="#1f9d55" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="98" y="266" width="42" height="4" rx="2" fill="#cbd3dd"/>
+    </g>
+
+    <!-- Brazo izquierdo: sostiene la carpeta por el borde -->
+    <path d="M96 176 q-22 22 -14 54" stroke="url(#uni)" stroke-width="18" fill="none" stroke-linecap="round"/>
+    <circle cx="84" cy="232" r="9.5" fill="url(#skin)"/>
+
+    <!-- Brazo derecho: cruza para escribir con el bolígrafo -->
+    <path d="M164 176 q22 26 12 56" stroke="url(#uni)" stroke-width="18" fill="none" stroke-linecap="round"/>
+    <!-- Mano derecha escribiendo (sobre la hoja) -->
+    <circle cx="150" cy="240" r="10" fill="url(#skin)"/>
+    <!-- Bolígrafo -->
+    <g transform="rotate(38 150 240)">
+      <rect x="146" y="204" width="8" height="40" rx="4" fill="#20304d"/>
+      <rect x="146" y="204" width="8" height="10" rx="4" fill="#3f5aa0"/>
+      <path d="M146 244 l4 10 l4 -10 z" fill="#111827"/>
+      <rect x="146" y="212" width="8" height="3" fill="#FF6600"/>
+    </g>
+
+    <!-- Detalle: pequeña línea que se está escribiendo en la hoja -->
+    <rect x="118" y="272" width="24" height="4" rx="2" fill="#8fb7ff" opacity="0.85"/>
+ </g>
+</svg>

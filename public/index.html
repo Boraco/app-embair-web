@@ -36,6 +36,24 @@
     .filter-chip.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
     .drawer-open { overflow: hidden; }
     .modal-open { overflow: hidden; }
+    #assistant-root { bottom: 7rem; }
+    #assistant-panel { width: min(24rem, calc(100vw - 2rem)); max-height: min(70vh, calc(100dvh - 9rem)); }
+    /* Personaje del asistente (SVG vectorial, nunca se pixela) */
+    #assistant-root { bottom: clamp(6rem, 12vh, 7.5rem); right: clamp(0.5rem, 2vw, 1.5rem); }
+    #assistant-toggle { width: clamp(4.25rem, 13vw, 7.5rem); height: clamp(5.5rem, 17vw, 9.5rem); background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; line-height: 1; padding: 0 !important; }
+    #assistant-toggle img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 10px 12px rgba(16,22,92,.28)); transition: transform .25s ease; }
+    #assistant-toggle:hover img { transform: translateY(-4px) scale(1.04); }
+    #assistant-bubble { animation: assistant-float 2.8s ease-in-out infinite; font-size: clamp(0.6rem, 2.6vw, 0.7rem); }
+    @keyframes assistant-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @media (hover: none) {
+      #assistant-toggle:hover img { transform: none; }
+    }
+    @media (max-width: 767px) {
+      #assistant-root { left: auto; right: 0.75rem; bottom: clamp(5rem, 13vh, 5.5rem); }
+      #assistant-panel { width: min(100%, calc(100vw - 1.25rem)); max-height: calc(100dvh - 7rem); border-radius: 1rem; }
+      #assistant-root > .flex { align-items: flex-end; }
+      #assistant-root > .flex > div { padding-left: .75rem; padding-right: .75rem; }
+    }
     .portal-hero {
       background: linear-gradient(112deg, #0d145b 0%, #43204d 48%, #ff4b24 100%);
       box-shadow: 0 18px 45px rgba(16, 22, 92, 0.16);
@@ -194,7 +212,7 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      
+
       <div id="cart-items-drawer" class="flex-1 overflow-y-auto p-4 space-y-4">
         <!-- Cart items will be injected here -->
         <div class="text-center py-10 text-slate-400">
@@ -257,14 +275,22 @@
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
-        <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="Abrir asistente virtual">
-          <span class="text-lg leading-none">💬</span>
+        <button id="assistant-toggle" class="text-white flex items-center justify-center focus:outline-none" aria-label="Abrir asistente de materiales">
+          <img src="img/asistente-embair.svg" alt="Asesor EMBAIR: lista y atajo al chat" draggable="false">
         </button>
-        <div class="px-4 py-1.5 rounded-full bg-blue-500 text-white text-[11px] font-medium shadow">
-          Asistente virtual
+        <div id="assistant-bubble" class="px-4 py-1.5 rounded-full bg-[#10165c] text-white text-[11px] font-semibold shadow-lg" style="cursor:pointer">
+          💬 Asistente de materiales
         </div>
       </div>
     </div>
+    <script>
+      // Atajo: el globo "Asistente de materiales" abre el chat igual que el personaje
+      document.addEventListener("DOMContentLoaded", () => {
+        const bubble = document.getElementById("assistant-bubble")
+        const toggle = document.getElementById("assistant-toggle")
+        if (bubble && toggle) bubble.addEventListener("click", () => toggle.click())
+      })
+    </script>
 
     <section id="servicios" class="mb-16 mt-12">
       <h3 class="text-2xl font-semibold mb-6">Servicios</h3>
@@ -346,9 +372,18 @@
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             <div class="bg-white px-6 pb-6 pt-8 sm:p-8">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 relative group">
-                  <img id="pm-img" src="" alt="" class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                <div class="flex flex-col items-start">
+                  <div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 relative group">
+                    <img id="pm-img" src="" alt="" class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                  </div>
+                  <!-- Miniaturas: foto principal + empaque -->
+                  <div id="pm-gallery" class="hidden flex-wrap gap-2 mt-3"></div>
+                  <!-- Marca debajo de la foto -->
+                  <div id="pm-brand-wrap" class="hidden mt-3 inline-flex items-center gap-2 text-sm">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Marca</span>
+                    <span id="pm-brand" class="font-semibold text-slate-800"></span>
+                  </div>
                 </div>
                 <div class="flex flex-col h-full">
                   <div class="mb-auto">
@@ -362,6 +397,13 @@
                     <div id="pm-specs-container" class="mb-6 hidden">
                       <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Especificaciones</h4>
                       <ul class="space-y-1 text-sm text-slate-600" id="pm-specs"></ul>
+                    </div>
+                    <div id="pm-datasheet-container" class="mb-6 hidden">
+                      <a id="pm-datasheet" href="#" target="_blank" rel="noopener"
+                         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-blue-200 bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Descargar ficha técnica
+                      </a>
                     </div>
                     <div id="pm-related-container" class="mb-2 hidden">
                       <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">También te puede interesar</h4>
@@ -438,6 +480,11 @@
       const pmRelatedContainer = document.getElementById("pm-related-container")
       const pmRelated = document.getElementById("pm-related")
       const pmAddBtn = document.getElementById("pm-add-btn")
+      const pmGallery = document.getElementById("pm-gallery")
+      const pmBrandWrap = document.getElementById("pm-brand-wrap")
+      const pmBrand = document.getElementById("pm-brand")
+      const pmDatasheetContainer = document.getElementById("pm-datasheet-container")
+      const pmDatasheet = document.getElementById("pm-datasheet")
       let CURRENT_PRODUCT = null
 
       async function shareCurrentPage() {
@@ -498,8 +545,72 @@
       function openProductDetail(product, origin) {
         if (!productModal || !product) return
         CURRENT_PRODUCT = product
-        if (pmImg) pmImg.src = product.img || ""
-        if (pmImg) pmImg.alt = product.name || ""
+        // Galería: foto principal + empaque (alternativa)
+        const galleryImgs = []
+        if (product.img && !/placeholder|Sin\+Imagen|Sin Imagen/i.test(product.img)) galleryImgs.push({ src: product.img, label: "Producto" })
+        if (product.pack && !/placeholder|Sin\+Imagen|Sin Imagen/i.test(product.pack) && product.pack !== product.img) galleryImgs.push({ src: product.pack, label: product.packInfo || "Empaque" })
+        if (!galleryImgs.length && product.img) galleryImgs.push({ src: product.img, label: "Producto" })
+
+        // Imagen principal del modal
+        if (pmImg) {
+          pmImg.src = galleryImgs.length ? galleryImgs[0].src : ""
+          pmImg.alt = product.name || ""
+        }
+
+        // Miniaturas (solo si hay más de una imagen)
+        if (pmGallery) {
+          pmGallery.innerHTML = ""
+          if (galleryImgs.length > 1) {
+            galleryImgs.forEach((g, idx) => {
+              const btn = document.createElement("button")
+              btn.type = "button"
+              btn.title = g.label
+              btn.className = "w-16 h-16 rounded-lg overflow-hidden border-2 transition " + (idx === 0 ? "border-blue-500" : "border-slate-200 hover:border-blue-300")
+              const thumb = document.createElement("img")
+              thumb.src = g.src
+              thumb.alt = g.label
+              thumb.className = "w-full h-full object-cover"
+              thumb.onerror = () => btn.remove()
+              btn.appendChild(thumb)
+              btn.onclick = () => {
+                if (pmImg) pmImg.src = g.src
+                Array.from(pmGallery.children).forEach(c => c.classList.remove("border-blue-500"))
+                Array.from(pmGallery.children).forEach(c => c.classList.add("border-slate-200"))
+                btn.classList.remove("border-slate-200")
+                btn.classList.add("border-blue-500")
+              }
+              pmGallery.appendChild(btn)
+            })
+            pmGallery.classList.remove("hidden")
+            pmGallery.classList.add("flex")
+          } else {
+            pmGallery.classList.add("hidden")
+            pmGallery.classList.remove("flex")
+          }
+        }
+
+        // Marca debajo de la foto
+        if (pmBrandWrap && pmBrand) {
+          const brandText = String(product.brand || "").trim()
+          if (brandText) {
+            pmBrand.textContent = brandText
+            pmBrandWrap.classList.remove("hidden")
+          } else {
+            pmBrandWrap.classList.add("hidden")
+          }
+        }
+
+        // Ficha técnica (si el producto tiene un archivo/URL)
+        if (pmDatasheetContainer && pmDatasheet) {
+          const sheet = String(product.datasheet || product.fichaUrl || "").trim()
+          if (sheet) {
+            pmDatasheet.href = sheet
+            pmDatasheetContainer.classList.remove("hidden")
+          } else {
+            pmDatasheetContainer.classList.add("hidden")
+          }
+        }
+
         if (pmCat) pmCat.textContent = product.category || ""
         if (pmTags) {
           const raw = product.tags
@@ -687,6 +798,24 @@
           img.onerror = () => { img.style.display = 'none' }
           imgContainer.appendChild(img)
           
+          // Marca sobre/abajo de la foto (cinta inferior)
+          if (p.brand) {
+            const brandTag = document.createElement("div")
+            brandTag.className = "absolute bottom-0 left-0 right-0 bg-slate-900/70 backdrop-blur-sm text-white text-[10px] md:text-[11px] font-semibold px-2 py-1 text-center truncate"
+            brandTag.textContent = p.brand
+            brandTag.title = "Marca: " + p.brand
+            imgContainer.appendChild(brandTag)
+          }
+
+          // Indicador de imagen de empaque disponible
+          if (p.pack && p.pack !== p.img && !/placeholder|Sin\+Imagen/i.test(p.pack)) {
+            const packTag = document.createElement("div")
+            packTag.className = "absolute bottom-7 left-0 text-white text-[9px] px-1.5 py-0.5 rounded-r bg-orange-500 font-bold shadow-sm"
+            packTag.textContent = "+ Empaque"
+            packTag.title = p.packInfo ? ("Imagen de empaque · " + p.packInfo) : "Incluye imagen de empaque"
+            imgContainer.appendChild(packTag)
+          }
+
           // Stock Badge
           let badgeText = "DISPONIBLE"
           let badgeColor = "bg-green-500"
@@ -708,7 +837,7 @@
               badgeColor = "bg-orange-500"
             }
           }
-          
+
           const badge = document.createElement("div")
           badge.className = `absolute top-2 right-2 text-white text-[10px] px-2 py-1 rounded font-bold backdrop-blur-sm shadow-sm ${badgeColor}`
           badge.textContent = badgeText
@@ -727,7 +856,7 @@
             let labelColor = "bg-blue-600"
             if (p.label === "Oferta") labelColor = "bg-red-600"
             if (p.label === "Destacado") labelColor = "bg-purple-600"
-            
+
             labelBadge.className = `absolute top-2 left-2 text-white text-[10px] px-2 py-1 rounded font-bold shadow-sm ${labelColor}`
             labelBadge.textContent = p.label
             imgContainer.appendChild(labelBadge)
@@ -735,10 +864,17 @@
 
           const body = document.createElement("div")
           body.className = "p-2 md:p-4 flex-1 flex flex-col"
-          
+
           const title = document.createElement("h3")
           title.className = "font-medium text-slate-900 text-xs sm:text-sm md:text-base mb-1 line-clamp-2 leading-snug min-h-[2.5em]"
           title.textContent = p.name
+          // Marca (texto) también bajo el título, por si la cinta de la foto no aplica
+          if (p.brand) {
+             const brandLine = document.createElement("div")
+             brandLine.className = "text-[10px] md:text-[11px] uppercase tracking-wide text-slate-400 font-semibold mb-1"
+             brandLine.textContent = p.brand
+             body.appendChild(brandLine)
+          }
 
           if (p.code) {
              const codeLabel = document.createElement("div")

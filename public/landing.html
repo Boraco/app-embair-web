@@ -20,12 +20,30 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .bg-embair-blue { background-color: #0A2647; }
-    .text-embair-orange { color: #FF6600; }
-    .bg-embair-orange { background-color: #FF6600; }
-    .border-embair-orange { border-color: #FF6600; }
-  </style>
+       body { font-family: 'Inter', sans-serif; }
+       .bg-embair-blue { background-color: #0A2647; }
+       .text-embair-orange { color: #FF6600; }
+       .bg-embair-orange { background-color: #FF6600; }
+       .border-embair-orange { border-color: #FF6600; }
+
+       /* Personaje del asistente (SVG vectorial, nunca se pixela) */
+       #assistant-root { bottom: clamp(0.75rem, 2.5vh, 1.5rem); right: clamp(0.5rem, 2vw, 1.5rem); }
+       #assistant-toggle { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; width: clamp(4.25rem, 13vw, 7.5rem); height: clamp(5.5rem, 17vw, 9.5rem); }
+       #assistant-toggle img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 10px 12px rgba(10,38,71,.28)); transition: transform .25s ease; }
+       #assistant-toggle:hover img { transform: translateY(-4px) scale(1.04); }
+       #assistant-bubble { animation: assistant-float 2.8s ease-in-out infinite; font-size: clamp(0.6rem, 2.6vw, 0.7rem); }
+       @keyframes assistant-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+       /* Panel del chat: nunca más ancho que la pantalla */
+       #assistant-panel { width: min(26rem, calc(100vw - 1.5rem)); max-height: min(75vh, calc(100dvh - 8rem)); }
+       @media (max-width: 767px) {
+         #assistant-root { left: auto; bottom: 0.75rem; }
+         #assistant-panel { width: calc(100vw - 1.25rem); max-height: calc(100dvh - 7rem); }
+       }
+       @media (hover: none) {
+         /* En táctil no hay hover: evita que el personaje "salte" al tocar */
+         #assistant-toggle:hover img { transform: none; }
+       }
+    </style>
 </head>
 <body class="bg-gray-50 text-slate-900">
   <nav class="sticky top-0 z-50 bg-embair-blue text-white shadow-xl">
@@ -38,7 +56,7 @@
       <div class="flex gap-4 items-center">
         <!-- Botón de acceso directo al Portal sin registros previos -->
         <a href="/app?portal=1" class="inline-flex items-center justify-center bg-embair-orange hover:bg-orange-600 text-white px-3 md:px-5 py-2 rounded-md font-bold transition text-sm md:text-base shadow">
-          <span>🛒</span> <span class="hidden sm:inline ml-2">Ir al Portal</span>
+          <span>🛒</span> <span class="hidden sm:inline ml-2">Tienda On Line</span>
         </a>
         <a href="/catalogos.html" class="inline-flex items-center justify-center bg-white/10 hover:bg-white/20 text-white border border-white/30 px-3 md:px-5 py-2 rounded-md font-bold transition backdrop-blur-sm text-sm md:text-base">
           📥 <span class="hidden sm:inline ml-2">Catálogos</span>
@@ -57,7 +75,7 @@
             <span>💬</span> WhatsApp
           </a>
           <a href="/app?portal=1" class="bg-embair-orange hover:bg-orange-600 text-white rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2">
-            <span>🛒</span> Ir al Portal
+            <span>🛒</span> Tienda On Line
           </a>
           <a href="/catalogos.html" id="hero-catalog-cta" class="bg-blue-800/80 hover:bg-blue-900 text-white border border-blue-400/30 rounded-full px-6 py-3 text-sm font-bold shadow-lg transition-transform hover:scale-105 flex items-center gap-2 backdrop-blur-sm">
             <span>📥</span> Descargar Catálogos
@@ -163,11 +181,11 @@
       </div>
     </div>
     <div class="flex flex-col items-end gap-2">
-      <button id="assistant-toggle" class="h-12 w-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" aria-label="Abrir asistente virtual">
-        <span class="text-lg leading-none">💬</span>
+      <button id="assistant-toggle" class="text-white flex items-center justify-center focus:outline-none" aria-label="Abrir asistente virtual">
+        <img src="img/asistente-embair.svg" alt="Asesor EMBAIR: lista y atajo al chat" draggable="false">
       </button>
-      <div class="px-4 py-1.5 rounded-full bg-blue-500 text-white text-[11px] font-medium shadow">
-        Asistente virtual
+      <div id="assistant-bubble" class="px-4 py-1.5 rounded-full bg-embair-orange text-white text-[11px] font-semibold shadow-lg" style="cursor:pointer">
+        💬 Habla conmigo
       </div>
     </div>
   </div>
@@ -450,6 +468,12 @@
               assistant.elements.messages.dataset.init = "1"
               trackEvent("assistant_open", { path: window.location.pathname })
             }
+          }
+
+          // Atajo: el globo "Habla conmigo" también abre el chat
+          const bubble = document.getElementById("assistant-bubble")
+          if (bubble) {
+            bubble.addEventListener("click", () => assistant.open())
           }
         }
       })

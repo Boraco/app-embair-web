@@ -19,36 +19,304 @@
       <div class="flex items-center gap-3"><span id="client-name" class="hidden text-sm text-white/80"></span><button id="logout" class="hidden text-sm border border-white/30 rounded-lg px-3 py-2">Salir</button></div>
     </div>
   </header>
+  
   <main class="max-w-6xl mx-auto px-4 py-8">
     <section id="login-panel" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
       <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">Acceso privado</p>
       <h2 class="text-2xl font-bold mb-2">Catálogo para distribuidores</h2>
       <p class="text-sm text-slate-500 mb-6">Ingresa con el correo y la clave asignados por EMBAIR.</p>
-      <div class="space-y-3"><input id="email" type="email" class="w-full border rounded-lg px-3 py-2" placeholder="Correo electrónico"><input id="password" type="password" class="w-full border rounded-lg px-3 py-2" placeholder="Clave de acceso"><button id="login" class="w-full rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold py-3">Ingresar</button><p id="login-error" class="hidden text-sm text-red-600"></p></div>
+      <div class="space-y-3">
+        <input id="email" type="email" class="w-full border rounded-lg px-3 py-2" placeholder="Correo electrónico">
+        <input id="password" type="password" class="w-full border rounded-lg px-3 py-2" placeholder="Clave de acceso">
+        <button id="login" class="w-full rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold py-3">Ingresar</button>
+        <p id="login-error" class="hidden text-sm text-red-600"></p>
+      </div>
     </section>
+
     <section id="app-panel" class="hidden">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"><div><p class="text-sm text-slate-500">Precios y presentaciones para distribución</p><h2 class="text-2xl font-bold">Catálogo al mayor</h2></div><input id="search" class="w-full md:w-80 border rounded-lg px-3 py-2" placeholder="Buscar producto..."></div>
-      <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start"><div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div><aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5"><div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Solicitud</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div><div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div><div class="border-t mt-4 pt-4 flex justify-between font-bold"><span>Total estimado</span><span id="total">$0</span></div><textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm" rows="3" placeholder="Notas para despacho o entrega"></textarea><button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button><p id="order-message" class="hidden text-sm mt-3"></p></aside></div>
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+          <p class="text-sm text-slate-500">Precios y presentaciones para distribución</p>
+          <h2 class="text-2xl font-bold">Catálogo al mayor</h2>
+        </div>
+        <!-- Filtros de Categoría y Buscador integrados -->
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <select id="category-filter" class="border rounded-lg px-3 py-2 bg-white text-sm shadow-sm">
+            <option value="">Todas las categorías</option>
+          </select>
+          <input id="search" class="w-full md:w-80 border rounded-lg px-3 py-2 bg-white text-sm shadow-sm" placeholder="Buscar producto...">
+        </div>
+      </div>
+      <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+        <div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div>
+        <aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5">
+          <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Solicitud</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div>
+          <div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div>
+          <div class="border-t mt-4 pt-4 flex justify-between font-bold"><span>Total estimado</span><span id="total">$0</span></div>
+          <textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm" rows="3" placeholder="Notas para despacho o entrega"></textarea>
+          <button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button>
+          <p id="order-message" class="hidden text-sm mt-3"></p>
+        </aside>
+      </div>
     </section>
   </main>
-<script>
-const TOKEN_KEY = "embair_wholesale_token"
-let token = localStorage.getItem(TOKEN_KEY) || ""
-let products = []
-let cart = []
-let currentClient = {}
-const $ = id => document.getElementById(id)
-function headers(json = false) { const h = {}; if (json) h["Content-Type"] = "application/json"; if (token) h["x-client-auth"] = token; return h }
-function money(v) { return v == null ? "Consultar" : "$" + Number(v).toLocaleString("es-AR") }
-function showApp(client) { currentClient = client || {}; $("login-panel").classList.add("hidden"); $("app-panel").classList.remove("hidden"); $("client-name").textContent = client && client.name ? client.name : "Cliente mayorista"; $("client-name").classList.remove("hidden"); $("logout").classList.remove("hidden"); track("login"); loadProducts(); loadCart() }
-async function track(type, meta = {}) { try { await fetch("/api/wholesale/event", { method: "POST", headers: headers(true), body: JSON.stringify({ type, meta }) }) } catch {} }
-async function login() { const error = $("login-error"); error.classList.add("hidden"); const res = await fetch("/api/wholesale/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: $("email").value, password: $("password").value }) }); const data = await res.json().catch(() => ({})); if (!res.ok) { error.textContent = "Correo o clave no válidos, o acceso aún no habilitado."; error.classList.remove("hidden"); return } token = data.token; localStorage.setItem(TOKEN_KEY, token); showApp(data.client) }
-async function loadProducts() { const res = await fetch("/api/wholesale/products", { headers: headers() }); if (!res.ok) return; const data = await res.json(); products = data.products || []; renderProducts() }
-async function loadCart() { const res = await fetch("/api/wholesale/cart", { headers: headers() }); if (!res.ok) return; const data = await res.json(); cart = data.cart && data.cart.items ? data.cart.items : []; renderCart() }
-async function setItem(productId, qty) { const product = products.find(item => Number(item.id) === Number(productId)); const minimum = product && product.wholesale ? Number(product.wholesale.minimumQuantity || 1) : 1; const nextQty = Math.max(minimum, Number(qty || minimum)); const res = await fetch("/api/wholesale/cart/item", { method: "POST", headers: headers(true), body: JSON.stringify({ productId, qty: nextQty }) }); const data = await res.json(); if (res.ok) { cart = data.cart.items || []; track("cart_add", { productId, qty: nextQty }); renderCart() } }
-function renderProducts() { const q = $("search").value.toLowerCase(); const visible = products.filter(p => (p.name || "").toLowerCase().includes(q)).sort((a, b) => Number(a.wholesale.catalogOrder || 999) - Number(b.wholesale.catalogOrder || 999)); $("products").innerHTML = visible.map(p => { const w = p.wholesale; const tags = [w.featured ? "Destacado" : "", w.offer ? "Oferta" : "", w.discountPercent ? `${w.discountPercent}% descuento` : ""].filter(Boolean); return `<article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"><div class="aspect-[4/3] bg-slate-100"><img src="${p.img || ""}" alt="${p.name}" class="w-full h-full object-contain" onerror="this.style.display='none'"></div><div class="p-4"><div class="flex flex-wrap gap-1 mb-2">${tags.map(tag => `<span class="text-[11px] rounded-full bg-orange-50 text-orange-700 px-2 py-1">${tag}</span>`).join("")}</div><h3 class="font-bold line-clamp-2 min-h-[3rem]">${p.name}</h3><p class="text-xs text-slate-500 mt-1">${w.packageName} · ${w.unitsPerPackage} unidades</p><div class="flex items-end justify-between gap-2 mt-4"><div><p class="text-xs text-slate-500">Precio mayorista</p><strong class="text-lg">${money(w.wholesalePrice)}</strong></div><button data-add="${p.id}" class="bg-amber-500 text-white rounded-lg px-2 py-1 text-xs font-bold">Agregar</button></div><div class="flex flex-wrap gap-1 mt-3"><span class="text-[11px] rounded-full bg-amber-50 text-amber-700 px-2 py-1">${w.availability}</span><span class="text-[11px] rounded-full bg-sky-50 text-sky-700 px-2 py-1">Solo despacho</span></div></div></article>` }).join("") || `<p class="text-slate-500">No hay productos mayoristas publicados.</p>`; document.querySelectorAll("[data-add]").forEach(btn => btn.onclick = () => { const p = products.find(x => Number(x.id) === Number(btn.dataset.add)); setItem(p.id, p.wholesale.minimumQuantity) }) }
-function renderCart() { const count = cart.reduce((s, i) => s + Number(i.qty || 0), 0); const total = cart.reduce((s, i) => s + Number(i.subtotal || 0), 0); $("cart-count").textContent = count; $("total").textContent = money(total); $("cart").innerHTML = cart.length ? cart.map(i => `<div class="border-b pb-3"><div class="flex justify-between gap-3"><div><strong>${i.name}</strong><p class="text-xs text-slate-500">${i.qty} paquetes x ${money(i.unitPrice)}</p><p class="text-xs text-slate-400">Mínimo: ${i.minimumQuantity || 1} paquetes · ${i.unitsPerPackage || 1} und./paquete</p></div><button data-remove="${i.productId}" class="text-red-500 text-xs">Quitar</button></div><div class="flex items-center justify-between mt-2"><span class="text-xs text-slate-500">Paquetes</span><div class="flex items-center border rounded-lg"><button type="button" data-minus="${i.productId}" class="px-2 py-1 text-xs hover:bg-slate-50">-</button><span class="px-2 text-sm font-bold">${i.qty}</span><button type="button" data-plus="${i.productId}" class="px-2 py-1 text-xs hover:bg-slate-50">+</button></div></div></div>`).join("") : `<p class="text-slate-400">Aún no agregas productos.</p>`; document.querySelectorAll("[data-remove]").forEach(btn => btn.onclick = async () => { const res = await fetch("/api/wholesale/cart/remove", { method: "POST", headers: headers(true), body: JSON.stringify({ productId: btn.dataset.remove }) }); const data = await res.json(); cart = data.cart && data.cart.items ? data.cart.items : []; renderCart() }); document.querySelectorAll('[data-minus], [data-plus]').forEach(btn => btn.onclick = () => { const item = cart.find(x => Number(x.productId) === Number(btn.dataset.minus || btn.dataset.plus)); setItem(btn.dataset.minus || btn.dataset.plus, Number(item.qty || 1) + (btn.dataset.plus ? 1 : -1)) }) }
-async function submitOrder() { const msg = $("order-message"); if (!cart.length) return; const res = await fetch("/api/wholesale/cart/order", { method: "POST", headers: headers(true), body: JSON.stringify({ notes: $("notes").value }) }); const data = await res.json(); if (!res.ok) { msg.textContent = "No se pudo formalizar el pedido."; msg.className = "text-sm mt-3 text-red-600"; return } const doc = new jspdf.jsPDF(); doc.setFontSize(18); doc.text("Solicitud de pedido mayorista", 15, 18); doc.setFontSize(10); doc.text("Pedido: " + data.order.id, 15, 26); doc.text("Fecha: " + new Date().toLocaleString(), 15, 32); let y = 44; data.order.items.forEach(i => { doc.text(`${i.qty} x ${i.name} - ${money(i.subtotal)}`, 15, y); y += 6 }); doc.text("Total estimado: " + money(data.order.total), 15, y + 5); doc.text("Despacho: Solo despacho / entrega al sitio", 15, y + 12); doc.save(data.order.id + ".pdf"); cart = []; renderCart(); msg.textContent = "Pedido registrado y PDF generado."; msg.className = "text-sm mt-3 text-emerald-600" }
-$("login").onclick = login; $("search").oninput = renderProducts; $("submit-order").onclick = submitOrder; $("logout").onclick = () => { localStorage.removeItem(TOKEN_KEY); location.reload() }; if (token) { fetch("/api/wholesale/products", { headers: headers() }).then(r => { if (r.ok) showApp({ name: "Cliente mayorista" }); else localStorage.removeItem(TOKEN_KEY) }) }
-function submitOrder() { const msg = $("order-message"); if (!cart.length) return; const button = $("submit-order"); button.disabled = true; button.textContent = "Generando solicitud..."; fetch("/api/wholesale/cart/order", { method: "POST", headers: headers(true), body: JSON.stringify({ notes: $("notes").value }) }).then(async res => { const data = await res.json().catch(() => ({})); if (!res.ok) throw new Error(data.error || "order_failed"); const order = data.order; const client = order.client || currentClient || {}; const doc = new jspdf.jsPDF(); let y = 16; doc.setFontSize(17); doc.text("Solicitud de pedido mayorista", 15, y); y += 8; doc.setFontSize(10); doc.text("Pedido: " + order.id, 15, y); y += 5; doc.text("Fecha: " + new Date(order.createdAt || Date.now()).toLocaleString(), 15, y); y += 9; doc.setFontSize(11); doc.text("Datos comerciales", 15, y); y += 6; doc.setFontSize(9); const clientLines = ["Empresa: " + (client.company || client.empresa || ""), "RIF: " + (client.companyRif || client.rifEmpresa || ""), "Zona: " + (client.zona || ""), "Teléfono: " + (client.phone || client.celular || "")]; clientLines.filter(line => line.split(": ")[1]).forEach(line => { doc.text(line, 15, y); y += 5 }); y += 4; doc.setFontSize(11); doc.text("Detalle de la solicitud", 15, y); y += 7; doc.setFontSize(9); order.items.forEach(item => { if (y > 270) { doc.addPage(); y = 16 } doc.text(`${item.qty} paquetes x ${item.name}`, 15, y); doc.text(money(item.subtotal), 155, y); y += 5; doc.text(`${item.packageName || "Paquete"} · ${item.unitsPerPackage || 1} und./paquete`, 20, y); y += 6 }); y += 3; doc.line(120, y, 195, y); y += 7; doc.setFontSize(11); doc.text("Total estimado: " + money(order.total), 120, y); y += 7; doc.setFontSize(9); doc.text("Despacho: Solo despacho / entrega al sitio", 15, y); if ($("notes").value.trim()) { y += 6; doc.text("Notas: " + $("notes").value.trim(), 15, y) } doc.save(order.id + ".pdf"); cart = []; renderCart(); msg.textContent = "Solicitud registrada y PDF generado. El equipo la gestionará internamente."; msg.className = "text-sm mt-3 text-emerald-600" }).catch(() => { msg.textContent = "No se pudo cerrar la solicitud. Intenta nuevamente."; msg.className = "text-sm mt-3 text-red-600" }).finally(() => { button.disabled = false; button.textContent = "Cerrar solicitud y generar PDF" }) }
-</script></body></html>
+
+  <script>
+    const TOKEN_KEY = "embair_wholesale_token"
+    let token = localStorage.getItem(TOKEN_KEY) || ""
+    let products = []
+    let cart = []
+    let currentClient = {}
+    const $ = id => document.getElementById(id)
+    
+    function headers(json = false) { 
+      const h = {}; 
+      if (json) h["Content-Type"] = "application/json"; 
+      if (token) h["x-client-auth"] = token; 
+      return h 
+    }
+    
+    function money(v) { return v == null ? "Consultar" : "$" + Number(v).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+    
+    function showApp(client) { 
+      currentClient = client || {}; 
+      $("login-panel").classList.add("hidden"); 
+      $("app-panel").classList.remove("hidden"); 
+      $("client-name").textContent = client && client.name ? client.name : "Cliente mayorista"; 
+      $("client-name").classList.remove("hidden"); 
+      $("logout").classList.remove("hidden"); 
+      track("login"); 
+      loadProducts(); 
+      loadCart(); 
+    }
+    
+    async function track(type, meta = {}) { 
+      try { 
+        await fetch("/api/wholesale/event", { method: "POST", headers: headers(true), body: JSON.stringify({ type, meta }) }) 
+      } catch {} 
+    }
+    
+    async function login() { 
+      const error = $("login-error"); 
+      error.classList.add("hidden"); 
+      const res = await fetch("/api/wholesale/login", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ email: $("email").value, password: $("password").value }) 
+      }); 
+      const data = await res.json().catch(() => ({})); 
+      if (!res.ok) { 
+        error.textContent = "Correo o clave no válidos, o acceso aún no habilitado."; 
+        error.classList.remove("hidden"); 
+        return; 
+      } 
+      token = data.token; 
+      localStorage.setItem(TOKEN_KEY, token); 
+      showApp(data.client); 
+    }
+    
+    async function loadProducts() { 
+      const res = await fetch("/api/wholesale/products", { headers: headers() }); 
+      if (!res.ok) return; 
+      const data = await res.json(); 
+      products = data.products || []; 
+      populateCategories();
+      renderProducts(); 
+    }
+    
+    async function loadCart() { 
+      const res = await fetch("/api/wholesale/cart", { headers: headers() }); 
+      if (!res.ok) return; 
+      const data = await res.json(); 
+      cart = data.cart && data.cart.items ? data.cart.items : []; 
+      renderCart(); 
+    }
+
+    function populateCategories() {
+      const select = $("category-filter");
+      if (!select) return;
+      const categories = [...new Set(products.map(p => p.category || p.categoria).filter(Boolean))].sort();
+      select.innerHTML = '<option value="">Todas las categorías</option>' + 
+        categories.map(cat => `<option value="${cat}">${cat}</option>`).join("");
+    }
+
+    async function setItem(productId, qty) { 
+      const product = products.find(item => Number(item.id) === Number(productId)); 
+      if (!product) return;
+      const minimum = product.wholesale ? Number(product.wholesale.minimumQuantity || 1) : 1; 
+      const nextQty = Math.max(minimum, Number(qty || minimum)); 
+      const res = await fetch("/api/wholesale/cart/item", { 
+        method: "POST", 
+        headers: headers(true), 
+        body: JSON.stringify({ productId: Number(productId), qty: nextQty }) 
+      }); 
+      const data = await res.json(); 
+      if (res.ok) { 
+        cart = data.cart && data.cart.items ? data.cart.items : []; 
+        track("cart_add", { productId, qty: nextQty }); 
+        renderCart(); 
+      } 
+    }
+
+    function renderProducts() { 
+      const q = $("search").value.toLowerCase(); 
+      const selectedCat = $("category-filter") ? $("category-filter").value : "";
+      
+      const visible = products.filter(p => {
+        const nameMatch = (p.name || "").toLowerCase().includes(q);
+        const catMatch = !selectedCat || (p.category || p.categoria) === selectedCat;
+        return nameMatch && catMatch;
+      }).sort((a, b) => Number(a.wholesale.catalogOrder || 999) - Number(b.wholesale.catalogOrder || 999)); 
+      
+      $("products").innerHTML = visible.map(p => { 
+        const w = p.wholesale || {}; 
+        const tags = [w.featured ? "Destacado" : "", w.offer ? "Oferta" : "", w.discountPercent ? `${w.discountPercent}% descuento` : ""].filter(Boolean); 
+        return `<article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="aspect-[4/3] bg-slate-100"><img src="${p.img || ""}" alt="${p.name}" class="w-full h-full object-contain" onerror="this.style.display='none'"></div>
+            <div class="p-4">
+              <div class="flex flex-wrap gap-1 mb-2">${tags.map(tag => `<span class="text-[11px] rounded-full bg-orange-50 text-orange-700 px-2 py-1">${tag}</span>`).join("")}</div>
+              <h3 class="font-bold line-clamp-2 min-h-[3rem]">${p.name}</h3>
+              <p class="text-xs text-slate-500 mt-1">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} unidades</p>
+            </div>
+          </div>
+          <div class="p-4 pt-0">
+            <div class="flex items-end justify-between gap-2 mt-2">
+              <div><p class="text-xs text-slate-500">Precio mayorista</p><strong class="text-lg">${money(w.wholesalePrice)}</strong></div>
+              <button type="button" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition">Agregar</button>
+            </div>
+            <div class="flex flex-wrap gap-1 mt-3"><span class="text-[11px] rounded-full bg-amber-50 text-amber-700 px-2 py-1">${w.availability || "Disponible"}</span><span class="text-[11px] rounded-full bg-sky-50 text-sky-700 px-2 py-1">Solo despacho</span></div>
+          </div>
+        </article>` 
+      }).join("") || `<p class="text-slate-500 col-span-full">No hay productos mayoristas publicados en esta categoría.</p>`; 
+    }
+
+    function renderCart() { 
+      const count = cart.reduce((s, i) => s + Number(i.qty || 0), 0); 
+      const total = cart.reduce((s, i) => s + Number(i.subtotal || 0), 0); 
+      $("cart-count").textContent = count; 
+      $("total").textContent = money(total); 
+      
+      $("cart").innerHTML = cart.length ? cart.map(i => `
+        <div class="border-b pb-3">
+          <div class="flex justify-between gap-3">
+            <div><strong>${i.name}</strong><p class="text-xs text-slate-500">${i.qty} paquetes x ${money(i.unitPrice)}</p><p class="text-xs text-slate-400">Mínimo: ${i.minimumQuantity || 1} paquetes · ${i.unitsPerPackage || 1} und./paquete</p></div>
+            <button type="button" onclick="removeCartItem('${i.productId}')" class="text-red-500 text-xs hover:underline">Quitar</button>
+          </div>
+          <div class="flex items-center justify-between mt-2">
+            <span class="text-xs text-slate-500">Paquetes</span>
+            <div class="flex items-center border rounded-lg">
+              <button type="button" onclick="updateCartQty('${i.productId}', ${Number(i.qty) - 1})" class="px-2.5 py-1 text-xs hover:bg-slate-50">-</button>
+              <span class="px-2 text-sm font-bold">${i.qty}</span>
+              <button type="button" onclick="updateCartQty('${i.productId}', ${Number(i.qty) + 1})" class="px-2.5 py-1 text-xs hover:bg-slate-50">+</button>
+            </div>
+          </div>
+        </div>`).join("") : `<p class="text-slate-400">Aún no agregas productos.</p>`; 
+    }
+
+    async function removeCartItem(productId) {
+      const res = await fetch("/api/wholesale/cart/remove", { method: "POST", headers: headers(true), body: JSON.stringify({ productId: Number(productId) }) }); 
+      const data = await res.json(); 
+      cart = data.cart && data.cart.items ? data.cart.items : []; 
+      renderCart();
+    }
+
+    async function updateCartQty(productId, newQty) {
+      const product = products.find(x => Number(x.id) === Number(productId));
+      const min = product && product.wholesale ? Number(product.wholesale.minimumQuantity || 1) : 1;
+      if (newQty < min) return;
+      await setItem(productId, newQty);
+    }
+
+    function submitOrder() { 
+      const msg = $("order-message"); 
+      if (!cart.length) return; 
+      const button = $("submit-order"); 
+      button.disabled = true; 
+      button.textContent = "Generando solicitud..."; 
+      
+      fetch("/api/wholesale/cart/order", { method: "POST", headers: headers(true), body: JSON.stringify({ notes: $("notes").value }) })
+        .then(async res => { 
+          const data = await res.json().catch(() => ({})); 
+          if (!res.ok) throw new Error(data.error || "order_failed"); 
+          const order = data.order; 
+          const client = order.client || currentClient || {}; 
+          const doc = new jspdf.jsPDF(); 
+          let y = 16; 
+          
+          doc.setFontSize(17); 
+          doc.text("Solicitud de pedido mayorista", 15, y); 
+          y += 8; 
+          doc.setFontSize(10); 
+          doc.text("Pedido: " + order.id, 15, y); 
+          y += 5; 
+          doc.text("Fecha: " + new Date(order.createdAt || Date.now()).toLocaleString(), 15, y); 
+          y += 9; 
+          doc.setFontSize(11); 
+          doc.text("Datos comerciales", 15, y); 
+          y += 6; 
+          doc.setFontSize(9); 
+          
+          const clientLines = ["Empresa: " + (client.company || client.empresa || ""), "RIF: " + (client.companyRif || client.rifEmpresa || ""), "Zona: " + (client.zona || ""), "Teléfono: " + (client.phone || client.celular || "")]; 
+          clientLines.filter(line => line.split(": ")[1]).forEach(line => { doc.text(line, 15, y); y += 5 }); 
+          y += 4; 
+          doc.setFontSize(11); 
+          doc.text("Detalle de la solicitud", 15, y); 
+          y += 7; 
+          doc.setFontSize(9); 
+          
+          order.items.forEach(item => { 
+            if (y > 270) { doc.addPage(); y = 16 } 
+            doc.text(`${item.qty} paquetes x ${item.name}`, 15, y); 
+            doc.text(money(item.subtotal), 155, y); 
+            y += 5; 
+            doc.text(`${item.packageName || "Paquete"} · ${item.unitsPerPackage || 1} und./paquete`, 20, y); 
+            y += 6; 
+          }); 
+          
+          y += 3; 
+          doc.line(120, y, 195, y); 
+          y += 7; 
+          doc.setFontSize(11); 
+          doc.text("Total estimado: " + money(order.total), 120, y); 
+          y += 7; 
+          doc.setFontSize(9); 
+          doc.text("Despacho: Solo despacho / entrega al sitio", 15, y); 
+          
+          if ($("notes").value.trim()) { 
+            y += 6; 
+            doc.text("Notas: " + $("notes").value.trim(), 15, y) 
+          } 
+          
+          doc.save(order.id + ".pdf"); 
+          cart = []; 
+          renderCart(); 
+          msg.textContent = "Solicitud registrada y PDF generado. El equipo la gestionará internamente."; 
+          msg.className = "text-sm mt-3 text-emerald-600"; 
+        })
+        .catch(() => { 
+          msg.textContent = "No se pudo cerrar la solicitud. Intenta nuevamente."; 
+          msg.className = "text-sm mt-3 text-red-600"; 
+        })
+        .finally(() => { 
+          button.disabled = false; 
+          button.textContent = "Cerrar solicitud y generar PDF"; 
+        }); 
+    }
+
+    $("login").onclick = login; 
+    $("search").oninput = renderProducts; 
+    $("category-filter").onchange = renderProducts;
+    $("submit-order").onclick = submitOrder; 
+    $("logout").onclick = () => { localStorage.removeItem(TOKEN_KEY); location.reload() }; 
+
+    if (token) { 
+      fetch("/api/wholesale/products", { headers: headers() }).then(r => { 
+        if (r.ok) showApp({ name: "Cliente mayorista" }); 
+        else localStorage.removeItem(TOKEN_KEY) 
+      }) 
+    }
+  </script>
+</body>
+</html>
+

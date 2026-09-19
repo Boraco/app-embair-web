@@ -34,6 +34,14 @@
     .product-actions button {
       min-height: 2.5rem;
     }
+    @media (max-width: 640px) {
+      .product-actions {
+        grid-template-columns: 1fr;
+      }
+      .product-actions button {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">

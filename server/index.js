@@ -164,6 +164,7 @@ const wholesaleProductsFile = path.join(dataDir, "wholesale-products.json")
 const wholesaleCartsFile = path.join(dataDir, "wholesale-carts.json")
 const quotesFile = path.join(dataDir, "quotes.json")
 const inventoryFile = path.join(dataDir, "inventory.json")
+const distributionOrdersFile = path.join(dataDir, "distribution-orders.json")
 
 function getInventoryState() {
   let state = readData(inventoryFile)
@@ -260,6 +261,91 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
   quotes.unshift(quote)
   writeData(quotesFile, quotes)
   res.json({ ok: true, quote })
+})
+
+app.patch("/api/admin/distribution/quotes/:id", requireAdmin, (req, res) => {
+  const quotes = readData(quotesFile)
+  const quote = quotes.find(item => String(item.id) === String(req.params.id))
+  if (!quote) return res.status(404).json({ error: "quote_not_found" })
+  const allowed = ["draft", "approved", "cancelled", "converted"]
+  if (req.body && allowed.includes(req.body.status)) quote.status = req.body.status
+  quote.updatedAt = new Date().toISOString()
+  writeData(quotesFile, quotes)
+  res.json({ ok: true, quote })
+})
+
+app.post("/api/admin/distribution/quotes/:id/convert", requireAdmin, (req, res) => {
+  const quotes = readData(quotesFile)
+  const quote = quotes.find(item => String(item.id) === String(req.params.id))
+  if (!quote) return res.status(404).json({ error: "quote_not_found" })
+  if (["cancelled", "converted"].includes(quote.status)) return res.status(400).json({ error: "quote_not_convertible" })
+
+  const state = getInventoryState()
+  for (const item of quote.items || []) {
+    const inventoryProduct = state.products[String(item.productId)]
+    const packages = Math.max(1, Number(item.qty || 1))
+    const current = getInventoryBalances().find(product => Number(product.productId) === Number(item.productId))
+    if (!inventoryProduct || !current || current.units - packages * inventoryProduct.unitsPerPackage < 0) {
+      return res.status(400).json({ error: "insufficient_stock", productId: item.productId })
+    }
+  }
+
+  const now = new Date().toISOString()
+  const order = {
+    id: `PED-${Date.now()}`,
+    quoteId: quote.id,
+    createdAt: now,
+    updatedAt: now,
+    status: "pending",
+    dispatchStatus: "pending",
+    collectionStatus: "pending",
+    paidAmount: 0,
+    client: quote.client,
+    items: quote.items,
+    subtotal: quote.subtotal,
+    discount: quote.discount,
+    total: quote.total,
+    notes: quote.notes || "",
+    guideNumber: `GDE-${Date.now()}`
+  }
+  for (const item of quote.items || []) {
+    const inventoryProduct = state.products[String(item.productId)]
+    state.movements.push({ id: `MOV-${Date.now()}-${item.productId}`, createdAt: now, productId: Number(item.productId), type: "out", packages: Number(item.qty || 1), units: -(Number(item.qty || 1) * inventoryProduct.unitsPerPackage), reason: "Pedido desde cotización", reference: order.id })
+  }
+  writeData(inventoryFile, state)
+  const orders = readData(distributionOrdersFile)
+  orders.unshift(order)
+  writeData(distributionOrdersFile, orders)
+  quote.status = "converted"
+  quote.convertedAt = now
+  quote.orderId = order.id
+  quote.updatedAt = now
+  writeData(quotesFile, quotes)
+  res.json({ ok: true, order })
+})
+
+app.get("/api/admin/distribution/orders", requireAdmin, (req, res) => {
+  res.json({ ok: true, orders: readData(distributionOrdersFile).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) })
+})
+
+app.patch("/api/admin/distribution/orders/:id", requireAdmin, (req, res) => {
+  const orders = readData(distributionOrdersFile)
+  const order = orders.find(item => String(item.id) === String(req.params.id))
+  if (!order) return res.status(404).json({ error: "order_not_found" })
+  const body = req.body || {}
+  const statuses = ["pending", "preparing", "ready", "delivered", "cancelled"]
+  const dispatchStatuses = ["pending", "prepared", "dispatched", "delivered"]
+  const collectionStatuses = ["pending", "partial", "paid", "overdue"]
+  if (statuses.includes(body.status)) order.status = body.status
+  if (dispatchStatuses.includes(body.dispatchStatus)) order.dispatchStatus = body.dispatchStatus
+  if (collectionStatuses.includes(body.collectionStatus)) order.collectionStatus = body.collectionStatus
+  if (body.paidAmount != null) order.paidAmount = Math.max(0, Math.min(Number(order.total || 0), Number(body.paidAmount || 0)))
+  if (body.deliveredAt) order.deliveredAt = String(body.deliveredAt)
+  if (body.collectedAt) order.collectedAt = String(body.collectedAt)
+  if (body.notes != null) order.notes = String(body.notes)
+  order.updatedAt = new Date().toISOString()
+  writeData(distributionOrdersFile, orders)
+  res.json({ ok: true, order })
 })
 
 function getWholesaleProducts() {

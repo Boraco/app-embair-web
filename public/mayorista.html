@@ -261,8 +261,8 @@
       if (!product) return;
       const wholesale = product.wholesale || {};
       const units = Number(wholesale.unitsPerPackage || 1);
-      const packagePrice = Number(wholesale.wholesalePrice || 0);
-      const unitPrice = packagePrice / units;
+      const unitPrice = Number(wholesale.wholesalePrice || 0);
+      const packagePrice = unitPrice * units;
       const canvas = document.createElement("canvas"); canvas.width = 1080; canvas.height = 1350;
       const context = canvas.getContext("2d"); context.fillStyle = "#f5f7fb"; context.fillRect(0, 0, 1080, 1350);
       context.fillStyle = "#10165c"; context.fillRect(0, 0, 1080, 175);

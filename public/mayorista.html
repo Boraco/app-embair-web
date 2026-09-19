@@ -61,6 +61,13 @@
     </section>
   </main>
 
+  <div id="mobile-cart-bar" class="hidden fixed bottom-0 inset-x-0 z-40 bg-[#10165c] text-white border-t border-white/20 shadow-2xl p-3 md:hidden">
+    <div class="flex items-center gap-3 max-w-6xl mx-auto">
+      <div class="flex-1 min-w-0"><p class="text-[11px] text-white/70">Solicitud actual</p><p id="mobile-cart-summary" class="font-bold truncate">0 productos · $0,00</p></div>
+      <button id="mobile-cart-button" type="button" class="rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-2 text-sm font-bold whitespace-nowrap">Ver solicitud</button>
+    </div>
+  </div>
+
   <script>
     const TOKEN_KEY = "embair_wholesale_token"
     let token = localStorage.getItem(TOKEN_KEY) || ""
@@ -68,6 +75,9 @@
     let cart = []
     let currentClient = {}
     const $ = id => document.getElementById(id)
+    const mobileCartBar = $("mobile-cart-bar")
+    const mobileCartSummary = $("mobile-cart-summary")
+    const mobileCartButton = $("mobile-cart-button")
     
     function headers(json = false) { 
       const h = {}; 
@@ -154,7 +164,19 @@
       if (res.ok) { 
         cart = data.cart && data.cart.items ? data.cart.items : []; 
         track("cart_add", { productId, qty: nextQty }); 
-        renderCart(); 
+        renderCart();
+        const addButton = document.querySelector(`[data-add-product="${productId}"]`)
+        if (addButton) {
+          const originalText = addButton.textContent
+          addButton.textContent = "Agregado"
+          addButton.classList.remove("bg-amber-500")
+          addButton.classList.add("bg-emerald-600")
+          setTimeout(() => {
+            addButton.textContent = originalText
+            addButton.classList.remove("bg-emerald-600")
+            addButton.classList.add("bg-amber-500")
+          }, 1400)
+        }
       } 
     }
 
@@ -183,7 +205,7 @@
           <div class="p-4 pt-0">
             <div class="flex items-end justify-between gap-2 mt-2">
               <div><p class="text-xs text-slate-500">Precio mayorista</p><strong class="text-lg">${money(w.wholesalePrice)}</strong></div>
-              <button type="button" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition">Agregar</button>
+              <button type="button" data-add-product="${p.id}" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition">Agregar</button>
             </div>
             <div class="flex flex-wrap gap-1 mt-3"><span class="text-[11px] rounded-full bg-amber-50 text-amber-700 px-2 py-1">${w.availability || "Disponible"}</span><span class="text-[11px] rounded-full bg-sky-50 text-sky-700 px-2 py-1">Solo despacho</span></div>
           </div>
@@ -196,6 +218,10 @@
       const total = cart.reduce((s, i) => s + Number(i.subtotal || 0), 0); 
       $("cart-count").textContent = count; 
       $("total").textContent = money(total); 
+      if (mobileCartBar && mobileCartSummary) {
+        mobileCartBar.classList.toggle("hidden", count === 0)
+        mobileCartSummary.textContent = `${count} ${count === 1 ? "producto" : "productos"} · ${money(total)}`
+      }
       
       $("cart").innerHTML = cart.length ? cart.map(i => `
         <div class="border-b pb-3">
@@ -304,6 +330,9 @@
         }); 
     }
 
+    if (mobileCartButton) mobileCartButton.onclick = () => {
+      $("cart").scrollIntoView({ behavior: "smooth", block: "start" })
+    }
     $("login").onclick = login; 
     $("search").oninput = renderProducts; 
     $("category-filter").onchange = renderProducts;

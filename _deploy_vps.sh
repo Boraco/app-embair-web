@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
 export TERM=xterm
 
 echo "===(1) HOST==="
@@ -18,17 +18,31 @@ pwd
 BACKUP_ROOT="/var/backups/app-embair-web/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_ROOT"
 echo "===(0) BACKUP DATOS Y UPLOADS ==="
-cp -a data "$BACKUP_ROOT/data"
-cp -a public/uploads "$BACKUP_ROOT/uploads"
-python3 - <<'PY'
+test -d data
+test -d public/uploads
+mkdir -p "$BACKUP_ROOT/data" "$BACKUP_ROOT/uploads"
+cp -a data/. "$BACKUP_ROOT/data/"
+cp -a public/uploads/. "$BACKUP_ROOT/uploads/"
+python3 - "$BACKUP_ROOT" <<'PY'
 import json
+import sys
 from pathlib import Path
+backup = Path(sys.argv[1])
 p = Path("data/products.json")
+backup_products = backup / "data" / "products.json"
 try:
   data = json.loads(p.read_text())
-  print(f"products.json items before deploy: {len(data) if isinstance(data, list) else 'invalid_format'}")
+  saved = json.loads(backup_products.read_text())
+  if not isinstance(data, list) or not isinstance(saved, list) or len(data) != len(saved):
+    raise RuntimeError("products.json backup verification failed")
+  source_uploads = sum(1 for item in Path("public/uploads").rglob("*") if item.is_file())
+  backup_uploads = sum(1 for item in (backup / "uploads").rglob("*") if item.is_file())
+  if source_uploads != backup_uploads:
+    raise RuntimeError(f"uploads backup verification failed: source={source_uploads}, backup={backup_uploads}")
+  print(f"products.json items before deploy: {len(data)}")
+  print(f"uploads files before deploy: {source_uploads}")
 except Exception as e:
-  print(f"ERROR leyendo products.json antes del deploy: {e}")
+  raise SystemExit(f"ERROR verificando backup antes del deploy: {e}")
 PY
 echo "Backup remoto creado en: $BACKUP_ROOT"
 git status 2>&1 | head -30
@@ -44,7 +58,16 @@ git stash 2>&1 | tail -5
 git pull origin main 2>&1 | tail -15
 cp -a "$BACKUP_ROOT/data/." data/
 cp -a "$BACKUP_ROOT/uploads/." public/uploads/
-echo "Datos y uploads restaurados desde el backup posterior al pull."
+python3 - "$BACKUP_ROOT" <<'PY'
+import sys
+from pathlib import Path
+backup = Path(sys.argv[1])
+saved_uploads = sum(1 for item in (backup / "uploads").rglob("*") if item.is_file())
+active_uploads = sum(1 for item in Path("public/uploads").rglob("*") if item.is_file())
+if saved_uploads != active_uploads:
+  raise SystemExit(f"ERROR restaurando uploads: backup={saved_uploads}, active={active_uploads}")
+print(f"Datos y uploads restaurados desde backup: {active_uploads} archivos de uploads.")
+PY
 [ -f /tmp/.env.bak ] && cp /tmp/.env.bak .env
 if grep -q '^PUBLIC_URL=' .env 2>/dev/null; then sed -i 's#^PUBLIC_URL=.*#PUBLIC_URL=https://embair.es#' .env; else echo 'PUBLIC_URL=https://embair.es' >> .env; fi
 if grep -q '^BASE_URL=' .env 2>/dev/null; then sed -i 's#^BASE_URL=.*#BASE_URL=https://embair.es#' .env; else echo 'BASE_URL=https://embair.es' >> .env; fi

@@ -295,7 +295,7 @@ window.Assistant = {
     
     const price = document.createElement("div")
     price.className = "text-blue-700 font-bold mt-1"
-    price.textContent = p.price ? `$${Number(p.price).toLocaleString()}` : "Cotizar"
+    price.textContent = p.price ? `$${Number(p.price).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Cotizar"
 
     info.appendChild(title)
     info.appendChild(meta)

@@ -50,6 +50,41 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "landing.html"))
 })
 
+function getPublicBaseUrl() {
+  return String(process.env.PUBLIC_URL || "https://embair.es").replace(/\/+$/, "")
+}
+
+app.get("/robots.txt", (req, res) => {
+  const baseUrl = getPublicBaseUrl()
+  res.type("text/plain").send([
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /admin",
+    "Disallow: /admin.html",
+    "Disallow: /productos.html",
+    "Disallow: /clientes.html",
+    "Disallow: /crm.html",
+    "Disallow: /analytics.html",
+    "Disallow: /reportes.html",
+    "Disallow: /seo.html",
+    "Disallow: /editor.html",
+    "Disallow: /leads.html",
+    "Disallow: /admin-bot.html",
+    "Disallow: /admin-ia.html",
+    "Disallow: /campaigns.html",
+    "Disallow: /mayorista-admin.html",
+    "Disallow: /api/",
+    `Sitemap: ${baseUrl}/sitemap.xml`
+  ].join("\n"))
+})
+
+app.get("/sitemap.xml", (req, res) => {
+  const baseUrl = getPublicBaseUrl()
+  const urls = ["/", "/app", "/landing.html"]
+  const body = urls.map(url => `  <url><loc>${baseUrl}${url}</loc></url>`).join("\n")
+  res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`)
+})
+
 const protectedAdminPages = new Set([
   "/admin.html",
   "/productos.html",
@@ -266,9 +301,9 @@ app.get("/api/wholesale/cart", requireClient, (req, res) => {
 
 app.post("/api/wholesale/cart/item", requireClient, (req, res) => {
   const productId = Number(req.body && req.body.productId)
-  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number(req.body && req.body.qty || 1))
   const product = enrichWholesaleProducts().find(item => Number(item.id) === productId)
   if (!product) return res.status(404).json({ error: "wholesale_product_not_found" })
+  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number(req.body && req.body.qty || 1))
   const carts = readData(wholesaleCartsFile)
   let cart = carts.find(item => Number(item.clientId) === Number(req.client.id) && item.status === "active")
   if (!cart) {

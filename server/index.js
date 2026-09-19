@@ -340,6 +340,7 @@ app.patch("/api/admin/distribution/orders/:id", requireAdmin, (req, res) => {
   if (dispatchStatuses.includes(body.dispatchStatus)) order.dispatchStatus = body.dispatchStatus
   if (collectionStatuses.includes(body.collectionStatus)) order.collectionStatus = body.collectionStatus
   if (body.paidAmount != null) order.paidAmount = Math.max(0, Math.min(Number(order.total || 0), Number(body.paidAmount || 0)))
+  if (body.dispatchedAt) order.dispatchedAt = String(body.dispatchedAt)
   if (body.deliveredAt) order.deliveredAt = String(body.deliveredAt)
   if (body.collectedAt) order.collectedAt = String(body.collectedAt)
   if (body.notes != null) order.notes = String(body.notes)

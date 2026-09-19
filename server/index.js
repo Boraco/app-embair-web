@@ -98,7 +98,8 @@ const protectedAdminPages = new Set([
   "/editor.html",
   "/reportes.html",
   "/campaigns.html"
-  ,"/mayorista-admin.html"
+  ,"/mayorista-admin.html",
+  "/distribucion-admin.html"
 ])
 
 app.use((req, res, next) => {
@@ -161,6 +162,52 @@ const cartsFile = path.join(dataDir, "carts.json")
 const tasksFile = path.join(dataDir, "tasks.json")
 const wholesaleProductsFile = path.join(dataDir, "wholesale-products.json")
 const wholesaleCartsFile = path.join(dataDir, "wholesale-carts.json")
+const quotesFile = path.join(dataDir, "quotes.json")
+
+app.get("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
+  const quotes = readData(quotesFile).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  res.json({ ok: true, quotes })
+})
+
+app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
+  const input = req.body || {}
+  const client = input.client && typeof input.client === "object" ? input.client : null
+  const items = Array.isArray(input.items) ? input.items : []
+  if (!client || !client.id || !items.length) return res.status(400).json({ error: "client_and_items_required" })
+
+  const normalizedItems = items.map(item => {
+    const qty = Math.max(1, Number(item.qty || 1))
+    const unitPrice = Math.max(0, Number(item.unitPrice || 0))
+    return {
+      productId: Number(item.productId),
+      name: String(item.name || "Producto").trim(),
+      qty,
+      unitPrice,
+      subtotal: qty * unitPrice
+    }
+  }).filter(item => Number.isFinite(item.productId) && item.name)
+  if (!normalizedItems.length) return res.status(400).json({ error: "valid_items_required" })
+
+  const subtotal = normalizedItems.reduce((sum, item) => sum + item.subtotal, 0)
+  const discountPercent = Math.min(100, Math.max(0, Number(input.discountPercent || 0)))
+  const discount = subtotal * discountPercent / 100
+  const quote = {
+    id: `COT-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    status: "draft",
+    client: { id: Number(client.id), name: String(client.name || "Cliente"), email: String(client.email || ""), phone: String(client.phone || ""), zona: String(client.zona || ""), tipo: String(client.tipo || "") },
+    items: normalizedItems,
+    subtotal,
+    discountPercent,
+    discount,
+    total: subtotal - discount,
+    notes: String(input.notes || "")
+  }
+  const quotes = readData(quotesFile)
+  quotes.unshift(quote)
+  writeData(quotesFile, quotes)
+  res.json({ ok: true, quote })
+})
 
 function getWholesaleProducts() {
   return readData(wholesaleProductsFile)

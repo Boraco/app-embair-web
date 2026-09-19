@@ -6,17 +6,41 @@
   <title>Distribuidor | EMBAIR</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    .brand-mark {
+      width: 4.5rem;
+      height: 3.2rem;
+      flex: 0 0 4.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      overflow: visible;
+    }
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter: none;
+      background: transparent;
+    }
+  </style>
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen">
   <header class="bg-[#10165c] text-white shadow-lg">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-28 h-12 rounded-lg bg-white/95 p-1 flex items-center justify-center">
-          <img src="/uploads/logo_embair_original_1771950323213.png" alt="EMBAIR" class="max-w-full max-h-full object-contain">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <div class="brand-mark">
+          <img src="/uploads/version_malu_Definitivo_Comercizlizadora_Embair_02_1771950470889.png" alt="EMBAIR" class="max-w-full max-h-full object-contain">
         </div>
-        <div><p class="text-xs uppercase tracking-[.18em] text-amber-300">Distribución</p><h1 class="text-xl md:text-2xl font-bold">Catálogo al mayor</h1></div>
+        <div class="min-w-0 border-l border-white/20 pl-4">
+          <p class="text-[10px] md:text-xs uppercase tracking-[.24em] text-amber-300 font-semibold">Portal de distribución</p>
+          <h1 class="text-lg md:text-2xl font-semibold tracking-tight truncate">Catálogo mayorista</h1>
+          <p class="hidden md:block text-xs text-white/60 mt-0.5">Precios y presentaciones para distribuidores</p>
+        </div>
       </div>
-      <div class="flex items-center gap-3"><span id="client-name" class="hidden text-sm text-white/80"></span><button id="logout" class="hidden text-sm border border-white/30 rounded-lg px-3 py-2">Salir</button></div>
+      <div class="flex items-center gap-3 shrink-0"><span id="client-name" class="hidden text-xs md:text-sm text-white/80 border-r border-white/20 pr-3"></span><button id="logout" class="hidden text-xs md:text-sm border border-white/30 hover:bg-white/10 rounded-lg px-3 py-2 transition">Salir</button></div>
     </div>
   </header>
   
@@ -205,12 +229,41 @@
           <div class="p-4 pt-0">
             <div class="flex items-end justify-between gap-2 mt-2">
               <div><p class="text-xs text-slate-500">Precio mayorista</p><strong class="text-lg">${money(w.wholesalePrice)}</strong></div>
-              <button type="button" data-add-product="${p.id}" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition">Agregar</button>
+              <div class="flex items-center gap-2"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-bold transition" title="Compartir ficha">Compartir</button><button type="button" data-add-product="${p.id}" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition">Agregar</button></div>
             </div>
             <div class="flex flex-wrap gap-1 mt-3"><span class="text-[11px] rounded-full bg-amber-50 text-amber-700 px-2 py-1">${w.availability || "Disponible"}</span><span class="text-[11px] rounded-full bg-sky-50 text-sky-700 px-2 py-1">Solo despacho</span></div>
           </div>
         </article>` 
       }).join("") || `<p class="text-slate-500 col-span-full">No hay productos mayoristas publicados en esta categoría.</p>`; 
+    }
+
+    function loadShareImage(src) {
+      return new Promise((resolve, reject) => { const image = new Image(); image.crossOrigin = "anonymous"; image.onload = () => resolve(image); image.onerror = reject; image.src = src; })
+    }
+
+    async function shareWholesaleProduct(productId) {
+      const product = products.find(item => Number(item.id) === Number(productId));
+      if (!product) return;
+      const wholesale = product.wholesale || {};
+      const units = Number(wholesale.unitsPerPackage || 1);
+      const canvas = document.createElement("canvas"); canvas.width = 1080; canvas.height = 1350;
+      const context = canvas.getContext("2d"); context.fillStyle = "#f5f7fb"; context.fillRect(0, 0, 1080, 1350);
+      context.fillStyle = "#10165c"; context.fillRect(0, 0, 1080, 175);
+      try { const logo = await loadShareImage("/img/embair-isotype-white.png"); context.drawImage(logo, 52, 35, 105, 83); } catch {}
+      context.fillStyle = "#f97316"; context.font = "bold 24px sans-serif"; context.fillText("GESTION DE DISTRIBUCION", 185, 58);
+      context.fillStyle = "#ffffff"; context.font = "bold 42px sans-serif"; context.fillText("Control comercial", 185, 108);
+      context.fillStyle = "#ffffff"; context.font = "22px sans-serif"; context.fillText("PRECIO MAYORISTA", 185, 142);
+      try { const image = await loadShareImage(product.img); const scale = Math.min(850 / image.width, 620 / image.height); const width = image.width * scale; const height = image.height * scale; context.drawImage(image, (1080 - width) / 2, 235 + (620 - height) / 2, width, height); } catch { context.fillStyle = "#e2e8f0"; context.fillRect(115, 235, 850, 620); }
+      context.fillStyle = "#10165c"; context.font = "bold 44px sans-serif"; const words = String(product.name || "Producto").split(" "); let line = "", y = 940; words.forEach(word => { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 900) { context.fillText(line, 90, y); y += 54; line = word; } else line = next; }); context.fillText(line, 90, y);
+      context.fillStyle = "#64748b"; context.font = "28px sans-serif"; context.fillText(`${wholesale.packageName || "Empaque"} · ${units} unidades por empaque`, 90, y + 55);
+      context.fillStyle = "#f97316"; context.font = "bold 58px sans-serif"; context.fillText(money(wholesale.wholesalePrice), 90, y + 155);
+      context.fillStyle = "#10165c"; context.font = "26px sans-serif"; context.fillText(`Minimo: ${Number(wholesale.minimumQuantity || 1)} empaques`, 90, y + 200);
+      context.fillStyle = "#10165c"; context.fillRect(0, 1280, 1080, 70); context.fillStyle = "#ffffff"; context.font = "22px sans-serif"; context.fillText("EMBAIR · DISTRIBUCION MAYORISTA", 90, 1324);
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png")); if (!blob) return;
+      const file = new File([blob], `embair-${product.id}.png`, { type: "image/png" }); const text = `${product.name}\nPrecio por ${String(wholesale.packageName || "empaque").toLowerCase()}: ${money(wholesale.wholesalePrice)}\n${units} unidades por empaque.`;
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ title: product.name, text, files: [file] }); return; }
+      const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = file.name; link.click(); URL.revokeObjectURL(link.href); alert("Ficha PNG descargada. Puedes adjuntarla en WhatsApp, correo o la aplicación que prefieras.");
     }
 
     function renderCart() { 
@@ -267,52 +320,155 @@
           if (!res.ok) throw new Error(data.error || "order_failed"); 
           const order = data.order; 
           const client = order.client || currentClient || {}; 
-          const doc = new jspdf.jsPDF(); 
-          let y = 16; 
-          
-          doc.setFontSize(17); 
-          doc.text("Solicitud de pedido mayorista", 15, y); 
-          y += 8; 
-          doc.setFontSize(10); 
-          doc.text("Pedido: " + order.id, 15, y); 
-          y += 5; 
-          doc.text("Fecha: " + new Date(order.createdAt || Date.now()).toLocaleString(), 15, y); 
-          y += 9; 
-          doc.setFontSize(11); 
-          doc.text("Datos comerciales", 15, y); 
-          y += 6; 
-          doc.setFontSize(9); 
-          
-          const clientLines = ["Empresa: " + (client.company || client.empresa || ""), "RIF: " + (client.companyRif || client.rifEmpresa || ""), "Zona: " + (client.zona || ""), "Teléfono: " + (client.phone || client.celular || "")]; 
-          clientLines.filter(line => line.split(": ")[1]).forEach(line => { doc.text(line, 15, y); y += 5 }); 
-          y += 4; 
-          doc.setFontSize(11); 
-          doc.text("Detalle de la solicitud", 15, y); 
-          y += 7; 
-          doc.setFontSize(9); 
-          
-          order.items.forEach(item => { 
-            if (y > 270) { doc.addPage(); y = 16 } 
-            doc.text(`${item.qty} paquetes x ${item.name}`, 15, y); 
-            doc.text(money(item.subtotal), 155, y); 
-            y += 5; 
-            doc.text(`${item.packageName || "Paquete"} · ${item.unitsPerPackage || 1} und./paquete`, 20, y); 
-            y += 6; 
-          }); 
-          
-          y += 3; 
-          doc.line(120, y, 195, y); 
-          y += 7; 
-          doc.setFontSize(11); 
-          doc.text("Total estimado: " + money(order.total), 120, y); 
-          y += 7; 
-          doc.setFontSize(9); 
-          doc.text("Despacho: Solo despacho / entrega al sitio", 15, y); 
-          
-          if ($("notes").value.trim()) { 
-            y += 6; 
-            doc.text("Notas: " + $("notes").value.trim(), 15, y) 
-          } 
+          const doc = new jspdf.jsPDF();
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const navy = [16, 22, 92];
+          const amber = [245, 158, 11];
+          const ink = [30, 41, 59];
+          const muted = [100, 116, 139];
+          let y = 48;
+
+          function addFooter() {
+            const page = doc.internal.getNumberOfPages();
+            doc.setDrawColor(226, 232, 240);
+            doc.line(15, pageHeight - 18, pageWidth - 15, pageHeight - 18);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...muted);
+            doc.text("EMBAIR · Solicitud de distribución", 15, pageHeight - 11);
+            doc.text(`Página ${page}`, pageWidth - 15, pageHeight - 11, { align: "right" });
+          }
+
+          function newPage() {
+            addFooter();
+            doc.addPage();
+            y = 22;
+          }
+
+          doc.setFillColor(...navy);
+          doc.rect(0, 0, pageWidth, 34, "F");
+          doc.setTextColor(255, 255, 255);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(18);
+          doc.text("EMBAIR", 15, 14);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(226, 232, 240);
+          doc.text("DISTRIBUCIÓN Y VENTA AL MAYOR", 15, 21);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(15);
+          doc.setTextColor(255, 255, 255);
+          doc.text("SOLICITUD DE PEDIDO", pageWidth - 15, 14, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.text("Documento no fiscal", pageWidth - 15, 21, { align: "right" });
+
+          doc.setTextColor(...ink);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.text("Pedido " + order.id, 15, y);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(...muted);
+          doc.text(new Date(order.createdAt || Date.now()).toLocaleString("es-AR"), pageWidth - 15, y, { align: "right" });
+          y += 10;
+
+          doc.setFillColor(248, 250, 252);
+          doc.setDrawColor(226, 232, 240);
+          doc.roundedRect(15, y, pageWidth - 30, 27, 3, 3, "FD");
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9);
+          doc.setTextColor(...navy);
+          doc.text("DATOS COMERCIALES", 21, y + 7);
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.setTextColor(...ink);
+          const clientFields = [
+            ["Empresa", client.company || client.empresa],
+            ["RIF", client.companyRif || client.rifEmpresa],
+            ["Zona", client.zona],
+            ["Teléfono", client.phone || client.celular]
+          ].filter(field => field[1]);
+          clientFields.forEach((field, index) => {
+            const column = index % 2;
+            const row = Math.floor(index / 2);
+            const x = column ? 112 : 21;
+            doc.setFont("helvetica", "bold");
+            doc.text(field[0] + ":", x, y + 14 + row * 6);
+            doc.setFont("helvetica", "normal");
+            doc.text(String(field[1]), x + 18, y + 14 + row * 6);
+          });
+          y += 38;
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.setTextColor(...ink);
+          doc.text("Detalle de la solicitud", 15, y);
+          y += 6;
+          doc.setFillColor(...navy);
+          doc.roundedRect(15, y, pageWidth - 30, 9, 2, 2, "F");
+          doc.setFontSize(8);
+          doc.setTextColor(255, 255, 255);
+          doc.text("PRODUCTO", 20, y + 6);
+          doc.text("CANT.", 132, y + 6, { align: "right" });
+          doc.text("PRECIO", 160, y + 6, { align: "right" });
+          doc.text("SUBTOTAL", pageWidth - 20, y + 6, { align: "right" });
+          y += 12;
+
+          order.items.forEach((item, index) => {
+            const nameLines = doc.splitTextToSize(String(item.name || "Producto"), 92);
+            const rowHeight = Math.max(12, nameLines.length * 4 + 7);
+            if (y + rowHeight > pageHeight - 30) newPage();
+            if (index % 2 === 0) {
+              doc.setFillColor(248, 250, 252);
+              doc.rect(15, y - 4, pageWidth - 30, rowHeight, "F");
+            }
+            doc.setTextColor(...ink);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8.5);
+            doc.text(nameLines, 20, y + 1, { lineHeightFactor: 1.15 });
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(...muted);
+            doc.text(`${item.packageName || "Paquete"} · ${item.unitsPerPackage || 1} und./paquete`, 20, y + nameLines.length * 4 + 2);
+            doc.setTextColor(...ink);
+            doc.text(String(item.qty), 132, y + 2, { align: "right" });
+            doc.text(money(item.unitPrice), 160, y + 2, { align: "right" });
+            doc.setFont("helvetica", "bold");
+            doc.text(money(item.subtotal), pageWidth - 20, y + 2, { align: "right" });
+            y += rowHeight;
+          });
+
+          if (y + 40 > pageHeight - 25) newPage();
+          y += 5;
+          doc.setDrawColor(...amber);
+          doc.setLineWidth(0.8);
+          doc.line(125, y, pageWidth - 15, y);
+          y += 8;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(...muted);
+          doc.text("TOTAL ESTIMADO", 125, y);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(14);
+          doc.setTextColor(...navy);
+          doc.text(money(order.total), pageWidth - 15, y, { align: "right" });
+          y += 10;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8.5);
+          doc.setTextColor(...ink);
+          doc.text("Despacho: Solo despacho / entrega al sitio", 15, y);
+
+          if ($("notes").value.trim()) {
+            y += 9;
+            doc.setFont("helvetica", "bold");
+            doc.text("Notas", 15, y);
+            doc.setFont("helvetica", "normal");
+            const noteLines = doc.splitTextToSize($("notes").value.trim(), pageWidth - 30);
+            doc.text(noteLines, 15, y + 5, { lineHeightFactor: 1.25 });
+          }
+          addFooter();
           
           doc.save(order.id + ".pdf"); 
           cart = []; 

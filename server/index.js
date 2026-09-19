@@ -237,7 +237,8 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
       name: String(item.name || "Producto").trim(),
       qty,
       unitPrice,
-      subtotal: qty * unitPrice
+      subtotal: qty * unitPrice,
+      priceSource: item.priceSource === "wholesale" ? "wholesale" : "public"
     }
   }).filter(item => Number.isFinite(item.productId) && item.name)
   if (!normalizedItems.length) return res.status(400).json({ error: "valid_items_required" })
@@ -245,6 +246,9 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
   const subtotal = normalizedItems.reduce((sum, item) => sum + item.subtotal, 0)
   const discountPercent = Math.min(100, Math.max(0, Number(input.discountPercent || 0)))
   const discount = subtotal * discountPercent / 100
+  const currency = input.currency === "VES" ? "VES" : "USD"
+  const exchangeRate = currency === "VES" ? Math.max(0, Number(input.exchangeRate || 0)) : null
+  if (currency === "VES" && (!Number.isFinite(exchangeRate) || exchangeRate <= 0)) return res.status(400).json({ error: "valid_exchange_rate_required" })
   const quote = {
     id: `COT-${Date.now()}`,
     createdAt: new Date().toISOString(),
@@ -255,6 +259,12 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
     discountPercent,
     discount,
     total: subtotal - discount,
+    currency,
+    exchangeRate,
+    subtotalBs: currency === "VES" ? subtotal * exchangeRate : null,
+    discountBs: currency === "VES" ? discount * exchangeRate : null,
+    totalBs: currency === "VES" ? (subtotal - discount) * exchangeRate : null,
+    priceSource: input.priceSource === "wholesale" ? "wholesale" : "public",
     notes: String(input.notes || "")
   }
   const quotes = readData(quotesFile)

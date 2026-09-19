@@ -11,12 +11,8 @@
 let catalog = [], config = [], orders = []
 const $ = id => document.getElementById(id)
 const previewModal = $('preview-modal')
-const productStatusFilter = document.createElement('select')
-productStatusFilter.id = 'product-status'
-productStatusFilter.className = 'w-full md:w-48 border rounded-lg px-3 py-2'
-productStatusFilter.innerHTML = '<option value="active">Productos activos</option><option value="all">Todos los productos</option>'
 const categoryFilter = $('product-category')
-if (categoryFilter && categoryFilter.parentElement) categoryFilter.parentElement.appendChild(productStatusFilter)
+const productStatusFilter = $('product-status')
 function getAdminToken() { try { return localStorage.getItem('admin_token') || '' } catch { return '' } }
 function encodeAdmin(value) { try { return btoa(value) } catch { return '' } }
 async function fetchAdmin(path, options = {}) {

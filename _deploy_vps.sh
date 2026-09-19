@@ -45,7 +45,7 @@ except Exception as e:
   raise SystemExit(f"ERROR verificando backup antes del deploy: {e}")
 PY
 echo "Backup remoto creado en: $BACKUP_ROOT"
-git status 2>&1 | head -30
+git status 2>&1 | head -30 || true
 echo "Local last commit:"
 git log -1 --oneline 2>&1
 echo "Origin main last commit:"
@@ -172,7 +172,7 @@ which pm2 >/dev/null 2>&1 || {
 pm2 delete app-embair-web 2>&1 | tail -3
 PORT=3002 pm2 start /var/www/app-embair-web/server/index.js --name app-embair-web --cwd /var/www/app-embair-web 2>&1 | tail -10
 pm2 save 2>&1 | tail -3
-pm2 list 2>&1 | head -30
+pm2 list 2>&1 | head -30 || true
 echo "--- pm2 logs tail ---"
 pm2 logs app-embair-web --lines 40 --nostream 2>&1 | tail -60
 

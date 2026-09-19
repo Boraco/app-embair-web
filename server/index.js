@@ -163,6 +163,59 @@ const tasksFile = path.join(dataDir, "tasks.json")
 const wholesaleProductsFile = path.join(dataDir, "wholesale-products.json")
 const wholesaleCartsFile = path.join(dataDir, "wholesale-carts.json")
 const quotesFile = path.join(dataDir, "quotes.json")
+const inventoryFile = path.join(dataDir, "inventory.json")
+
+function getInventoryState() {
+  let state = readData(inventoryFile)
+  if (!state || Array.isArray(state) || typeof state !== "object" || !state.products || !state.movements) {
+    const products = readData(productsFile)
+    state = {
+      initializedAt: new Date().toISOString(),
+      products: Object.fromEntries(products.map(product => [String(product.id), {
+        productId: Number(product.id),
+        name: String(product.name || "Producto"),
+        code: String(product.code || ""),
+        baseUnits: Math.max(0, Number(product.stock || 0)),
+        unitsPerPackage: Math.max(1, Number(product.unitsBundle || product["Units/Bundle"] || product.units_bundle || 1))
+      }])),
+      movements: []
+    }
+    writeData(inventoryFile, state)
+  }
+  return state
+}
+
+function getInventoryBalances() {
+  const state = getInventoryState()
+  const balances = Object.values(state.products).map(product => ({ ...product, units: product.baseUnits }))
+  const byId = new Map(balances.map(product => [Number(product.productId), product]))
+  for (const movement of state.movements) {
+    const product = byId.get(Number(movement.productId))
+    if (product) product.units += Number(movement.units || 0)
+  }
+  return balances.map(product => ({ ...product, packages: Math.floor(product.units / Math.max(1, product.unitsPerPackage)) }))
+}
+
+app.get("/api/admin/distribution/inventory", requireAdmin, (req, res) => {
+  const state = getInventoryState()
+  res.json({ ok: true, products: getInventoryBalances(), movements: state.movements.slice().reverse().slice(0, 200) })
+})
+
+app.post("/api/admin/distribution/inventory/movements", requireAdmin, (req, res) => {
+  const productId = Number(req.body && req.body.productId)
+  const type = String(req.body && req.body.type || "").toLowerCase()
+  const quantity = Math.max(1, Number(req.body && req.body.quantity || 0))
+  const state = getInventoryState()
+  const product = state.products[String(productId)]
+  if (!product || !["in", "out"].includes(type) || !Number.isFinite(quantity)) return res.status(400).json({ error: "invalid_inventory_movement" })
+  const units = type === "in" ? quantity * product.unitsPerPackage : -(quantity * product.unitsPerPackage)
+  const current = getInventoryBalances().find(item => Number(item.productId) === productId)
+  if (type === "out" && (!current || current.units + units < 0)) return res.status(400).json({ error: "insufficient_stock" })
+  const movement = { id: `MOV-${Date.now()}`, createdAt: new Date().toISOString(), productId, type, packages: quantity, units, reason: String(req.body.reason || "").trim(), reference: String(req.body.reference || "").trim() }
+  state.movements.push(movement)
+  writeData(inventoryFile, state)
+  res.json({ ok: true, movement, product: getInventoryBalances().find(item => Number(item.productId) === productId) })
+})
 
 app.get("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
   const quotes = readData(quotesFile).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))

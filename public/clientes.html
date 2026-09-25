@@ -473,20 +473,26 @@
       await saveClients(CLIENTS)
       if (finalId && portalPass) {
         try {
-          fetchAdmin("/api/portal/admin/set-password", {
+          const portalRes = await fetchAdmin("/api/portal/admin/set-password", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({ clientId: finalId, password: portalPass })
-          }).then(r => r.json()).then(data => {
-            if (!data || !data.ok) {
-              alert("No se pudo actualizar la clave del portal para este cliente.")
-            }
-          }).catch(() => {
-            alert("Error de red al actualizar la clave del portal.")
           })
-        } catch {}
+          const data = await portalRes.json()
+          if (data && data.ok) {
+            const savedClient = CLIENTS.find(client => client.id === finalId)
+            if (savedClient) {
+              savedClient.portalApproved = true
+              savedClient.portalApprovedAt = new Date().toISOString()
+            }
+          } else {
+            alert("No se pudo autorizar el portal para este cliente.")
+          }
+        } catch (e) {
+          alert("Error de red al autorizar el portal.")
+        }
       }
       renderClients()
       clientFormEl.reset()

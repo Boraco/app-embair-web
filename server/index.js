@@ -608,6 +608,14 @@ app.get("/api/clients", requireAdmin, (req, res) => {
     res.json(data)
 })
 
+app.post("/api/clients", requireAdmin, (req, res) => {
+  if (!Array.isArray(req.body)) {
+    return res.status(400).json({ error: "clients_must_be_array" })
+  }
+  writeData(clientsFile, req.body)
+  res.json({ ok: true })
+})
+
 function normalizeEmail(v) {
   const email = String(v || "").trim().toLowerCase()
   return email && email.includes("@") ? email : ""

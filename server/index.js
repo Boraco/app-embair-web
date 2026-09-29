@@ -5,6 +5,7 @@ import path from "path"
 import { fileURLToPath } from "url"
 import fs from "fs"
 import multer from "multer"
+import sharp from "sharp"
 import nodemailer from "nodemailer"
 import crypto from "crypto"
 import os from "os"
@@ -17,7 +18,24 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 app.set('trust proxy', 1) // Confía en el primer proxy (Nginx)
+const portalTokenSecret = process.env.PORTAL_TOKEN_SECRET || crypto.randomBytes(32).toString("hex")
+const adminAuthLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false, skipSuccessfulRequests: true })
+const wholesaleLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false })
+const publicLeadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100, standardHeaders: true, legacyHeaders: false })
+const publicClientLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 120, standardHeaders: true, legacyHeaders: false })
+const portalRegisterLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 50, standardHeaders: true, legacyHeaders: false })
+const portalLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false })
+const clientOrderLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 50, standardHeaders: true, legacyHeaders: false })
 app.use(express.json({ limit: "10mb" }))
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff")
+  res.setHeader("X-Frame-Options", "SAMEORIGIN")
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin")
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+  if (req.secure) res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+  next()
+})
 
 app.use((err, req, res, next) => {
   if (err && (err.type === "entity.too.large" || err.status === 413)) {
@@ -26,24 +44,36 @@ app.use((err, req, res, next) => {
   return next(err)
 })
 
+function constantTimeEqual(actual, expected) {
+  const actualBuffer = Buffer.from(String(actual || ""))
+  const expectedBuffer = Buffer.from(String(expected || ""))
+  return actualBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+}
+
 function requireAdmin(req, res, next) {
-  const user = process.env.ADMIN_USER || "admin"
-  const pass = process.env.ADMIN_PASS || "admin"
-  const passHash = process.env.ADMIN_PASS_HASH || ""
-  const header = req.headers.authorization || ""
-  const token = header.split(" ")[1] || ""
-  const decoded = Buffer.from(token || "", "base64").toString()
-  const [u, p] = decoded.split(":")
-  const ok =
-    u === user &&
-    (passHash ? hashPassword(p) === passHash : p === pass)
-  if (ok) return next()
-  const isApi = req.path && req.path.startsWith("/api/")
-  if (isApi) {
-    return res.status(401).json({ error: "unauthorized" })
-  }
-  res.setHeader("WWW-Authenticate", 'Basic realm="Admin"')
-  return res.status(401).send("Unauthorized")
+  adminAuthLimiter(req, res, () => {
+    const user = process.env.ADMIN_USER || ""
+    const pass = process.env.ADMIN_PASS || ""
+    const passHash = process.env.ADMIN_PASS_HASH || ""
+    const weakPlainPassword = pass && !passHash && (pass.length < 12 || constantTimeEqual(pass, "admin"))
+    if (!user || (!pass && !passHash) || weakPlainPassword) {
+      return res.status(503).json({ error: "admin_auth_not_configured" })
+    }
+    const header = req.headers.authorization || ""
+    const token = header.startsWith("Basic ") ? header.slice(6) : ""
+    const decoded = Buffer.from(token, "base64").toString("utf8")
+    const separator = decoded.indexOf(":")
+    const suppliedUser = separator >= 0 ? decoded.slice(0, separator) : ""
+    const suppliedPass = separator >= 0 ? decoded.slice(separator + 1) : ""
+    const validPassword = passHash
+      ? constantTimeEqual(hashPassword(suppliedPass), passHash)
+      : constantTimeEqual(suppliedPass, pass)
+    if (constantTimeEqual(suppliedUser, user) && validPassword) return next()
+    const isApi = req.path && req.path.startsWith("/api/")
+    if (isApi) return res.status(401).json({ error: "unauthorized" })
+    res.setHeader("WWW-Authenticate", 'Basic realm="Admin"')
+    return res.status(401).send("Unauthorized")
+  })
 }
 
 app.get("/", (req, res) => {
@@ -114,8 +144,6 @@ app.use((req, res, next) => {
   return next()
 })
 
-app.use(express.static(path.join(__dirname, "..", "public")))
-
 function shouldRequireAdminView(req) {
   return String(req.query && req.query.admin_view ? req.query.admin_view : "") === "true"
 }
@@ -148,6 +176,23 @@ app.get("/admin", requireAdmin, (req, res) => {
 
 const uploadDir = path.join(__dirname, "..", "public", "uploads")
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true })
+app.use("/uploads", express.static(uploadDir, {
+  maxAge: "1y",
+  immutable: true,
+  setHeaders(res) {
+    res.setHeader("X-Content-Type-Options", "nosniff")
+  }
+}))
+app.use(express.static(path.join(__dirname, "..", "public"), {
+  maxAge: 0,
+  setHeaders(res, filePath) {
+    if (path.extname(filePath).toLowerCase() === ".html") {
+      res.setHeader("Cache-Control", "no-store")
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=86400")
+    }
+  }
+}))
 
 const dataDir = path.join(__dirname, "..", "data")
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true })
@@ -427,7 +472,7 @@ app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
   res.json({ ok: true, products: normalized })
 })
 
-app.post("/api/wholesale/login", (req, res) => {
+app.post("/api/wholesale/login", wholesaleLoginLimiter, (req, res) => {
   const email = normalizeEmail(req.body && req.body.email)
   const password = String(req.body && req.body.password || "")
   if (!email || !password) return res.status(400).json({ error: "missing_fields" })
@@ -448,7 +493,7 @@ app.post("/api/wholesale/login", (req, res) => {
     userAgent: req.headers["user-agent"] || ""
   })
   writeData(eventsFile, events.slice(0, 5000))
-  res.json({ ok: true, token: Buffer.from(`${client.id}:${email}`).toString("base64"), client: { id: client.id, email, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), nombre: client.nombre || "", apellido: client.apellido || "", cedula: client.cedula || "", celular: client.celular || "", zona: client.zona || "", direccion: client.direccion || "", empresa: client.empresa || "", rifEmpresa: client.rifEmpresa || "", direccionFiscal: client.direccionFiscal || "", tipo: client.tipo || "" } })
+  res.json({ ok: true, token: createWholesaleToken(client), client: { id: client.id, email, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), nombre: client.nombre || "", apellido: client.apellido || "", cedula: client.cedula || "", celular: client.celular || "", zona: client.zona || "", direccion: client.direccion || "", empresa: client.empresa || "", rifEmpresa: client.rifEmpresa || "", direccionFiscal: client.direccionFiscal || "", tipo: client.tipo || "" } })
 })
 
 app.post("/api/wholesale/event", requireClient, (req, res) => {
@@ -691,6 +736,16 @@ function hashPassword(pwd) {
   return crypto.createHash("sha256").update(String(pwd || "")).digest("hex")
 }
 
+function createWholesaleToken(client) {
+  const payload = Buffer.from(JSON.stringify({
+    clientId: Number(client.id),
+    authVersion: hashPassword(client.portalPasswordHash),
+    expiresAt: Date.now() + 12 * 60 * 60 * 1000
+  })).toString("base64url")
+  const signature = crypto.createHmac("sha256", portalTokenSecret).update(payload).digest("base64url")
+  return `${payload}.${signature}`
+}
+
 function ensurePortalTestClient() {
   const email = process.env.PORTAL_TEST_EMAIL
   const password = process.env.PORTAL_TEST_PASSWORD
@@ -722,19 +777,56 @@ const storage = multer.diskStorage({
     cb(null, uploadDir)
   },
   filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname || "")
-    const name = path.basename(file.originalname || "file", ext).replace(/\W+/g, "_")
-    const ts = Date.now()
-    cb(null, `${name}_${ts}${ext}`)
+    const ext = path.extname(file.originalname || "").toLowerCase()
+    const name = path.basename(file.originalname || "file", ext).replace(/[^\w-]+/g, "_").slice(0, 80) || "file"
+    cb(null, `${name}_${crypto.randomUUID()}${ext}`)
   }
 })
-const upload = multer({ storage })
+const allowedUploadTypes = {
+  "application/pdf": new Set([".pdf"]),
+  "image/avif": new Set([".avif"]),
+  "image/gif": new Set([".gif"]),
+  "image/jpeg": new Set([".jpg", ".jpeg"]),
+  "image/png": new Set([".png"]),
+  "image/svg+xml": new Set([".svg"]),
+  "image/webp": new Set([".webp"])
+}
+const upload = multer({
+  storage,
+  limits: { fileSize: 15 * 1024 * 1024, files: 1 },
+  fileFilter(req, file, cb) {
+    const extensions = allowedUploadTypes[file.mimetype]
+    const valid = extensions && extensions.has(path.extname(file.originalname || "").toLowerCase())
+    cb(valid ? null : new Error("unsupported_file_type"), Boolean(valid))
+  }
+})
 
-app.post("/api/upload", requireAdmin, upload.single("file"), (req, res) => {
-  const f = req.file
-  if (!f) return res.status(400).json({ error: "file_required" })
-  const url = `/uploads/${f.filename}`
-  return res.json({ ok: true, url })
+app.post("/api/upload", requireAdmin, (req, res) => {
+  upload.single("file")(req, res, async error => {
+    if (error) {
+      const status = error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE" ? 413 : 400
+      return res.status(status).json({ error: status === 413 ? "file_too_large" : "unsupported_file_type" })
+    }
+    const file = req.file
+    if (!file) return res.status(400).json({ error: "file_required" })
+    const rasterTypes = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"])
+    try {
+      if (rasterTypes.has(file.mimetype)) {
+        const webpName = `${path.basename(file.filename, path.extname(file.filename))}.webp`
+        await sharp(file.path)
+          .rotate()
+          .resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true })
+          .webp({ quality: 82, effort: 4 })
+          .toFile(path.join(uploadDir, webpName))
+        await fs.promises.unlink(file.path)
+        return res.json({ ok: true, url: `/uploads/${webpName}` })
+      }
+      return res.json({ ok: true, url: `/uploads/${file.filename}` })
+    } catch {
+      await fs.promises.unlink(file.path).catch(() => {})
+      return res.status(400).json({ error: "invalid_image" })
+    }
+  })
 })
 
 app.get("/api/products", (req, res) => {
@@ -1100,9 +1192,6 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
       auth: {
         user: smtpConfig.user,
         pass: smtpConfig.pass
-      },
-      tls: {
-        rejectUnauthorized: false
       }
     })
 
@@ -1242,7 +1331,7 @@ app.post("/api/leads/convert", requireAdmin, (req, res) => {
   res.json({ ok: true, clientId: client.id })
 })
 
-app.post("/api/public/lead", (req, res) => {
+app.post("/api/public/lead", publicLeadLimiter, (req, res) => {
   const {
     nombre,
     apellido,
@@ -1386,7 +1475,7 @@ app.post("/api/public/lead", (req, res) => {
   res.json({ ok: true })
 })
 
-app.post("/api/public/client", (req, res) => {
+app.post("/api/public/client", publicClientLimiter, (req, res) => {
   const { email, nombre, apellido, celular, zona, tipo, campaignId, catalogId, source, deviceId, sessionId } = req.body || {}
   if (!email) {
     return res.status(400).json({ error: "missing_email" })
@@ -1495,7 +1584,7 @@ app.post("/api/public/client", (req, res) => {
   res.json({ ok: true })
 })
 
-app.post("/api/portal/register", async (req, res) => {
+app.post("/api/portal/register", portalRegisterLimiter, async (req, res) => {
   const { email, nombre, apellido, cedula, celular, zona, tipo } = req.body
   if (!email || !nombre || !cedula || !celular) {
     return res.status(400).json({ error: "missing_fields" })
@@ -1682,7 +1771,7 @@ app.post("/api/portal/admin/set-password", requireAdmin, (req, res) => {
   return res.json({ ok: true })
 })
 
-app.post("/api/portal/login", (req, res) => {
+app.post("/api/portal/login", portalLoginLimiter, (req, res) => {
   const { email, password } = req.body
   if (!email || !password) {
     return res.status(400).json({ error: "missing_fields" })
@@ -1736,14 +1825,17 @@ function getClientFromRequest(req) {
   try {
     const auth = req.headers["x-client-auth"] || req.headers.authorization || ""
     const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : auth
-    const decoded = Buffer.from(bearer || "", "base64").toString("utf8")
-    const parts = decoded.split(":")
-    if (parts.length < 2) return null
-    const clientId = Number(parts[0])
-    const email = String(parts[1] || "").toLowerCase()
-    if (!Number.isFinite(clientId) || !email) return null
+    const [payload, signature, extra] = String(bearer).split(".")
+    if (!payload || !signature || extra) return null
+    const expectedSignature = crypto.createHmac("sha256", portalTokenSecret).update(payload).digest("base64url")
+    if (!constantTimeEqual(signature, expectedSignature)) return null
+    const token = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"))
+    const clientId = Number(token.clientId)
+    if (!Number.isFinite(clientId) || Number(token.expiresAt) <= Date.now()) return null
     const list = readData(clientsFile)
-    const c = list.find(x => Number(x.id) === clientId && String(x.email || "").toLowerCase() === email)
+    const c = list.find(x => Number(x.id) === clientId)
+    if (!c || !c.portalPasswordHash || c.wholesaleAccess === false) return null
+    if (!constantTimeEqual(token.authVersion, hashPassword(c.portalPasswordHash))) return null
     return c || null
   } catch {
     return null
@@ -1871,7 +1963,7 @@ app.post("/api/client/cart/clear", requireClient, (req, res) => {
   res.json({ ok: true, cart: null })
 })
 
-app.post("/api/client/cart/order", requireClient, (req, res) => {
+app.post("/api/client/cart/order", clientOrderLimiter, requireClient, (req, res) => {
   const carts = readData(cartsFile)
   const cart = getActiveCart(req.client.id)
   if (!cart || !cart.items || cart.items.length === 0) {
@@ -2264,9 +2356,6 @@ app.post("/api/smtp/test", requireAdmin, async (req, res) => {
       auth: {
         user: smtpConfig.user,
         pass: smtpConfig.pass
-      },
-      tls: {
-        rejectUnauthorized: false
       }
     })
 

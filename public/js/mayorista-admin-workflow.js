@@ -3,7 +3,6 @@
   const catalogSection = main?.querySelector("#products")?.closest("section")
   const ordersSection = main?.querySelector("#orders")?.closest("section")
   const activitySection = main?.querySelector("#activity")?.closest("section")
-  const logoSettingsSection = document.getElementById("wholesale-logo-files")?.closest("section")
   if (!main || !catalogSection || !ordersSection || !activitySection) return
 
   const paymentLabels = { cash: "Contado", credit: "Crédito" }
@@ -63,7 +62,6 @@
         : "rounded-md px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
     }
     catalogSection.classList.toggle("hidden", tab !== "catalog")
-    logoSettingsSection?.classList.toggle("hidden", tab !== "catalog")
     ordersSection.classList.toggle("hidden", tab !== "orders")
     activitySection.classList.toggle("hidden", tab !== "activity")
     schedulePanel.classList.toggle("hidden", tab !== "schedule")

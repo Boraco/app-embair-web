@@ -34,6 +34,39 @@
     .product-actions button {
       min-height: 2.5rem;
     }
+    .wholesale-logo-viewport {
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+    }
+    .wholesale-logo-track {
+      display: flex;
+      width: max-content;
+      animation: wholesale-logo-scroll 32s linear infinite;
+    }
+    .wholesale-logo-viewport:hover .wholesale-logo-track,
+    .wholesale-logo-viewport:focus-within .wholesale-logo-track {
+      animation-play-state: paused;
+    }
+    .wholesale-logo-group {
+      display: flex;
+      flex: none;
+      align-items: center;
+      gap: 3rem;
+      padding: 0 1.5rem;
+    }
+    .wholesale-logo-group img {
+      width: clamp(7rem, 16vw, 12rem);
+      height: 4.5rem;
+      flex: none;
+      object-fit: contain;
+    }
+    @keyframes wholesale-logo-scroll {
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .wholesale-logo-track { animation: none; }
+      .wholesale-logo-viewport { overflow-x: auto; mask-image: none; }
+    }
     @media (max-width: 640px) {
       .product-actions {
         grid-template-columns: 1fr;
@@ -92,14 +125,8 @@
         <div class="mb-2">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Marcas y empresas</p>
         </div>
-        <div class="flex min-h-24 items-center justify-center gap-3 py-2">
-          <button id="wholesale-logo-prev" type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c]" aria-label="Mostrar logo anterior">
-            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <img id="wholesale-logo-image" class="max-h-16 max-w-[min(70vw,20rem)] object-contain" alt="">
-          <button id="wholesale-logo-next" type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c]" aria-label="Mostrar logo siguiente">
-            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+        <div class="wholesale-logo-viewport py-2" aria-label="Logos de marcas mayoristas en movimiento">
+          <div id="wholesale-logo-track" class="wholesale-logo-track"></div>
         </div>
       </section>
       <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
@@ -130,8 +157,6 @@
     let cart = []
     let currentClient = {}
     let wholesaleLogoSlides = []
-    let wholesaleLogoIndex = 0
-    let wholesaleLogoTimer = null
     const $ = id => document.getElementById(id)
     const mobileCartBar = $("mobile-cart-bar")
     const mobileCartSummary = $("mobile-cart-summary")
@@ -148,12 +173,29 @@
 
     function renderWholesaleLogoSlide() {
       const section = $("wholesale-logo-carousel")
-      if (!section || !wholesaleLogoSlides.length) return
-      const slide = wholesaleLogoSlides[wholesaleLogoIndex]
-      $("wholesale-logo-image").src = slide.url
-      $("wholesale-logo-image").alt = slide.alt || "Marca o empresa"
-      $("wholesale-logo-prev").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
-      $("wholesale-logo-next").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
+      const track = $("wholesale-logo-track")
+      if (!section || !track) return
+      track.replaceChildren()
+      if (!wholesaleLogoSlides.length) {
+        section.classList.add("hidden")
+        return
+      }
+      const copies = wholesaleLogoSlides.length > 1 ? 2 : 1
+      for (let copy = 0; copy < copies; copy++) {
+        const group = document.createElement("div")
+        group.className = "wholesale-logo-group"
+        group.setAttribute("aria-hidden", copy === 0 ? "false" : "true")
+        for (const slide of wholesaleLogoSlides) {
+          const image = document.createElement("img")
+          image.src = slide.url
+          image.alt = copy === 0 ? (slide.alt || "Marca o empresa") : ""
+          image.loading = "lazy"
+          group.appendChild(image)
+        }
+        track.appendChild(group)
+      }
+      track.style.animationDuration = `${Math.max(16, wholesaleLogoSlides.length * 5)}s`
+      track.style.animationPlayState = wholesaleLogoSlides.length > 1 ? "running" : "paused"
       section.classList.remove("hidden")
     }
 
@@ -166,27 +208,9 @@
           ? settings.wholesaleLogoSlides.map(slide => typeof slide === "string" ? { url: slide, alt: "" } : slide).filter(slide => slide && slide.url)
           : []
         renderWholesaleLogoSlide()
-        if (wholesaleLogoSlides.length > 1) {
-          window.clearInterval(wholesaleLogoTimer)
-          wholesaleLogoTimer = window.setInterval(() => {
-            if (document.visibilityState === "visible") {
-              wholesaleLogoIndex = (wholesaleLogoIndex + 1) % wholesaleLogoSlides.length
-              renderWholesaleLogoSlide()
-            }
-          }, 4500)
-        }
       } catch (error) {
         console.error("Error cargando logos mayoristas:", error)
       }
-    }
-
-    $("wholesale-logo-prev").onclick = () => {
-      wholesaleLogoIndex = (wholesaleLogoIndex - 1 + wholesaleLogoSlides.length) % wholesaleLogoSlides.length
-      renderWholesaleLogoSlide()
-    }
-    $("wholesale-logo-next").onclick = () => {
-      wholesaleLogoIndex = (wholesaleLogoIndex + 1) % wholesaleLogoSlides.length
-      renderWholesaleLogoSlide()
     }
     
     function showApp(client) { 
@@ -583,4 +607,3 @@
   </script>
 </body>
 </html>
-

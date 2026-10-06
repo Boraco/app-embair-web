@@ -89,18 +89,18 @@
         </div>
       </div>
       <section id="wholesale-logo-carousel" class="hidden mb-6 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm" aria-label="Marcas y empresas">
-        <div class="flex items-center justify-between gap-3">
+        <div class="mb-2">
           <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Marcas y empresas</p>
-          <div class="flex items-center gap-2">
-            <button id="wholesale-logo-prev" type="button" class="h-8 w-8 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50" aria-label="Logo anterior">Anterior</button>
-            <span id="wholesale-logo-count" class="min-w-10 text-center text-xs text-slate-500" aria-live="polite"></span>
-            <button id="wholesale-logo-next" type="button" class="h-8 w-8 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50" aria-label="Siguiente logo">Siguiente</button>
-          </div>
         </div>
-        <div class="flex min-h-20 items-center justify-center py-2">
+        <div class="flex min-h-24 items-center justify-center gap-3 py-2">
+          <button id="wholesale-logo-prev" type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c]" aria-label="Mostrar logo anterior">
+            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12.5 4.5-5.5 5.5 5.5 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
           <img id="wholesale-logo-image" class="max-h-16 max-w-[min(70vw,20rem)] object-contain" alt="">
+          <button id="wholesale-logo-next" type="button" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c]" aria-label="Mostrar logo siguiente">
+            <svg aria-hidden="true" viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7.5 4.5 5.5 5.5-5.5 5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <p id="wholesale-logo-caption" class="text-center text-xs text-slate-500"></p>
       </section>
       <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
         <div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div>
@@ -152,8 +152,6 @@
       const slide = wholesaleLogoSlides[wholesaleLogoIndex]
       $("wholesale-logo-image").src = slide.url
       $("wholesale-logo-image").alt = slide.alt || "Marca o empresa"
-      $("wholesale-logo-caption").textContent = slide.alt || ""
-      $("wholesale-logo-count").textContent = `${wholesaleLogoIndex + 1} / ${wholesaleLogoSlides.length}`
       $("wholesale-logo-prev").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
       $("wholesale-logo-next").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
       section.classList.remove("hidden")

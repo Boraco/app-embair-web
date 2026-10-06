@@ -608,17 +608,145 @@ app.get("/api/admin/wholesale/orders", requireAdmin, (req, res) => {
   res.json({ ok: true, orders })
 })
 
+app.get("/api/admin/wholesale/inbox", requireAdmin, (req, res) => {
+  const clients = readData(clientsFile)
+  const drafts = readData(wholesaleCartsFile)
+    .filter(cart => cart && cart.status === "active" && Array.isArray(cart.items) && cart.items.length > 0)
+    .map(cart => {
+      const client = clients.find(item => Number(item.id) === Number(cart.clientId))
+      const enriched = enrichWholesaleCart(cart)
+      return {
+        id: cart.id,
+        client: {
+          id: client && client.id,
+          name: client ? `${client.nombre || ""} ${client.apellido || ""}`.trim() : "Cliente mayorista",
+          email: client && client.email || "",
+          phone: client && client.celular || "",
+          company: client && client.empresa || "",
+          zone: client && client.zona || ""
+        },
+        items: enriched ? enriched.items : [],
+        total: enriched ? enriched.total : 0,
+        updatedAt: cart.updatedAt || cart.createdAt || ""
+      }
+    })
+    .filter(cart => cart.items.length > 0)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+  res.json({ ok: true, drafts })
+})
+
+app.post("/api/admin/wholesale/inbox/:id/convert", requireAdmin, (req, res) => {
+  const paymentMethod = String(req.body && req.body.paymentMethod || "")
+  if (!["cash", "credit"].includes(paymentMethod)) return res.status(400).json({ error: "payment_method_required" })
+
+  const carts = readData(wholesaleCartsFile)
+  const cartIndex = carts.findIndex(item => String(item.id) === String(req.params.id) && item.status === "active")
+  if (cartIndex < 0) return res.status(404).json({ error: "active_cart_not_found" })
+  const cart = carts[cartIndex]
+  const enriched = enrichWholesaleCart(cart)
+  if (!enriched || !enriched.items.length) return res.status(400).json({ error: "empty_cart" })
+
+  const client = readData(clientsFile).find(item => Number(item.id) === Number(cart.clientId))
+  if (!client) return res.status(404).json({ error: "client_not_found" })
+
+  const now = new Date().toISOString()
+  const order = {
+    id: `VM-${Date.now()}`,
+    createdAt: now,
+    updatedAt: now,
+    status: "received",
+    collectionStatus: "pending",
+    paidAmount: 0,
+    paymentMethod,
+    source: "wholesale_portal",
+    client: { id: client.id, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), email: client.email || "", phone: client.celular || "", zone: client.zona || "", company: client.empresa || "" },
+    items: enriched.items,
+    total: enriched.total,
+    deliveryMethod: "",
+    notes: String(req.body && req.body.notes || "")
+  }
+
+  const orders = readData(ordersFile)
+  orders.unshift(order)
+  writeData(ordersFile, orders)
+  carts[cartIndex] = { ...cart, status: "ordered", orderId: order.id, orderedAt: now, updatedAt: now }
+  writeData(wholesaleCartsFile, carts)
+
+  const events = readData(eventsFile)
+  events.unshift({ id: Date.now().toString(), type: "wholesale_order_created", sessionId: "", email: client.email || "", meta: { orderId: order.id, clientId: client.id, total: order.total, items: order.items.length, source: "admin_inbox" }, createdAt: now, ip: req.ip, userAgent: req.headers["user-agent"] || "" })
+  writeData(eventsFile, events.slice(0, 5000))
+  res.json({ ok: true, order })
+})
+
 app.patch("/api/admin/wholesale/orders/:id", requireAdmin, (req, res) => {
   const orders = readData(ordersFile)
   const order = orders.find(item => String(item.id) === String(req.params.id) && item.source === "wholesale_portal")
   if (!order) return res.status(404).json({ error: "order_not_found" })
   const allowedStatus = ["received", "preparing", "ready_dispatch", "dispatched", "delivered", "cancelled"]
   const allowedCollection = ["pending", "partial", "paid", "overdue"]
+  const allowedPaymentMethods = ["cash", "credit"]
   if (req.body.status && allowedStatus.includes(req.body.status)) order.status = req.body.status
   if (req.body.collectionStatus && allowedCollection.includes(req.body.collectionStatus)) order.collectionStatus = req.body.collectionStatus
-  order.dispatchNotes = String(req.body.dispatchNotes || order.dispatchNotes || "")
+  if (req.body.paymentMethod && allowedPaymentMethods.includes(req.body.paymentMethod)) order.paymentMethod = req.body.paymentMethod
+  if (req.body.deliveryMethod != null) {
+    const deliveryMethod = String(req.body.deliveryMethod)
+    if (!["", "moto", "transport"].includes(deliveryMethod)) return res.status(400).json({ error: "invalid_delivery_method" })
+    order.deliveryMethod = deliveryMethod
+  }
+  if (req.body.paidAmount != null) {
+    const paidAmount = Number(req.body.paidAmount || 0)
+    if (!Number.isFinite(paidAmount)) return res.status(400).json({ error: "invalid_paid_amount" })
+    order.paidAmount = Math.max(0, Math.min(Number(order.total || 0), paidAmount))
+    if (order.total > 0 && order.paidAmount >= Number(order.total)) order.collectionStatus = "paid"
+    else if (order.paidAmount > 0 && order.collectionStatus !== "overdue") order.collectionStatus = "partial"
+  }
+  if (req.body.scheduledAt != null) {
+    const scheduledAt = String(req.body.scheduledAt || "")
+    if (scheduledAt && Number.isNaN(Date.parse(scheduledAt))) return res.status(400).json({ error: "invalid_schedule_date" })
+    order.scheduledAt = scheduledAt
+  }
+  if (req.body.deliveryWindow != null) order.deliveryWindow = String(req.body.deliveryWindow).slice(0, 120)
+  if (req.body.dispatchNotes != null) order.dispatchNotes = String(req.body.dispatchNotes).slice(0, 500)
+  if (req.body.procurementItems != null) {
+    if (!Array.isArray(req.body.procurementItems)) return res.status(400).json({ error: "procurement_items_must_be_array" })
+    const allowedProcurementStatuses = ["review", "supplier_needed", "requested", "received", "not_required"]
+    const updates = new Map()
+    for (const update of req.body.procurementItems) {
+      const productId = Number(update && update.productId)
+      const procurementStatus = String(update && update.status || "")
+      const expectedAt = String(update && update.expectedAt || "")
+      if (!Number.isFinite(productId) || !allowedProcurementStatuses.includes(procurementStatus)) {
+        return res.status(400).json({ error: "invalid_procurement_item" })
+      }
+      if (expectedAt && Number.isNaN(Date.parse(expectedAt))) return res.status(400).json({ error: "invalid_expected_arrival" })
+      updates.set(productId, {
+        procurementStatus,
+        procurementSupplier: String(update && update.supplier || "").slice(0, 120),
+        procurementExpectedAt: expectedAt,
+        procurementNotes: String(update && update.notes || "").slice(0, 300)
+      })
+    }
+    order.items = (order.items || []).map(item => {
+      const update = updates.get(Number(item.productId))
+      return update ? { ...item, ...update } : item
+    })
+  }
+  if (req.body.status === "ready_dispatch" && (!order.scheduledAt || !["moto", "transport"].includes(order.deliveryMethod) || !["cash", "credit"].includes(order.paymentMethod))) {
+    return res.status(400).json({ error: "schedule_requires_date_transport_and_negotiation" })
+  }
+  if (req.body.status === "ready_dispatch" && (order.items || []).some(item => !["received", "not_required"].includes(item.procurementStatus || "review"))) {
+    return res.status(400).json({ error: "procurement_items_not_resolved" })
+  }
   order.updatedAt = new Date().toISOString()
   writeData(ordersFile, orders)
+  const events = readData(eventsFile)
+  const procurementSummary = (order.items || []).reduce((summary, item) => {
+    const status = item.procurementStatus || "review"
+    summary[status] = (summary[status] || 0) + 1
+    return summary
+  }, {})
+  events.unshift({ id: Date.now().toString(), type: "wholesale_order_updated", sessionId: "", email: order.client && order.client.email || "", meta: { orderId: order.id, status: order.status, paymentMethod: order.paymentMethod || "undefined", collectionStatus: order.collectionStatus, paidAmount: order.paidAmount || 0, scheduledAt: order.scheduledAt || "", deliveryMethod: order.deliveryMethod || "", procurementSummary }, createdAt: order.updatedAt, ip: req.ip, userAgent: req.headers["user-agent"] || "" })
+  writeData(eventsFile, events.slice(0, 5000))
   res.json({ ok: true, order })
 })
 

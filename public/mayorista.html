@@ -88,6 +88,20 @@
           <input id="search" class="w-full md:w-80 border rounded-lg px-3 py-2 bg-white text-sm shadow-sm" placeholder="Buscar producto...">
         </div>
       </div>
+      <section id="wholesale-logo-carousel" class="hidden mb-6 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm" aria-label="Marcas y empresas">
+        <div class="flex items-center justify-between gap-3">
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Marcas y empresas</p>
+          <div class="flex items-center gap-2">
+            <button id="wholesale-logo-prev" type="button" class="h-8 w-8 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50" aria-label="Logo anterior">Anterior</button>
+            <span id="wholesale-logo-count" class="min-w-10 text-center text-xs text-slate-500" aria-live="polite"></span>
+            <button id="wholesale-logo-next" type="button" class="h-8 w-8 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50" aria-label="Siguiente logo">Siguiente</button>
+          </div>
+        </div>
+        <div class="flex min-h-20 items-center justify-center py-2">
+          <img id="wholesale-logo-image" class="max-h-16 max-w-[min(70vw,20rem)] object-contain" alt="">
+        </div>
+        <p id="wholesale-logo-caption" class="text-center text-xs text-slate-500"></p>
+      </section>
       <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
         <div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div>
         <aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5">
@@ -115,6 +129,9 @@
     let products = []
     let cart = []
     let currentClient = {}
+    let wholesaleLogoSlides = []
+    let wholesaleLogoIndex = 0
+    let wholesaleLogoTimer = null
     const $ = id => document.getElementById(id)
     const mobileCartBar = $("mobile-cart-bar")
     const mobileCartSummary = $("mobile-cart-summary")
@@ -128,6 +145,51 @@
     }
     
     function money(v) { return v == null ? "Consultar" : "$" + Number(v).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+
+    function renderWholesaleLogoSlide() {
+      const section = $("wholesale-logo-carousel")
+      if (!section || !wholesaleLogoSlides.length) return
+      const slide = wholesaleLogoSlides[wholesaleLogoIndex]
+      $("wholesale-logo-image").src = slide.url
+      $("wholesale-logo-image").alt = slide.alt || "Marca o empresa"
+      $("wholesale-logo-caption").textContent = slide.alt || ""
+      $("wholesale-logo-count").textContent = `${wholesaleLogoIndex + 1} / ${wholesaleLogoSlides.length}`
+      $("wholesale-logo-prev").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
+      $("wholesale-logo-next").classList.toggle("hidden", wholesaleLogoSlides.length < 2)
+      section.classList.remove("hidden")
+    }
+
+    async function loadWholesaleLogoSlides() {
+      try {
+        const response = await fetch("/api/config")
+        if (!response.ok) return
+        const settings = await response.json()
+        wholesaleLogoSlides = Array.isArray(settings.wholesaleLogoSlides)
+          ? settings.wholesaleLogoSlides.map(slide => typeof slide === "string" ? { url: slide, alt: "" } : slide).filter(slide => slide && slide.url)
+          : []
+        renderWholesaleLogoSlide()
+        if (wholesaleLogoSlides.length > 1) {
+          window.clearInterval(wholesaleLogoTimer)
+          wholesaleLogoTimer = window.setInterval(() => {
+            if (document.visibilityState === "visible") {
+              wholesaleLogoIndex = (wholesaleLogoIndex + 1) % wholesaleLogoSlides.length
+              renderWholesaleLogoSlide()
+            }
+          }, 4500)
+        }
+      } catch (error) {
+        console.error("Error cargando logos mayoristas:", error)
+      }
+    }
+
+    $("wholesale-logo-prev").onclick = () => {
+      wholesaleLogoIndex = (wholesaleLogoIndex - 1 + wholesaleLogoSlides.length) % wholesaleLogoSlides.length
+      renderWholesaleLogoSlide()
+    }
+    $("wholesale-logo-next").onclick = () => {
+      wholesaleLogoIndex = (wholesaleLogoIndex + 1) % wholesaleLogoSlides.length
+      renderWholesaleLogoSlide()
+    }
     
     function showApp(client) { 
       currentClient = client || {}; 
@@ -139,6 +201,7 @@
       track("login"); 
       loadProducts(); 
       loadCart(); 
+      loadWholesaleLogoSlides();
     }
     
     async function track(type, meta = {}) { 
@@ -516,7 +579,7 @@
     if (token) { 
       fetch("/api/wholesale/products", { headers: headers() }).then(r => { 
         if (r.ok) showApp({ name: "Cliente mayorista" }); 
-        else localStorage.removeItem(TOKEN_KEY) 
+        else localStorage.removeItem(TOKEN_KEY)
       }) 
     }
   </script>

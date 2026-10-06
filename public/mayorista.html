@@ -34,6 +34,23 @@
     .product-actions button {
       min-height: 2.5rem;
     }
+    .product-title {
+      overflow-wrap: anywhere;
+    }
+    .product-detail-dialog::backdrop {
+      background: rgb(15 23 42 / 55%);
+      backdrop-filter: blur(2px);
+    }
+    .product-detail-dialog[open] {
+      animation: product-detail-enter 160ms ease-out;
+    }
+    @keyframes product-detail-enter {
+      from { opacity: 0; transform: translateY(0.5rem) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .product-detail-dialog[open] { animation: none; }
+    }
     .wholesale-logo-viewport {
       overflow: hidden;
       mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
@@ -130,7 +147,7 @@
         </div>
       </section>
       <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
-        <div id="products" class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"></div>
+        <div id="products" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
         <aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5">
           <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Solicitud</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div>
           <div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div>
@@ -149,6 +166,37 @@
       <button id="mobile-cart-button" type="button" class="rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-2 text-sm font-bold whitespace-nowrap">Ver solicitud</button>
     </div>
   </div>
+
+  <dialog id="product-detail-dialog" class="product-detail-dialog m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl overflow-y-auto rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/60">
+    <div class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
+      <p class="text-xs font-bold uppercase tracking-wider text-amber-600">Detalle del producto</p>
+      <button id="product-detail-close" type="button" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-xl text-slate-600 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c]" aria-label="Cerrar detalle del producto">×</button>
+    </div>
+    <div class="grid gap-5 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] sm:gap-7 sm:p-6">
+      <div class="flex min-h-56 items-center justify-center rounded-xl bg-slate-50 p-4 sm:min-h-72">
+        <img id="product-detail-image" class="max-h-72 w-full object-contain" alt="">
+        <p id="product-detail-no-image" class="hidden text-sm text-slate-400">Imagen no disponible</p>
+      </div>
+      <div class="min-w-0">
+        <p id="product-detail-category" class="text-xs font-semibold uppercase tracking-wide text-slate-500"></p>
+        <h2 id="product-detail-name" class="product-title mt-1 text-xl font-bold leading-tight sm:text-2xl"></h2>
+        <p id="product-detail-code" class="mt-2 text-sm text-slate-500"></p>
+        <p id="product-detail-description" class="mt-4 whitespace-pre-line break-words text-sm leading-6 text-slate-700"></p>
+        <div id="product-detail-specs-wrap" class="mt-4 hidden">
+          <h3 class="text-sm font-bold text-slate-800">Especificaciones</h3>
+          <ul id="product-detail-specs" class="mt-2 list-inside list-disc space-y-1 break-words text-sm leading-5 text-slate-700"></ul>
+        </div>
+        <dl id="product-detail-facts" class="mt-4 grid grid-cols-2 gap-2 text-sm"></dl>
+        <div class="mt-5 border-t border-slate-100 pt-4">
+          <p id="product-detail-price-label" class="text-xs text-slate-500"></p>
+          <p id="product-detail-price" class="text-2xl font-bold text-[#10165c]"></p>
+          <p id="product-detail-minimum" class="mt-1 text-xs text-slate-500"></p>
+        </div>
+        <p id="product-detail-add-error" class="mt-2 text-sm text-red-600" role="alert"></p>
+        <button id="product-detail-add" type="button" class="mt-4 min-h-11 w-full rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white transition hover:bg-amber-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600">Agregar solicitud</button>
+      </div>
+    </div>
+  </dialog>
 
   <script>
     const TOKEN_KEY = "embair_wholesale_token"
@@ -278,7 +326,7 @@
 
     async function setItem(productId, qty) { 
       const product = products.find(item => Number(item.id) === Number(productId)); 
-      if (!product) return;
+      if (!product) return false;
       const minimum = product.wholesale ? Number(product.wholesale.minimumQuantity || 1) : 1; 
       const nextQty = Math.max(minimum, Number(qty || minimum)); 
       const res = await fetch("/api/wholesale/cart/item", { 
@@ -303,7 +351,9 @@
             addButton.classList.add("bg-amber-500")
           }, 1400)
         }
+        return true
       } 
+      return false
     }
 
     function renderProducts() { 
@@ -319,23 +369,118 @@
       $("products").innerHTML = visible.map(p => { 
         const w = p.wholesale || {}; 
         const tags = [w.featured ? "Destacado" : "", w.offer ? "Oferta" : "", w.discountPercent ? `${w.discountPercent}% descuento` : ""].filter(Boolean); 
-        return `<article class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="aspect-[4/3] bg-slate-100"><img src="${p.img || ""}" alt="${p.name}" class="w-full h-full object-contain" onerror="this.style.display='none'"></div>
-            <div class="p-4">
-              <div class="flex flex-wrap gap-1 mb-2">${tags.map(tag => `<span class="text-[11px] rounded-full bg-orange-50 text-orange-700 px-2 py-1">${tag}</span>`).join("")}</div>
-              <h3 class="font-bold line-clamp-2 min-h-[3rem]">${p.name}</h3>
-              <p class="text-xs text-slate-500 mt-1">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} unidades</p>
-            </div>
-          </div>
-          <div class="p-4 pt-0">
+        const code = p.code || p.sku || ""
+        const description = String(p.desc || "").trim()
+        const summary = description || (Array.isArray(p.specs) ? p.specs.filter(Boolean).join(" · ") : "")
+        return `<article data-product-card="${p.id}" class="flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+          <button type="button" data-product-detail="${p.id}" class="block w-full min-w-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#10165c]" aria-label="Ver detalles de ${p.name}">
+            <span class="block aspect-[4/3] bg-slate-100"><img src="${p.img || ""}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain p-2" onerror="this.style.display='none'"></span>
+            <span class="block p-4 pb-2">
+              <span class="mb-2 flex flex-wrap gap-1">${tags.map(tag => `<span class="rounded-full bg-orange-50 px-2 py-1 text-[11px] text-orange-700">${tag}</span>`).join("")}</span>
+              <span role="heading" aria-level="3" class="product-title block text-sm font-bold leading-5 sm:text-base">${p.name}</span>
+              <span class="mt-2 block break-words text-xs leading-5 text-slate-500">${p.category || p.categoria || "General"}${code ? ` · ${code}` : ""}</span>
+              ${summary ? `<span class="mt-2 line-clamp-2 block break-words text-xs leading-5 text-slate-600">${summary}</span>` : ""}
+              <span class="mt-2 block text-xs font-semibold text-[#10165c]">Ver ficha completa</span>
+            </span>
+          </button>
+          <div class="mt-auto px-4 pb-4">
+            <p class="text-xs leading-5 text-slate-500">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} unidades</p>
+            <p class="mt-1 text-xs leading-5 text-slate-500">Mínimo: ${w.minimumQuantity || 1} ${w.packageName || "paquete"}(s)</p>
             <div class="mt-2"><p class="text-xs text-slate-500">Precio por ${String(w.packageName || "empaque").toLowerCase()}</p><strong class="text-lg">${money(w.wholesalePrice)}</strong></div>
-            <div class="product-actions mt-3"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg px-3 py-2 text-xs font-bold transition" title="Compartir ficha">Compartir ficha</button><button type="button" data-add-product="${p.id}" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="bg-amber-500 hover:bg-amber-600 text-white rounded-lg px-3 py-2 text-xs font-bold transition">Agregar solicitud</button></div>
-            <div class="flex flex-wrap gap-1 mt-3"><span class="text-[11px] rounded-full bg-amber-50 text-amber-700 px-2 py-1">${w.availability || "Disponible"}</span><span class="text-[11px] rounded-full bg-sky-50 text-sky-700 px-2 py-1">Solo despacho</span></div>
+            <div class="product-actions mt-3"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="min-w-0 break-words rounded-lg border border-slate-300 px-2 py-2 text-xs font-bold leading-4 text-slate-700 transition hover:bg-slate-50 sm:px-3" title="Compartir ficha">Compartir ficha</button><button type="button" data-add-product="${p.id}" onclick="setItem(${p.id}, ${w.minimumQuantity || 1})" class="min-w-0 break-words rounded-lg bg-amber-500 px-2 py-2 text-xs font-bold leading-4 text-white transition hover:bg-amber-600 sm:px-3">Agregar solicitud</button></div>
+            <div class="mt-3 flex flex-wrap gap-1"><span class="rounded-full bg-amber-50 px-2 py-1 text-[11px] text-amber-700">${w.availability || "Disponible"}</span><span class="rounded-full bg-sky-50 px-2 py-1 text-[11px] text-sky-700">Solo despacho</span></div>
           </div>
         </article>` 
       }).join("") || `<p class="text-slate-500 col-span-full">No hay productos mayoristas publicados en esta categoría.</p>`; 
     }
+
+    function addProductDetailFact(list, label, value) {
+      if (value == null || String(value).trim() === "") return
+      const wrapper = document.createElement("div")
+      wrapper.className = "min-w-0 rounded-lg bg-slate-50 p-2"
+      const term = document.createElement("dt")
+      term.className = "text-[11px] font-medium text-slate-500"
+      term.textContent = label
+      const description = document.createElement("dd")
+      description.className = "mt-0.5 break-words text-sm font-semibold text-slate-800"
+      description.textContent = String(value)
+      wrapper.append(term, description)
+      list.appendChild(wrapper)
+    }
+
+    function showProductDetails(productId) {
+      const product = products.find(item => Number(item.id) === Number(productId))
+      if (!product) return
+      const wholesale = product.wholesale || {}
+      const image = $("product-detail-image")
+      const noImage = $("product-detail-no-image")
+      image.classList.toggle("hidden", !product.img)
+      noImage.classList.toggle("hidden", Boolean(product.img))
+      image.src = product.img || ""
+      image.alt = product.name || "Producto"
+      $("product-detail-category").textContent = [product.category || product.categoria, product.subcategory].filter(Boolean).join(" · ")
+      $("product-detail-name").textContent = product.name || "Producto"
+      $("product-detail-code").textContent = [product.code || product.sku ? `Código: ${product.code || product.sku}` : "", product.brand ? `Marca: ${product.brand}` : ""].filter(Boolean).join(" · ")
+      $("product-detail-description").textContent = String(product.desc || "").trim()
+      $("product-detail-description").classList.toggle("hidden", !String(product.desc || "").trim())
+      const specs = Array.isArray(product.specs) ? product.specs.map(spec => String(spec || "").trim()).filter(Boolean) : []
+      const specsList = $("product-detail-specs")
+      specsList.replaceChildren()
+      for (const spec of specs) {
+        const item = document.createElement("li")
+        item.textContent = spec
+        specsList.appendChild(item)
+      }
+      $("product-detail-specs-wrap").classList.toggle("hidden", specs.length === 0)
+      const facts = $("product-detail-facts")
+      facts.replaceChildren()
+      addProductDetailFact(facts, "Material", product.material)
+      addProductDetailFact(facts, "Empaque", wholesale.packageName || product.pack || product.packInfo)
+      addProductDetailFact(facts, "Unidades por empaque", wholesale.unitsPerPackage || product.unitsBundle)
+      addProductDetailFact(facts, "Volumen", product.volume)
+      addProductDetailFact(facts, "Disponibilidad", wholesale.availability || "Disponible")
+      $("product-detail-price-label").textContent = `Precio por ${String(wholesale.packageName || "empaque").toLowerCase()}`
+      $("product-detail-price").textContent = money(wholesale.wholesalePrice)
+      $("product-detail-minimum").textContent = `Pedido mínimo: ${Number(wholesale.minimumQuantity || 1)} ${wholesale.packageName || "paquete"}(s)`
+      $("product-detail-add").onclick = async () => {
+        const addButton = $("product-detail-add")
+        const addError = $("product-detail-add-error")
+        addButton.disabled = true
+        addError.textContent = ""
+        try {
+          if (await setItem(product.id, wholesale.minimumQuantity || 1)) {
+            $("product-detail-dialog").close()
+          } else {
+            addError.textContent = "No pudimos agregar el producto. Inténtalo nuevamente."
+          }
+        } catch (error) {
+          console.error("Error agregando producto desde la ficha:", error)
+          addError.textContent = "No pudimos agregar el producto. Inténtalo nuevamente."
+        } finally {
+          addButton.disabled = false
+        }
+      }
+      $("product-detail-dialog").showModal()
+    }
+
+    $("products").addEventListener("click", event => {
+      const detailTrigger = event.target.closest("[data-product-detail]")
+      if (detailTrigger) {
+        showProductDetails(detailTrigger.dataset.productDetail)
+        return
+      }
+      if (event.target.closest("button")) return
+      const card = event.target.closest("[data-product-card]")
+      if (card) showProductDetails(card.dataset.productCard)
+    })
+    $("product-detail-close").addEventListener("click", () => $("product-detail-dialog").close())
+    $("product-detail-dialog").addEventListener("click", event => {
+      if (event.target === $("product-detail-dialog")) $("product-detail-dialog").close()
+    })
+    $("product-detail-image").addEventListener("error", event => {
+      event.currentTarget.classList.add("hidden")
+      $("product-detail-no-image").classList.remove("hidden")
+    })
 
     function loadShareImage(src) {
       return new Promise((resolve, reject) => { const image = new Image(); image.crossOrigin = "anonymous"; image.onload = () => resolve(image); image.onerror = reject; image.src = src; })

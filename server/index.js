@@ -786,17 +786,19 @@ const allowedUploadTypes = {
   "application/pdf": new Set([".pdf"]),
   "image/avif": new Set([".avif"]),
   "image/gif": new Set([".gif"]),
-  "image/jpeg": new Set([".jpg", ".jpeg"]),
+  "image/jpeg": new Set([".jpg", ".jpeg", ".jfif"]),
   "image/png": new Set([".png"]),
   "image/svg+xml": new Set([".svg"]),
   "image/webp": new Set([".webp"])
 }
+const rasterUploadExtensions = new Set([".avif", ".jpg", ".jpeg", ".jfif", ".png", ".webp"])
 const upload = multer({
   storage,
   limits: { fileSize: 15 * 1024 * 1024, files: 1 },
   fileFilter(req, file, cb) {
+    const extension = path.extname(file.originalname || "").toLowerCase()
     const extensions = allowedUploadTypes[file.mimetype]
-    const valid = extensions && extensions.has(path.extname(file.originalname || "").toLowerCase())
+    const valid = rasterUploadExtensions.has(extension) || (extensions && extensions.has(extension))
     cb(valid ? null : new Error("unsupported_file_type"), Boolean(valid))
   }
 })
@@ -809,9 +811,8 @@ app.post("/api/upload", requireAdmin, (req, res) => {
     }
     const file = req.file
     if (!file) return res.status(400).json({ error: "file_required" })
-    const rasterTypes = new Set(["image/avif", "image/jpeg", "image/png", "image/webp"])
     try {
-      if (rasterTypes.has(file.mimetype)) {
+      if (rasterUploadExtensions.has(path.extname(file.filename).toLowerCase())) {
         const webpName = `${path.basename(file.filename, path.extname(file.filename))}.webp`
         await sharp(file.path)
           .rotate()

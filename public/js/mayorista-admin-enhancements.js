@@ -111,7 +111,7 @@
     document.getElementById("bulk-action-status").textContent = message
   }
 
-  function imageAsDataUrl(src) {
+  function imageAsDataUrl(src, backgroundColor = "#ffffff") {
     return new Promise((resolve, reject) => {
       const url = new URL(src, window.location.href)
       if (url.origin !== window.location.origin) return reject(new Error("La imagen no pertenece a este sitio."))
@@ -128,13 +128,17 @@
             canvas.height = 300
             const context = canvas.getContext("2d")
             if (!context) return reject(new Error("No se pudo preparar la imagen para el PDF."))
-            context.fillStyle = "#ffffff"
-            context.fillRect(0, 0, canvas.width, canvas.height)
+            if (backgroundColor) {
+              context.fillStyle = backgroundColor
+              context.fillRect(0, 0, canvas.width, canvas.height)
+            }
             const scale = Math.min(canvas.width / image.width, canvas.height / image.height)
             const width = image.width * scale
             const height = image.height * scale
             context.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height)
-            resolve(canvas.toDataURL("image/jpeg", 0.9))
+            resolve(backgroundColor
+              ? canvas.toDataURL("image/jpeg", 0.9)
+              : canvas.toDataURL("image/png"))
           }
           image.onerror = () => reject(new Error("El archivo no es una imagen compatible."))
           image.src = reader.result
@@ -158,104 +162,128 @@
 
     const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
     const pageWidth = doc.internal.pageSize.getWidth()
-    const pageHeight = doc.internal.pageSize.getHeight()
-    const columns = [10, 32, 88, 40, 25, 25, 32, 25]
-    const headers = ["Orden", "Imagen", "Producto", "Empaque", "Und./paq.", "Mínimo", "Precio/paq.", "Estado"]
+    const gridColumns = 4
+    const gridRows = 3
+    const pageCapacity = gridColumns * gridRows
+    const margin = 8
+    const gap = 4
+    const cardWidth = (pageWidth - margin * 2 - gap * (gridColumns - 1)) / gridColumns
+    const cardHeight = 55
+    const gridTop = 25
     let missingImages = 0
-    let y = 34
+    let logoData = null
+    let logoUnavailable = false
 
-    function drawPageHeader() {
+    function drawPageHeader(pageNumber) {
       doc.setFillColor(16, 22, 92)
       doc.rect(0, 0, pageWidth, 21, "F")
+      if (logoData) {
+        doc.addImage(logoData, "PNG", margin, 3.5, 15, 14)
+        doc.setDrawColor(255, 255, 255)
+        doc.setLineWidth(0.2)
+        doc.line(26, 4, 26, 17)
+      }
       doc.setTextColor(255, 255, 255)
       doc.setFont("helvetica", "bold")
-      doc.setFontSize(15)
-      doc.text("EMBAIR · CATÁLOGO MAYORISTA", 10, 9)
+      doc.setFontSize(14)
+      doc.text("EMBAIR · CATÁLOGO MAYORISTA", logoData ? 31 : margin, 9)
       doc.setFont("helvetica", "normal")
-      doc.setFontSize(8)
-      doc.text(`Generado ${new Date().toLocaleDateString("es-AR")} · ${selectedProducts.length} productos`, 10, 16)
-      doc.setTextColor(30, 41, 59)
-      let x = 10
-      doc.setFillColor(241, 245, 249)
-      doc.rect(10, 25, pageWidth - 20, 7, "F")
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(7)
-      headers.forEach((label, index) => {
-        doc.text(label, x + 1, 29.5)
-        x += columns[index]
-      })
-      y = 34
+      doc.setFontSize(7.5)
+      doc.text(`Precios mayoristas · ${selectedProducts.length} productos · Generado ${new Date().toLocaleDateString("es-AR")}`, logoData ? 31 : margin, 16)
+      doc.text(`Página ${pageNumber} de ${Math.ceil(selectedProducts.length / pageCapacity)}`, pageWidth - margin, 16, { align: "right" })
     }
 
-    async function drawProductRow(entry, index) {
+    async function drawProductCard(entry, index) {
       const { product, config } = entry
-      const rowHeight = 34
-      if (y + rowHeight > pageHeight - 12) {
-        doc.addPage()
-        drawPageHeader()
-      }
-      if (index % 2 === 0) {
-        doc.setFillColor(250, 250, 252)
-        doc.rect(10, y, pageWidth - 20, rowHeight, "F")
-      }
+      const position = index % pageCapacity
+      const column = position % gridColumns
+      const row = Math.floor(position / gridColumns)
+      const x = margin + column * (cardWidth + gap)
+      const y = gridTop + row * (cardHeight + gap)
+      const contentX = x + 3
+      const contentWidth = cardWidth - 6
+
+      doc.setFillColor(255, 255, 255)
       doc.setDrawColor(226, 232, 240)
-      doc.rect(10, y, pageWidth - 20, rowHeight)
-      const values = [
-        String(index + 1),
-        "",
-        "",
-        String(config.packageName || "Paquete"),
-        String(config.unitsPerPackage || 1),
-        `${config.minimumQuantity || 1} paq.`,
-        config.wholesalePrice == null
-          ? "Consultar"
-          : `$${(Number(config.wholesalePrice) * (1 - Number(config.discountPercent || 0) / 100)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        config.enabled === true ? (config.availability || "Disponible") : "No publicado"
-      ]
-      let x = 10
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(7)
-      doc.setTextColor(30, 41, 59)
-      values.forEach((value, cellIndex) => {
-        if (cellIndex !== 1 && cellIndex !== 2) {
-          const lines = doc.splitTextToSize(value, columns[cellIndex] - 3)
-          doc.text(lines.slice(0, 3), x + 1, y + 5)
-        }
-        x += columns[cellIndex]
-      })
-      const productX = 10 + columns[0] + columns[1]
-      const productLines = doc.splitTextToSize(String(product.name || "Producto"), columns[2] - 3)
-      doc.setFont("helvetica", "bold")
-      doc.text(productLines.slice(0, 2), productX + 1, y + 6)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(6.5)
-      const details = [product.code || product.sku, product.category || product.categoria].filter(Boolean).join(" · ")
-      if (details) doc.text(doc.splitTextToSize(details, columns[2] - 3).slice(0, 2), productX + 1, y + 16)
+      doc.setLineWidth(0.35)
+      doc.roundedRect(x, y, cardWidth, cardHeight, 2, 2, "FD")
+
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(contentX, y + 2, contentWidth, 19, 1, 1, "F")
       if (product.img) {
         try {
           const dataUrl = await imageAsDataUrl(product.img)
-          doc.addImage(dataUrl, "JPEG", 21, y + 2, 30, 30, undefined, "FAST")
+          doc.addImage(dataUrl, "JPEG", contentX + (contentWidth - 25) / 2, y + 2.5, 25, 18, undefined, "FAST")
         } catch (error) {
           missingImages++
+          doc.setFont("helvetica", "normal")
           doc.setFontSize(6)
           doc.setTextColor(100, 116, 139)
-          doc.text("Sin imagen", 21, y + 18)
+          doc.text("Imagen no disponible", x + cardWidth / 2, y + 12.5, { align: "center" })
         }
       } else {
         missingImages++
+        doc.setFont("helvetica", "normal")
         doc.setFontSize(6)
         doc.setTextColor(100, 116, 139)
-        doc.text("Sin imagen", 21, y + 18)
+        doc.text("Sin imagen", x + cardWidth / 2, y + 12.5, { align: "center" })
       }
-      y += rowHeight
+
+      doc.setTextColor(148, 163, 184)
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(5.5)
+      doc.text(String(index + 1).padStart(2, "0"), x + cardWidth - 3, y + 4.5, { align: "right" })
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(7)
+      doc.setTextColor(30, 41, 59)
+      const productLines = doc.splitTextToSize(String(product.name || "Producto"), contentWidth)
+      doc.text(productLines.slice(0, 2), contentX, y + 25, { lineHeightFactor: 1.05 })
+
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(5.5)
+      doc.setTextColor(100, 116, 139)
+      const code = String(product.code || product.sku || "").trim()
+      if (code) doc.text(doc.splitTextToSize(code, contentWidth)[0], contentX, y + 33)
+
+      doc.setDrawColor(241, 245, 249)
+      doc.line(contentX, y + 35, x + cardWidth - 3, y + 35)
+      doc.setTextColor(71, 85, 105)
+      doc.setFontSize(6)
+      const packageDetails = `${config.packageName || "Paquete"} · ${config.unitsPerPackage || 1} und./paq.`
+      doc.text(doc.splitTextToSize(packageDetails, contentWidth)[0], contentX, y + 39)
+      doc.setFontSize(5.5)
+      doc.text(`Mínimo: ${config.minimumQuantity || 1} paquetes`, contentX, y + 43)
+
+      const price = config.wholesalePrice == null
+        ? "Consultar"
+        : `$${(Number(config.wholesalePrice) * (1 - Number(config.discountPercent || 0) / 100)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      doc.setFillColor(255, 247, 237)
+      doc.roundedRect(contentX, y + 45, contentWidth, 7, 1, 1, "F")
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(8.5)
+      doc.setTextColor(154, 52, 18)
+      doc.text(price, x + cardWidth / 2, y + 50, { align: "center" })
     }
 
     async function generate() {
       try {
-        drawPageHeader()
-        for (const [index, entry] of selectedProducts.entries()) await drawProductRow(entry, index)
+        try {
+          logoData = await imageAsDataUrl("/img/embair-isotype-white.png", null)
+        } catch (error) {
+          logoUnavailable = true
+          console.error("No se pudo cargar el isotipo para el catálogo PDF:", error)
+        }
+        const pageCount = Math.ceil(selectedProducts.length / pageCapacity)
+        for (let page = 0; page < pageCount; page++) {
+          if (page > 0) doc.addPage()
+          drawPageHeader(page + 1)
+          const start = page * pageCapacity
+          const end = Math.min(start + pageCapacity, selectedProducts.length)
+          for (let index = start; index < end; index++) await drawProductCard(selectedProducts[index], index)
+        }
         doc.save("catalogo-mayorista-seleccionados.pdf")
-        announce(`PDF generado con ${selectedProducts.length} productos${missingImages ? `; ${missingImages} sin imagen disponible` : ""}.`)
+        announce(`PDF generado con ${selectedProducts.length} productos${missingImages ? `; ${missingImages} sin imagen disponible` : ""}${logoUnavailable ? "; isotipo no disponible" : ""}.`)
       } catch (error) {
         console.error("Error generando el catálogo mayorista PDF:", error)
         announce("No se pudo generar el PDF del catálogo. Inténtalo nuevamente.")

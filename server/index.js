@@ -529,10 +529,11 @@ function enrichWholesaleCart(cart) {
   const items = (cart.items || []).map(item => {
     const product = products.find(p => Number(p.id) === Number(item.productId))
     if (!product) return null
-    const qty = Math.max(1, Number(item.qty || 1))
+    const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Math.floor(Number(item.qty) || 1))
+    const unitsTotal = qty * product.wholesale.unitsPerPackage
     const unitPrice = product.wholesale.wholesalePrice == null ? 0 : product.wholesale.wholesalePrice
     total += unitPrice * qty
-    return { productId: product.id, name: product.name, code: product.code || "", qty, unitPrice, subtotal: unitPrice * qty, packageName: product.wholesale.packageName, unitsPerPackage: product.wholesale.unitsPerPackage, minimumQuantity: product.wholesale.minimumQuantity }
+    return { productId: product.id, name: product.name, code: product.code || "", qty, unitsTotal, unitPrice, subtotal: unitPrice * qty, packageName: product.wholesale.packageName, unitsPerPackage: product.wholesale.unitsPerPackage, minimumQuantity: product.wholesale.minimumQuantity }
   }).filter(Boolean)
   return { ...cart, items, total }
 }
@@ -545,7 +546,8 @@ app.post("/api/wholesale/cart/item", requireClient, (req, res) => {
   const productId = Number(req.body && req.body.productId)
   const product = enrichWholesaleProducts().find(item => Number(item.id) === productId)
   if (!product) return res.status(404).json({ error: "wholesale_product_not_found" })
-  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number(req.body && req.body.qty || 1))
+  const requestedQty = Number(req.body && req.body.qty)
+  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number.isFinite(requestedQty) ? Math.floor(requestedQty) : 1)
   const carts = readData(wholesaleCartsFile)
   let cart = carts.find(item => Number(item.clientId) === Number(req.client.id) && item.status === "active")
   if (!cart) {

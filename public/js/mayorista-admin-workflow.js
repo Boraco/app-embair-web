@@ -128,7 +128,7 @@
       client.append(make("p", "text-xs text-slate-500", [draft.client.company, draft.client.email, draft.client.phone, draft.client.zone].filter(Boolean).join(" · ") || "Sin datos de contacto"))
       client.append(make("p", "mt-1 text-xs text-slate-400", `Actualizado ${formatDate(draft.updatedAt)}`))
       const details = make("div", "space-y-1 text-sm")
-      for (const product of draft.items) details.append(make("p", "", `${product.qty} × ${product.name} · ${product.packageName || "Paquete"} · ${money(product.subtotal)}`))
+      for (const product of draft.items) details.append(make("p", "", `${product.qty} paquete(s) × ${product.name} · ${product.unitsTotal || (product.qty || 0) * (product.unitsPerPackage || 1)} unidades · ${money(product.subtotal)}`))
       details.append(make("p", "font-bold", `Total estimado ${money(draft.total)}`))
       const actions = make("div", "flex flex-col gap-2")
       const negotiation = document.createElement("select")
@@ -166,8 +166,8 @@
       const itemRow = make("div", "grid gap-2 border-b border-slate-100 pb-3 last:border-0 sm:grid-cols-[1fr_1.1fr_1fr_1fr]")
       itemRow.dataset.procurementProduct = String(product.productId)
       const identity = make("div", "text-sm")
-      identity.append(make("p", "font-semibold", `${product.qty || 0} × ${product.name || "Producto"}`))
-      identity.append(make("p", "text-xs text-slate-500", `${product.packageName || "Paquete"} · ${product.unitsPerPackage || 1} und. · ${money(product.subtotal)}`))
+      identity.append(make("p", "font-semibold", `${product.qty || 0} paquete(s) × ${product.name || "Producto"}`))
+      identity.append(make("p", "text-xs text-slate-500", `${product.packageName || "Paquete"} · ${(product.unitsTotal || (product.qty || 0) * (product.unitsPerPackage || 1))} unidades · ${money(product.subtotal)}`))
 
       const procurementStatus = document.createElement("select")
       procurementStatus.dataset.procurementField = "status"

@@ -110,7 +110,7 @@ app.get("/robots.txt", (req, res) => {
 
 app.get("/sitemap.xml", (req, res) => {
   const baseUrl = getPublicBaseUrl()
-  const urls = ["/", "/app", "/landing.html"]
+  const urls = ["/", "/app", "/catalogos.html"]
   const body = urls.map(url => `  <url><loc>${baseUrl}${url}</loc></url>`).join("\n")
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`)
 })

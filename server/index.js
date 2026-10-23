@@ -23,6 +23,7 @@ const adminAuthLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standa
 const wholesaleLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false })
 const publicLeadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 100, standardHeaders: true, legacyHeaders: false })
 const publicClientLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 120, standardHeaders: true, legacyHeaders: false })
+const publicQuoteLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: true, legacyHeaders: false })
 const portalRegisterLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 50, standardHeaders: true, legacyHeaders: false })
 const portalLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false })
 const clientOrderLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 50, standardHeaders: true, legacyHeaders: false })
@@ -110,9 +111,33 @@ app.get("/robots.txt", (req, res) => {
 
 app.get("/sitemap.xml", (req, res) => {
   const baseUrl = getPublicBaseUrl()
-  const urls = ["/", "/app", "/catalogos.html"]
+  const urls = ["/", "/app", "/catalogos.html", "/materiales-electricos", "/tuberia-pvc-ppr", "/iluminacion-industrial", "/construccion", "/herramientas-y-ferreteria", "/cotizaciones"]
   const body = urls.map(url => `  <url><loc>${baseUrl}${url}</loc></url>`).join("\n")
   res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>`)
+})
+
+app.get("/materiales-electricos", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "materiales-electricos.html"))
+})
+
+app.get("/tuberia-pvc-ppr", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "tuberia-pvc-ppr.html"))
+})
+
+app.get("/iluminacion-industrial", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "iluminacion-industrial.html"))
+})
+
+app.get("/construccion", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "construccion.html"))
+})
+
+app.get("/herramientas-y-ferreteria", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "herramientas-y-ferreteria.html"))
+})
+
+app.get("/cotizaciones", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "cotizaciones.html"))
 })
 
 const protectedAdminPages = new Set([
@@ -1604,6 +1629,74 @@ app.post("/api/public/lead", publicLeadLimiter, (req, res) => {
   }
 
   res.json({ ok: true })
+})
+
+app.post("/api/public/quote-request", publicQuoteLimiter, async (req, res) => {
+  const name = String(req.body && req.body.name || "").trim().slice(0, 120)
+  const email = normalizeEmail(req.body && req.body.email)
+  const phone = String(req.body && req.body.phone || "").trim().slice(0, 40)
+  const company = String(req.body && req.body.company || "").trim().slice(0, 160)
+  const projectType = String(req.body && req.body.projectType || "").trim().slice(0, 80)
+  const materials = String(req.body && req.body.materials || "").trim().slice(0, 5000)
+
+  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !materials) {
+    return res.status(400).json({ error: "invalid_quote_request" })
+  }
+
+  const config = readData(configFile)
+  const recipient = normalizeEmail(config && config.email)
+  const smtpHost = String(process.env.SMTP_HOST || "").trim()
+  const smtpUser = String(process.env.SMTP_USER || "").trim()
+  const smtpPass = String(process.env.SMTP_PASS || "")
+  if (!recipient || !smtpHost || !smtpUser || !smtpPass) {
+    return res.status(503).json({ error: "quote_email_not_configured" })
+  }
+
+  const escapeHtml = value => String(value || "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  })[char])
+  const details = [
+    ["Nombre", name],
+    ["Correo", email],
+    ["Teléfono", phone],
+    ["Empresa", company],
+    ["Tipo de proyecto", projectType]
+  ].filter(([, value]) => value)
+  const text = [
+    "Nueva solicitud de cotización desde embair.es",
+    "",
+    ...details.map(([label, value]) => `${label}: ${value}`),
+    "",
+    "Lista o descripción de materiales:",
+    materials
+  ].join("\n")
+  const html = `<h2>Nueva solicitud de cotización</h2><dl>${details.map(([label, value]) => `<dt><strong>${escapeHtml(label)}</strong></dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl><p><strong>Lista o descripción de materiales:</strong></p><p>${escapeHtml(materials).replace(/\n/g, "<br>")}</p>`
+  const port = Number(process.env.SMTP_PORT) || 587
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port,
+    secure: String(process.env.SMTP_SECURE || "").toLowerCase() === "true" || port === 465,
+    auth: { user: smtpUser, pass: smtpPass }
+  })
+
+  try {
+    await transporter.sendMail({
+      from: String(process.env.SMTP_FROM || smtpUser),
+      to: recipient,
+      replyTo: email,
+      subject: "Nueva solicitud de cotización - EMBAIR",
+      text,
+      html
+    })
+    return res.json({ ok: true })
+  } catch (error) {
+    console.error("Quote request email failed:", error && error.message ? error.message : "unknown SMTP error")
+    return res.status(502).json({ error: "quote_email_send_failed" })
+  }
 })
 
 app.post("/api/public/client", publicClientLimiter, (req, res) => {

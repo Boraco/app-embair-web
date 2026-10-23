@@ -19,7 +19,7 @@
             }
         }
 
-        if (data.seoDescription) {
+        if (isHome && data.seoDescription) {
             let metaDesc = document.querySelector('meta[name="description"]')
             if (!metaDesc) {
                 metaDesc = document.createElement('meta')

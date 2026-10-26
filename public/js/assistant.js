@@ -8,6 +8,8 @@ window.Assistant = {
   state: {
     lastQuery: "",
     pending: "",
+    quoteChannelPending: false,
+    quoteQuery: "",
     // Lead generation state (optional)
     lead: {
       name: "",
@@ -140,6 +142,28 @@ window.Assistant = {
       if (handled !== false) return // If handler returns false, continue to default logic
     }
 
+    if (this.state.quoteChannelPending) {
+      if (/correo|email|e-mail/i.test(text)) {
+        this.state.quoteChannelPending = false
+        window.location.assign("/cotizaciones?channel=email#solicitar-cotizacion")
+      } else if (/whats\s?app|wa\.?me/i.test(text)) {
+        this.state.quoteChannelPending = false
+        const message = `Hola EMBAIR, quiero solicitar una cotización. ${this.state.quoteQuery}`.trim()
+        window.open(`${this.getWhatsAppBase()}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer")
+      } else {
+        this.addMessage("bot", "Puedes elegir por correo o por WhatsApp usando los botones de arriba.")
+      }
+      return
+    }
+
+    if (/cotiz|presupuesto/i.test(text)) {
+      this.state.lastQuery = text
+      this.state.quoteQuery = text
+      this.state.quoteChannelPending = true
+      this.showQuoteChannels(text)
+      return
+    }
+
     // 2. Check FAQs first
     const faqs = this.config.faqs || []
     const lowerText = text.toLowerCase()
@@ -152,6 +176,67 @@ window.Assistant = {
 
     // 3. Default logic
     this.processQuery(text)
+  },
+
+  getWhatsAppBase: function() {
+    const configuredLink = document.querySelector('a[href^="https://wa.me/"]')
+    const match = configuredLink && configuredLink.href.match(/https:\/\/wa\.me\/(\d+)/)
+    return `https://wa.me/${match ? match[1] : "584242240909"}`
+  },
+
+  showQuoteChannels: function(query, onSelect) {
+    this.addMessage("bot", "¡Claro! ¿Por dónde prefieres enviar tu solicitud de cotización?")
+    if (!this.elements.messages) return
+
+    const row = document.createElement("div")
+    row.className = "flex flex-wrap gap-2 mt-2"
+    const emailLink = document.createElement("a")
+    emailLink.href = "/cotizaciones?channel=email#solicitar-cotizacion"
+    emailLink.className = "px-3 py-2 rounded-full border text-xs font-semibold bg-white hover:bg-blue-50 text-blue-800 border-blue-200"
+    emailLink.textContent = "Por correo"
+    emailLink.addEventListener("click", () => {
+      this.trackQuoteChannel("email")
+      if (onSelect) onSelect("email")
+      this.state.quoteChannelPending = false
+    })
+
+    const whatsappLink = document.createElement("a")
+    whatsappLink.href = `${this.getWhatsAppBase()}?text=${encodeURIComponent(`Hola EMBAIR, quiero solicitar una cotización. ${query}`)}`
+    whatsappLink.target = "_blank"
+    whatsappLink.rel = "noopener noreferrer"
+    whatsappLink.className = "px-3 py-2 rounded-full border text-xs font-semibold bg-orange-600 hover:bg-orange-700 text-white border-orange-600"
+    whatsappLink.textContent = "Por WhatsApp"
+    whatsappLink.addEventListener("click", () => {
+      this.trackQuoteChannel("whatsapp")
+      if (onSelect) onSelect("whatsapp")
+      this.state.quoteChannelPending = false
+    })
+
+    row.append(emailLink, whatsappLink)
+    this.elements.messages.appendChild(row)
+    this.elements.messages.scrollTop = this.elements.messages.scrollHeight
+  },
+
+  trackQuoteChannel: function(channel) {
+    try {
+      let sessionId = ""
+      try {
+        sessionId = localStorage.getItem("embair_session_id") || ""
+      } catch {}
+      const payload = JSON.stringify({
+        type: "quote_channel_click",
+        sessionId,
+        meta: { channel, source: "assistant", path: window.location.pathname }
+      })
+      fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true
+      }).catch(error => console.error("No se pudo registrar el canal de cotización", error))
+    } catch (error) {
+      console.error("No se pudo registrar el canal de cotización", error)
+    }
   },
 
   processQuery: function(text) {

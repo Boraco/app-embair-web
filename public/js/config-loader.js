@@ -433,6 +433,11 @@
         if (data.email) {
             const emailEl = document.getElementById("footer-email")
             if (emailEl) emailEl.textContent = data.email
+            const quoteEmailEl = document.getElementById("quote-sales-email")
+            if (quoteEmailEl) {
+                quoteEmailEl.textContent = data.email
+                quoteEmailEl.href = `mailto:${data.email}`
+            }
         }
         if (data.mapUrl) {
             const mapEl = document.getElementById("footer-map-iframe")

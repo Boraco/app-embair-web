@@ -38,7 +38,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <!-- Key Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Visitas Landing</h3>
@@ -81,6 +81,24 @@
                 </div>
                 <div class="text-3xl font-bold text-slate-900" id="stat-registers">-</div>
                 <p class="text-xs text-slate-500 mt-1">Nuevos usuarios potenciales</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Cotización por correo</h3>
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600" aria-hidden="true">✉</div>
+                </div>
+                <div class="text-3xl font-bold text-slate-900" id="stat-quote-email">0</div>
+                <p class="text-xs text-slate-500 mt-1">Clics · solicitudes enviadas: <span id="stat-quote-sent">0</span></p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider">Cotización por WhatsApp</h3>
+                    <div class="p-2 bg-green-50 rounded-lg text-green-600" aria-hidden="true">◉</div>
+                </div>
+                <div class="text-3xl font-bold text-slate-900" id="stat-quote-whatsapp">0</div>
+                <p class="text-xs text-slate-500 mt-1">Clics en el canal de WhatsApp</p>
             </div>
         </div>
 
@@ -397,11 +415,17 @@
             const orders = EVENTS.filter(e => e.type === "order_sent").length
             const downloads = EVENTS.filter(e => e.type === "catalog_download_confirmed").length
             const registers = EVENTS.filter(e => e.type === "portal_register").length
+            const quoteEmailClicks = EVENTS.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "email").length
+            const quoteWhatsappClicks = EVENTS.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "whatsapp").length
+            const quoteRequestsSent = EVENTS.filter(e => e.type === "quote_request_sent").length
 
             document.getElementById("stat-visits").textContent = visits
             document.getElementById("stat-orders").textContent = orders
             document.getElementById("stat-downloads").textContent = downloads
             document.getElementById("stat-registers").textContent = registers
+            document.getElementById("stat-quote-email").textContent = quoteEmailClicks
+            document.getElementById("stat-quote-whatsapp").textContent = quoteWhatsappClicks
+            document.getElementById("stat-quote-sent").textContent = quoteRequestsSent
         }
 
         function normalizeEmailForLookup(v) {
@@ -462,6 +486,8 @@
                 "campaign_link_click": "Clic enlace campaña",
                 "lead_capture": "Registro Lead",
                 "assistant_lead": "Registro Lead IA",
+                "quote_channel_click": "Cotización: canal elegido",
+                "quote_request_sent": "Cotización enviada",
                 "share_click": "Compartir (click)",
                 "share": "Compartió"
             }
@@ -495,6 +521,11 @@
                 const method = e.meta && e.meta.method ? String(e.meta.method) : ""
                 const path = e.meta && e.meta.path ? String(e.meta.path) : ""
                 return [method, path].filter(Boolean).join(" · ") || (email || "-")
+            }
+            if (e.type === "quote_channel_click") {
+                const channel = e.meta && e.meta.channel ? String(e.meta.channel) : ""
+                const source = e.meta && e.meta.source ? String(e.meta.source) : ""
+                return [channel === "email" ? "Correo" : channel === "whatsapp" ? "WhatsApp" : channel, source].filter(Boolean).join(" · ") || "-"
             }
             const parts = []
             if (email) parts.push(email)

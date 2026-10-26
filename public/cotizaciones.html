@@ -41,6 +41,10 @@
     <section id="solicitar-cotizacion" class="mt-10 rounded-2xl border border-slate-200 bg-white p-6 md:p-8 shadow-sm">
       <h2 class="text-2xl font-bold text-[#0A2647] mb-2">Elige cómo enviar tu solicitud</h2>
       <p class="text-slate-600 mb-6">Completa los datos y envía la solicitud al correo de ventas, o continúa por WhatsApp para conversar y adjuntar un archivo.</p>
+      <div id="quote-email-contact-info" class="hidden mb-5 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-950" role="status" aria-live="polite">
+        <p class="font-semibold">Escríbenos acá y déjanos tu información para poder contactarte.</p>
+        <p class="mt-1">Correo de ventas: <a id="quote-sales-email" class="font-bold underline" href="mailto:ventas.embair@gmail.com">ventas.embair@gmail.com</a></p>
+      </div>
       <form id="quote-request-form" class="grid md:grid-cols-2 gap-4">
         <div>
           <label for="quote-name" class="block text-sm font-semibold mb-1">Nombre y apellido *</label>
@@ -91,6 +95,7 @@
     const quoteStatus = document.getElementById("quote-request-status")
     const quoteEmailButton = document.getElementById("quote-email-submit")
     const quoteWhatsappButton = document.getElementById("quote-whatsapp-submit")
+    const quoteEmailInfo = document.getElementById("quote-email-contact-info")
     const quoteEmailInput = document.getElementById("quote-email")
     const quoteNameInput = document.getElementById("quote-name")
     const quoteMaterialsInput = document.getElementById("quote-materials")
@@ -98,6 +103,43 @@
     function getQuoteData() {
       return Object.fromEntries(new FormData(quoteForm).entries())
     }
+
+    if (new URLSearchParams(window.location.search).get("channel") === "email") {
+      quoteEmailInfo.classList.remove("hidden")
+    }
+
+    function trackQuoteEvent(type, meta = {}) {
+      try {
+        let sessionId = ""
+        try {
+          sessionId = localStorage.getItem("embair_session_id") || ""
+        } catch {}
+        const event = {
+          type,
+          sessionId,
+          meta: { ...meta, source: "quote_page", path: window.location.pathname }
+        }
+        const payload = JSON.stringify(event)
+        const queued = navigator.sendBeacon
+          ? navigator.sendBeacon("/api/events", new Blob([payload], { type: "application/json" }))
+          : false
+        if (!queued) {
+          fetch("/api/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true
+          }).catch(error => console.error("No se pudo registrar el clic de cotización", error))
+        }
+      } catch (error) {
+        console.error("No se pudo registrar el clic de cotización", error)
+      }
+    }
+
+    quoteEmailButton.addEventListener("click", () => {
+      quoteEmailInfo.classList.remove("hidden")
+      trackQuoteEvent("quote_channel_click", { channel: "email" })
+    })
 
     quoteForm.addEventListener("submit", async event => {
       event.preventDefault()
@@ -125,6 +167,7 @@
               : "Revisa los datos obligatorios e inténtalo de nuevo."
           throw new Error(message)
         }
+        trackQuoteEvent("quote_request_sent", { channel: "email" })
         quoteStatus.textContent = "¡Solicitud enviada! El equipo de ventas responderá al correo indicado."
         quoteStatus.classList.add("text-green-700")
         quoteForm.reset()
@@ -137,6 +180,7 @@
     })
 
     quoteWhatsappButton.addEventListener("click", () => {
+      trackQuoteEvent("quote_channel_click", { channel: "whatsapp" })
       if (!quoteNameInput.reportValidity() || !quoteMaterialsInput.reportValidity()) return
       const data = getQuoteData()
       const message = [

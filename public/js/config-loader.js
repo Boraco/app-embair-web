@@ -11,12 +11,17 @@
         if (isLandingPage) {
             const brandSection = document.getElementById("landing-brand-carousel")
             const brandTrack = document.getElementById("landing-brand-track")
+            const brandTitle = document.getElementById("landing-brand-title")
+            if (brandSection) brandSection.classList.add("hidden")
+            if (brandTitle && typeof data.landingBrandTitle === "string") {
+                brandTitle.textContent = data.landingBrandTitle
+            }
             const brandSlides = Array.isArray(data.landingBrandSlides)
                 ? data.landingBrandSlides
                     .map(slide => typeof slide === "string" ? { url: slide, alt: "" } : slide)
                     .filter(slide => slide && slide.url)
                 : []
-            if (brandSection && brandTrack && brandSlides.length) {
+            if (data.landingBrandCarouselEnabled !== false && brandSection && brandTrack && brandSlides.length) {
                 brandTrack.replaceChildren()
                 const copies = brandSlides.length > 1 ? 2 : 1
                 for (let copy = 0; copy < copies; copy++) {
@@ -35,6 +40,68 @@
                 brandTrack.style.animationDuration = `${Math.max(16, brandSlides.length * 5)}s`
                 brandTrack.style.animationPlayState = brandSlides.length > 1 ? "running" : "paused"
                 brandSection.classList.remove("hidden")
+            }
+
+            const categoryFields = {
+                eyebrow: "landingCategoriesEyebrow",
+                title: "landingCategoriesTitle",
+                description: "landingCategoriesDescription"
+            }
+            for (const [field, configKey] of Object.entries(categoryFields)) {
+                const element = document.querySelector(`[data-landing-categories-field="${field}"]`)
+                if (element && typeof data[configKey] === "string") element.textContent = data[configKey]
+            }
+
+            if (Array.isArray(data.landingCategoryCards)) {
+                const categoryCards = document.querySelectorAll("[data-landing-category-card]")
+                categoryCards.forEach((element, index) => {
+                    const card = data.landingCategoryCards[index]
+                    if (!card || typeof card !== "object") return
+                    const link = String(card.link || "").trim()
+                    if (link.startsWith("/") && !link.startsWith("//")) {
+                        element.setAttribute("href", link)
+                    } else if (/^https:\/\//i.test(link)) {
+                        element.setAttribute("href", link)
+                    }
+
+                    const image = element.querySelector("img[data-landing-card-field='alt']")
+                    if (image) {
+                        const gallery = Array.isArray(card.images)
+                            ? card.images
+                                .map(photo => typeof photo === "string" ? { url: photo, alt: "" } : photo)
+                                .filter(photo => photo && typeof photo.url === "string" && photo.url.trim())
+                            : []
+                        const photos = gallery.length ? gallery : (card.image ? [{ url: card.image, alt: card.alt || "" }] : [])
+                        if (photos.length) {
+                            image.src = photos[0].url
+                            image.alt = photos[0].alt || card.alt || ""
+                            image.classList.add("landing-category-photo")
+
+                            if (photos.length > 1 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                                photos.slice(1).forEach(photo => {
+                                    const preload = new Image()
+                                    preload.src = photo.url
+                                })
+                                let photoIndex = 0
+                                window.setInterval(() => {
+                                    if (document.hidden || element.matches(":hover, :focus-within")) return
+                                    photoIndex = (photoIndex + 1) % photos.length
+                                    image.classList.add("landing-category-photo-hidden")
+                                    window.setTimeout(() => {
+                                        image.src = photos[photoIndex].url
+                                        image.alt = photos[photoIndex].alt || card.alt || ""
+                                        image.classList.remove("landing-category-photo-hidden")
+                                    }, 350)
+                                }, 5000)
+                            }
+                        }
+                    }
+
+                    for (const field of ["badge", "eyebrow", "title", "description", "cta"]) {
+                        const value = element.querySelector(`[data-landing-card-field="${field}"]`)
+                        if (value && typeof card[field] === "string") value.textContent = card[field]
+                    }
+                })
             }
         }
 

@@ -59,12 +59,19 @@
          flex: none;
          object-fit: contain;
        }
+       .landing-category-photo {
+         transition: opacity .7s ease, transform .7s ease;
+       }
+       .landing-category-photo-hidden {
+         opacity: 0;
+       }
        @keyframes landing-brand-scroll {
          to { transform: translateX(-50%); }
        }
        @media (prefers-reduced-motion: reduce) {
          .landing-brand-track { animation: none; }
          .landing-brand-viewport { overflow-x: auto; mask-image: none; }
+         .landing-category-photo { transition: none; }
        }
 
        /* Personaje del asistente (SVG vectorial, nunca se pixela) */
@@ -179,9 +186,9 @@
     <div class="container mx-auto px-5 md:px-8">
       <div class="mb-8 flex flex-col justify-between gap-5 md:mb-10 md:flex-row md:items-end">
         <div class="max-w-3xl">
-          <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.22em] text-orange-600">Soluciones para cada proyecto</p>
-          <h2 id="project-materials-title" class="scroll-mt-24 text-3xl font-extrabold leading-tight text-embair-blue md:text-4xl">Suministros para instalaciones y proyectos</h2>
-          <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base">Explora nuestras principales familias de productos. Encuentra materiales eléctricos, tuberías, artículos ferreteros y opciones para tu obra; consulta disponibilidad y cotiza los requerimientos especiales con nuestro equipo.</p>
+          <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.22em] text-orange-600" data-landing-categories-field="eyebrow">Soluciones para cada proyecto</p>
+          <h2 id="project-materials-title" class="scroll-mt-24 text-3xl font-extrabold leading-tight text-embair-blue md:text-4xl" data-landing-categories-field="title">Suministros para instalaciones y proyectos</h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600 md:text-base" data-landing-categories-field="description">Explora nuestras principales familias de productos. Encuentra materiales eléctricos, tuberías, artículos ferreteros y opciones para tu obra; consulta disponibilidad y cotiza los requerimientos especiales con nuestro equipo.</p>
         </div>
         <a href="/app?portal=1" class="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-embair-blue px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-950/15 transition hover:-translate-y-0.5 hover:bg-blue-900">
           Explorar tienda online <span aria-hidden="true">→</span>
@@ -189,51 +196,51 @@
       </div>
 
       <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <a href="/materiales-electricos" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-          <img src="/uploads/categoria-electricidad-tablero-breakers-tomacorrientes.webp" alt="Cable, tablero eléctrico, breakers industriales y tomacorrientes" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+        <a href="/materiales-electricos" data-landing-category-card data-landing-card-field="link" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          <img src="/uploads/categoria-electricidad-tablero-breakers-tomacorrientes.webp" alt="Cable, tablero eléctrico, breakers industriales y tomacorrientes" data-landing-card-field="alt" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/25 to-slate-950/5"></div>
-          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur">Ver categoría</span>
+          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur" data-landing-card-field="badge">Ver categoría</span>
           <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
-            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300">Instalación y energía</p>
-            <h3 class="text-2xl font-extrabold leading-tight">Materiales eléctricos</h3>
-            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85">Cables THHN y SPT, tubería EMT y conduit, tableros, breakers industriales y tomacorrientes.</p>
-            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white">Ver segmentos <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300" data-landing-card-field="eyebrow">Instalación y energía</p>
+            <h3 class="text-2xl font-extrabold leading-tight" data-landing-card-field="title">Materiales eléctricos</h3>
+            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85" data-landing-card-field="description">Cables THHN y SPT, tubería EMT y conduit, tableros, breakers industriales y tomacorrientes.</p>
+            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white"><span data-landing-card-field="cta">Ver segmentos</span> <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
           </div>
         </a>
 
-        <a href="/tuberia-pvc-ppr" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-          <img src="/uploads/Gemini_Generated_Image_llebs5llebs5lleb_1773092748840.png" alt="Tuberías PVC, PPR y conexiones para plomería" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover object-[50%_42%] transition duration-700 group-hover:scale-105">
+        <a href="/tuberia-pvc-ppr" data-landing-category-card data-landing-card-field="link" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          <img src="/uploads/Gemini_Generated_Image_llebs5llebs5lleb_1773092748840.png" alt="Tuberías PVC, PPR y conexiones para plomería" data-landing-card-field="alt" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover object-[50%_42%] transition duration-700 group-hover:scale-105">
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/5"></div>
-          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur">Consultar opciones</span>
+          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur" data-landing-card-field="badge">Consultar opciones</span>
           <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
-            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300">Conducción de agua</p>
-            <h3 class="text-2xl font-extrabold leading-tight">Plomería</h3>
-            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85">Tuberías PVC y PPR, conexiones y requerimientos hidráulicos por consulta.</p>
-            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white">Consultar opciones <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300" data-landing-card-field="eyebrow">Conducción de agua</p>
+            <h3 class="text-2xl font-extrabold leading-tight" data-landing-card-field="title">Plomería</h3>
+            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85" data-landing-card-field="description">Tuberías PVC y PPR, conexiones y requerimientos hidráulicos por consulta.</p>
+            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white"><span data-landing-card-field="cta">Consultar opciones</span> <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
           </div>
         </a>
 
-        <a href="/construccion" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-          <img src="/uploads/Gemini_Generated_Image_8db39h8db39h8db3_1772544602164.png" alt="Pasillos de materiales y suministros para proyectos de construcción" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+        <a href="/construccion" data-landing-category-card data-landing-card-field="link" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          <img src="/uploads/Gemini_Generated_Image_8db39h8db39h8db3_1772544602164.png" alt="Pasillos de materiales y suministros para proyectos de construcción" data-landing-card-field="alt" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/5"></div>
-          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur">Para tu proyecto</span>
+          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur" data-landing-card-field="badge">Para tu proyecto</span>
           <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
-            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300">Obras y remodelaciones</p>
-            <h3 class="text-2xl font-extrabold leading-tight">Construcción</h3>
-            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85">Materiales, listas de obra y pedidos puntuales sujetos a confirmación.</p>
-            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white">Explorar requerimientos <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300" data-landing-card-field="eyebrow">Obras y remodelaciones</p>
+            <h3 class="text-2xl font-extrabold leading-tight" data-landing-card-field="title">Construcción</h3>
+            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85" data-landing-card-field="description">Materiales, listas de obra y pedidos puntuales sujetos a confirmación.</p>
+            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white"><span data-landing-card-field="cta">Explorar requerimientos</span> <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
           </div>
         </a>
 
-        <a href="/herramientas-y-ferreteria" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-          <img src="/uploads/Gemini_Generated_Image_ed7b90ed7b90ed7b_1772544850860.png" alt="Herramientas y materiales eléctricos para trabajos de instalación" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
+        <a href="/herramientas-y-ferreteria" data-landing-category-card data-landing-card-field="link" class="group relative isolate min-h-[22rem] overflow-hidden rounded-2xl bg-slate-900 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+          <img src="/uploads/Gemini_Generated_Image_ed7b90ed7b90ed7b_1772544850860.png" alt="Herramientas y materiales eléctricos para trabajos de instalación" data-landing-card-field="alt" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition duration-700 group-hover:scale-105">
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950 via-slate-950/35 to-slate-950/5"></div>
-          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur">Consultar disponibilidad</span>
+          <span class="absolute right-4 top-4 rounded-full border border-white/30 bg-slate-950/35 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white backdrop-blur" data-landing-card-field="badge">Consultar disponibilidad</span>
           <div class="absolute inset-x-0 bottom-0 p-5 text-white md:p-6">
-            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300">Equipos y complementos</p>
-            <h3 class="text-2xl font-extrabold leading-tight">Herramientas</h3>
-            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85">Herramientas y artículos ferreteros para instalaciones, obras y mantenimiento.</p>
-            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white">Consultar segmentos <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
+            <p class="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300" data-landing-card-field="eyebrow">Equipos y complementos</p>
+            <h3 class="text-2xl font-extrabold leading-tight" data-landing-card-field="title">Herramientas</h3>
+            <p class="mt-2 max-w-xs text-sm leading-5 text-white/85" data-landing-card-field="description">Herramientas y artículos ferreteros para instalaciones, obras y mantenimiento.</p>
+            <span class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-white"><span data-landing-card-field="cta">Consultar segmentos</span> <span aria-hidden="true" class="transition-transform group-hover:translate-x-1">→</span></span>
           </div>
         </a>
       </div>

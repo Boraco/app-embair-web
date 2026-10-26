@@ -6,6 +6,37 @@
         
         // 0. SEO & Metadata
         const isHome = window.location.pathname === "/" || window.location.pathname.endsWith("/index.html") || window.location.pathname.endsWith("/landing.html")
+        const isLandingPage = window.location.pathname === "/" || window.location.pathname.endsWith("/landing.html")
+
+        if (isLandingPage) {
+            const brandSection = document.getElementById("landing-brand-carousel")
+            const brandTrack = document.getElementById("landing-brand-track")
+            const brandSlides = Array.isArray(data.landingBrandSlides)
+                ? data.landingBrandSlides
+                    .map(slide => typeof slide === "string" ? { url: slide, alt: "" } : slide)
+                    .filter(slide => slide && slide.url)
+                : []
+            if (brandSection && brandTrack && brandSlides.length) {
+                brandTrack.replaceChildren()
+                const copies = brandSlides.length > 1 ? 2 : 1
+                for (let copy = 0; copy < copies; copy++) {
+                    const group = document.createElement("div")
+                    group.className = "landing-brand-group"
+                    group.setAttribute("aria-hidden", copy === 0 ? "false" : "true")
+                    for (const slide of brandSlides) {
+                        const image = document.createElement("img")
+                        image.src = slide.url
+                        image.alt = copy === 0 ? (slide.alt || "Marca") : ""
+                        image.loading = "lazy"
+                        group.appendChild(image)
+                    }
+                    brandTrack.appendChild(group)
+                }
+                brandTrack.style.animationDuration = `${Math.max(16, brandSlides.length * 5)}s`
+                brandTrack.style.animationPlayState = brandSlides.length > 1 ? "running" : "paused"
+                brandSection.classList.remove("hidden")
+            }
+        }
 
         if (isHome && data.seoTitle) {
             document.title = data.seoTitle

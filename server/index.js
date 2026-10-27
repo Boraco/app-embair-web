@@ -449,6 +449,7 @@ function enrichWholesaleProducts() {
           unitsPerPackage: Number(item.unitsPerPackage || 1),
           minimumQuantity: Number(item.minimumQuantity || 1),
           wholesalePrice: item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+          unitWholesalePrice: item.unitWholesalePrice == null ? null : Number(item.unitWholesalePrice),
           packagePrice: item.packagePrice == null ? null : Number(item.packagePrice),
           availability: item.availability || "Disponible",
           requiresDispatch: item.requiresDispatch !== false,
@@ -474,15 +475,30 @@ app.get("/api/admin/wholesale/products", requireAdmin, (req, res) => {
 app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
   const input = req.body && Array.isArray(req.body.products) ? req.body.products : null
   if (!input) return res.status(400).json({ error: "products_array_required" })
+  if (input.some(item => !item || !Number.isSafeInteger(Number(item.productId)))) {
+    return res.status(400).json({ error: "invalid_wholesale_product" })
+  }
+  if (input.some(item => {
+    if (item.unitWholesalePrice === undefined || item.unitWholesalePrice === "" || item.unitWholesalePrice == null) return false
+    const price = Number(item.unitWholesalePrice)
+    return !Number.isFinite(price) || price < 0
+  })) return res.status(400).json({ error: "invalid_unit_wholesale_price" })
   const catalogIds = new Set(readData(productsFile).map(p => Number(p.id)))
+  const savedById = new Map(getWholesaleProducts().map(item => [Number(item.productId), item]))
   const normalized = input
-    .map(item => ({
+    .map(item => {
+      const saved = savedById.get(Number(item.productId))
+      const unitWholesalePrice = item.unitWholesalePrice === undefined
+        ? saved && saved.unitWholesalePrice != null ? Number(saved.unitWholesalePrice) : null
+        : item.unitWholesalePrice === "" || item.unitWholesalePrice == null ? null : Number(item.unitWholesalePrice)
+      return ({
       productId: Number(item.productId),
       enabled: item.enabled !== false,
       packageName: String(item.packageName || "Paquete").trim(),
       unitsPerPackage: Math.max(1, Number(item.unitsPerPackage || 1)),
       minimumQuantity: Math.max(1, Number(item.minimumQuantity || 1)),
       wholesalePrice: item.wholesalePrice === "" || item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+      unitWholesalePrice,
       packagePrice: item.packagePrice === "" || item.packagePrice == null ? null : Number(item.packagePrice),
       availability: ["Disponible", "Bajo Pedido", "Agotado"].includes(item.availability) ? item.availability : "Disponible",
       requiresDispatch: true,
@@ -491,7 +507,7 @@ app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
       featured: item.featured === true,
       offer: item.offer === true,
       discountPercent: item.discountPercent === "" || item.discountPercent == null ? null : Math.min(100, Math.max(0, Number(item.discountPercent)))
-    }))
+    })})
     .filter(item => catalogIds.has(item.productId) && Number.isFinite(item.productId))
   writeData(wholesaleProductsFile, normalized)
   res.json({ ok: true, products: normalized })
@@ -554,11 +570,17 @@ function enrichWholesaleCart(cart) {
   const items = (cart.items || []).map(item => {
     const product = products.find(p => Number(p.id) === Number(item.productId))
     if (!product) return null
-    const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Math.floor(Number(item.qty) || 1))
-    const unitsTotal = qty * product.wholesale.unitsPerPackage
-    const unitPrice = product.wholesale.wholesalePrice == null ? 0 : product.wholesale.wholesalePrice
-    total += unitPrice * qty
-    return { productId: product.id, name: product.name, code: product.code || "", qty, unitsTotal, unitPrice, subtotal: unitPrice * qty, packageName: product.wholesale.packageName, unitsPerPackage: product.wholesale.unitsPerPackage, minimumQuantity: product.wholesale.minimumQuantity }
+    const saleUnit = item.saleUnit === "unit" ? "unit" : "package"
+    const minimumQuantity = saleUnit === "unit" ? 1 : Number(product.wholesale.minimumQuantity || 1)
+    const configuredPrice = saleUnit === "unit" ? product.wholesale.unitWholesalePrice : product.wholesale.wholesalePrice
+    if (saleUnit === "unit" && configuredPrice == null) return null
+    const qty = Math.max(minimumQuantity, Math.floor(Number(item.qty) || 1))
+    const unitsPerSale = saleUnit === "unit" ? 1 : product.wholesale.unitsPerPackage
+    const unitsTotal = qty * unitsPerSale
+    const unitPrice = configuredPrice == null ? 0 : configuredPrice
+    const subtotal = Number((unitPrice * qty).toFixed(2))
+    total += subtotal
+    return { productId: product.id, name: product.name, code: product.code || "", qty, saleUnit, unitsTotal, unitPrice, subtotal, packageName: product.wholesale.packageName, unitsPerPackage: product.wholesale.unitsPerPackage, minimumQuantity }
   }).filter(Boolean)
   return { ...cart, items, total }
 }
@@ -571,17 +593,24 @@ app.post("/api/wholesale/cart/item", requireClient, (req, res) => {
   const productId = Number(req.body && req.body.productId)
   const product = enrichWholesaleProducts().find(item => Number(item.id) === productId)
   if (!product) return res.status(404).json({ error: "wholesale_product_not_found" })
+  const requestedSaleUnit = req.body && req.body.saleUnit
+  if (requestedSaleUnit != null && !["package", "unit"].includes(requestedSaleUnit)) {
+    return res.status(400).json({ error: "invalid_sale_unit" })
+  }
+  const saleUnit = requestedSaleUnit === "unit" ? "unit" : "package"
+  if (saleUnit === "unit" && product.wholesale.unitWholesalePrice == null) return res.status(400).json({ error: "unit_price_not_configured" })
   const requestedQty = Number(req.body && req.body.qty)
-  const qty = Math.max(Number(product.wholesale.minimumQuantity || 1), Number.isFinite(requestedQty) ? Math.floor(requestedQty) : 1)
+  const minimumQuantity = saleUnit === "unit" ? 1 : Number(product.wholesale.minimumQuantity || 1)
+  const qty = Math.max(minimumQuantity, Number.isFinite(requestedQty) ? Math.floor(requestedQty) : minimumQuantity)
   const carts = readData(wholesaleCartsFile)
   let cart = carts.find(item => Number(item.clientId) === Number(req.client.id) && item.status === "active")
   if (!cart) {
     cart = { id: `w-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, clientId: Number(req.client.id), status: "active", items: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     carts.push(cart)
   }
-  const existing = cart.items.find(item => Number(item.productId) === productId)
+  const existing = cart.items.find(item => Number(item.productId) === productId && (item.saleUnit === "unit" ? "unit" : "package") === saleUnit)
   if (existing) existing.qty = qty
-  else cart.items.push({ productId, qty })
+  else cart.items.push({ productId, qty, saleUnit })
   cart.updatedAt = new Date().toISOString()
   writeData(wholesaleCartsFile, carts)
   res.json({ ok: true, cart: enrichWholesaleCart(cart) })
@@ -590,9 +619,17 @@ app.post("/api/wholesale/cart/item", requireClient, (req, res) => {
 app.post("/api/wholesale/cart/remove", requireClient, (req, res) => {
   const cart = getWholesaleCart(req.client.id)
   if (!cart) return res.json({ ok: true, cart: null })
+  const requestedSaleUnit = req.body && req.body.saleUnit
+  if (requestedSaleUnit != null && !["package", "unit"].includes(requestedSaleUnit)) {
+    return res.status(400).json({ error: "invalid_sale_unit" })
+  }
+  const saleUnit = requestedSaleUnit === "unit" ? "unit" : "package"
   const carts = readData(wholesaleCartsFile)
   const index = carts.findIndex(item => item.id === cart.id)
-  carts[index].items = (carts[index].items || []).filter(item => Number(item.productId) !== Number(req.body && req.body.productId))
+  carts[index].items = (carts[index].items || []).filter(item =>
+    Number(item.productId) !== Number(req.body && req.body.productId) ||
+    (item.saleUnit === "unit" ? "unit" : "package") !== saleUnit
+  )
   carts[index].updatedAt = new Date().toISOString()
   writeData(wholesaleCartsFile, carts)
   res.json({ ok: true, cart: enrichWholesaleCart(carts[index]) })

@@ -43,6 +43,29 @@
     item.selected = value === selected
     select.appendChild(item)
   }
+  const groupOrderItems = items => {
+    const grouped = new Map()
+    for (const item of items || []) {
+      const productId = Number(item.productId)
+      const existing = grouped.get(productId) || {
+        ...item,
+        packageQuantities: new Map(),
+        unitQuantity: 0,
+        unitsTotal: 0,
+        subtotal: 0
+      }
+      const quantity = Number(item.qty || 0)
+      if (item.saleUnit === "unit") existing.unitQuantity += quantity
+      else {
+        const packageName = String(item.packageName || "Paquete")
+        existing.packageQuantities.set(packageName, (existing.packageQuantities.get(packageName) || 0) + quantity)
+      }
+      existing.unitsTotal += Number(item.unitsTotal || quantity * (item.saleUnit === "unit" ? 1 : Number(item.unitsPerPackage || 1)))
+      existing.subtotal += Number(item.subtotal || 0)
+      grouped.set(productId, existing)
+    }
+    return [...grouped.values()]
+  }
   const panelCard = () => make("section", "rounded-lg border border-slate-200 bg-white p-4")
 
   const nav = make("nav", "mb-4 flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-2")
@@ -128,7 +151,13 @@
       client.append(make("p", "text-xs text-slate-500", [draft.client.company, draft.client.email, draft.client.phone, draft.client.zone].filter(Boolean).join(" · ") || "Sin datos de contacto"))
       client.append(make("p", "mt-1 text-xs text-slate-400", `Actualizado ${formatDate(draft.updatedAt)}`))
       const details = make("div", "space-y-1 text-sm")
-      for (const product of draft.items) details.append(make("p", "", `${product.qty} paquete(s) × ${product.name} · ${product.unitsTotal || (product.qty || 0) * (product.unitsPerPackage || 1)} unidades · ${money(product.subtotal)}`))
+      for (const product of draft.items) {
+        const quantityLabel = product.saleUnit === "unit"
+          ? `${product.qty} unidad(es) × ${product.name}`
+          : `${product.qty} paquete(s) × ${product.name}`
+        const units = product.unitsTotal || (product.qty || 0) * (product.saleUnit === "unit" ? 1 : product.unitsPerPackage || 1)
+        details.append(make("p", "", `${quantityLabel} · ${units} unidades de inventario · ${money(product.subtotal)}`))
+      }
       details.append(make("p", "font-bold", `Total estimado ${money(draft.total)}`))
       const actions = make("div", "flex flex-col gap-2")
       const negotiation = document.createElement("select")
@@ -162,12 +191,16 @@
     details.open = true
     details.appendChild(make("summary", "cursor-pointer px-3 py-2 text-sm font-semibold", `Ver productos (${(order.items || []).length})`))
     const list = make("div", "space-y-3 border-t border-slate-200 p-3")
-    for (const product of order.items || []) {
+    for (const product of groupOrderItems(order.items)) {
       const itemRow = make("div", "grid gap-2 border-b border-slate-100 pb-3 last:border-0 sm:grid-cols-[1fr_1.1fr_1fr_1fr]")
       itemRow.dataset.procurementProduct = String(product.productId)
       const identity = make("div", "text-sm")
-      identity.append(make("p", "font-semibold", `${product.qty || 0} paquete(s) × ${product.name || "Producto"}`))
-      identity.append(make("p", "text-xs text-slate-500", `${product.packageName || "Paquete"} · ${(product.unitsTotal || (product.qty || 0) * (product.unitsPerPackage || 1))} unidades · ${money(product.subtotal)}`))
+      const quantityParts = [
+        ...[...product.packageQuantities].map(([name, quantity]) => `${quantity} ${name}(s)`),
+        product.unitQuantity ? `${product.unitQuantity} unidad(es)` : ""
+      ].filter(Boolean)
+      identity.append(make("p", "font-semibold", `${quantityParts.join(" + ") || "0"} × ${product.name || "Producto"}`))
+      identity.append(make("p", "text-xs text-slate-500", `${product.unitsTotal} unidades de inventario · ${money(product.subtotal)}`))
 
       const procurementStatus = document.createElement("select")
       procurementStatus.dataset.procurementField = "status"
@@ -432,7 +465,7 @@
     const scheduled = open.filter(order => order.scheduledAt).length
     const outstanding = open.reduce((sum, order) => sum + Math.max(0, Number(order.total || 0) - Number(order.paidAmount || 0)), 0)
     const creditBalance = open.filter(order => order.paymentMethod === "credit").reduce((sum, order) => sum + Math.max(0, Number(order.total || 0) - Number(order.paidAmount || 0)), 0)
-    const procurementItems = open.flatMap(order => order.items || []).map(product => ({ ...product, procurementStatus: product.procurementStatus || "review" }))
+    const procurementItems = open.flatMap(order => groupOrderItems(order.items)).map(product => ({ ...product, procurementStatus: product.procurementStatus || "review" }))
     const procurementOpen = procurementItems.filter(product => !["received", "not_required"].includes(product.procurementStatus))
     const supplierPending = procurementItems.filter(product => ["supplier_needed", "requested"].includes(product.procurementStatus))
     const metrics = [

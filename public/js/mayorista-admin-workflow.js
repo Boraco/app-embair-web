@@ -9,6 +9,7 @@
   let orders = []
   let drafts = []
   let activity = []
+  let dispatchCosts = null
   let activeTab = "orders"
   let negotiationFilterValue = ""
 
@@ -25,6 +26,8 @@
     return node
   }
   const money = value => "$" + Number(value || 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const moneyUSD = value => "US$ " + Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const dispatchRouteKey = (date, zone) => `${date}|${String(zone || "").trim().toLocaleLowerCase("es")}`
   const formatDate = value => {
     if (!value) return "Sin fecha"
     const date = new Date(value)
@@ -73,6 +76,7 @@
   const tabs = new Map()
   const dashboardPanel = make("section", "hidden space-y-4")
   const schedulePanel = make("section", "hidden")
+  const routePanel = make("section", "hidden space-y-4")
   const orderWorkspace = make("div", "mt-4 space-y-4")
 
   function setActiveTab(tab) {
@@ -88,13 +92,15 @@
     ordersSection.classList.toggle("hidden", tab !== "orders")
     activitySection.classList.toggle("hidden", tab !== "activity")
     schedulePanel.classList.toggle("hidden", tab !== "schedule")
+    routePanel.classList.toggle("hidden", tab !== "routes")
     dashboardPanel.classList.toggle("hidden", tab !== "dashboard")
     if (tab === "orders") renderOrdersView()
     if (tab === "schedule") renderSchedule()
+    if (tab === "routes") renderRoutes()
     if (tab === "dashboard") renderDashboard()
   }
 
-  for (const [name, label] of [["orders", "Pedidos"], ["schedule", "Programación"], ["activity", "Actividad"], ["dashboard", "Dashboard"], ["catalog", "Productos"]]) {
+  for (const [name, label] of [["orders", "Pedidos"], ["schedule", "Programación"], ["routes", "Rutas"], ["activity", "Actividad"], ["dashboard", "Dashboard"], ["catalog", "Productos"]]) {
     const control = button(label, "rounded-md px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100", () => setActiveTab(name))
     control.setAttribute("aria-current", "false")
     nav.appendChild(control)
@@ -105,7 +111,7 @@
   if (oldOrderTable) oldOrderTable.classList.add("hidden")
   ordersSection.appendChild(orderWorkspace)
   main.insertBefore(nav, catalogSection)
-  main.append(schedulePanel, dashboardPanel)
+  main.append(schedulePanel, routePanel, dashboardPanel)
 
   const refreshOrders = ordersSection.querySelector("#refresh-orders")
   if (refreshOrders) refreshOrders.addEventListener("click", loadWorkflow)
@@ -458,6 +464,157 @@
     schedulePanel.appendChild(panel)
   }
 
+  function renderRoutes() {
+    routePanel.replaceChildren()
+    const panel = panelCard()
+    const heading = make("div", "mb-3")
+    heading.append(make("h2", "text-lg font-bold", "Rutas de despacho"))
+    heading.append(make("p", "mt-1 text-sm text-slate-500", "Entregas agrupadas por fecha y zona. Registra el flete una sola vez por ruta, aunque incluya varios pedidos. Ajusta manualmente el orden; no se calcula una ruta GPS."))
+    panel.appendChild(heading)
+    const groups = new Map()
+    const scheduledOrders = orders.filter(order => order.scheduledAt && !["delivered", "cancelled"].includes(order.status))
+    for (const order of scheduledOrders) {
+      const date = localDateTime(order.scheduledAt).slice(0, 10)
+      const client = order.client || {}
+      const zone = String(client.zone || client.zona || order.zone || "Zona sin especificar").trim()
+      const key = `${date}|${zone}`
+      if (!groups.has(key)) groups.set(key, { date, zone, stops: [] })
+      groups.get(key).stops.push(order)
+    }
+    const routeGroups = [...groups.values()].sort((a, b) => a.date.localeCompare(b.date) || a.zone.localeCompare(b.zone))
+    if (!routeGroups.length) panel.append(make("p", "py-5 text-center text-sm text-slate-500", "No hay pedidos pendientes con fecha programada. Usa Programación para asignar fecha y transporte."))
+    for (const group of routeGroups) {
+      group.stops.sort((a, b) => {
+        const aPosition = Number.isSafeInteger(a.routePosition) ? a.routePosition : null
+        const bPosition = Number.isSafeInteger(b.routePosition) ? b.routePosition : null
+        if (aPosition != null || bPosition != null) {
+          if (aPosition == null) return 1
+          if (bPosition == null) return -1
+          if (aPosition !== bPosition) return aPosition - bPosition
+        }
+        return String(a.scheduledAt || "").localeCompare(String(b.scheduledAt || ""))
+      })
+      const groupPanel = panelCard()
+      groupPanel.classList.add("mb-4")
+      const title = make("div", "mb-2 flex flex-wrap items-center justify-between gap-2")
+      title.append(make("h3", "font-bold", `${new Date(`${group.date}T12:00:00`).toLocaleDateString("es", { dateStyle: "long" })} · ${group.zone}`))
+      title.append(make("span", "text-xs text-slate-500", `${group.stops.length} paradas`))
+      groupPanel.appendChild(title)
+      const savedRoute = (dispatchCosts?.routes || []).find(route => dispatchRouteKey(route.date, route.zone) === dispatchRouteKey(group.date, group.zone))
+      const chargedFreightTotal = group.stops.reduce((sum, order) => sum + Number(order.dispatchFreightCharged || 0), 0)
+      const expenseRow = make("div", "mb-2 flex flex-wrap items-end gap-2 rounded-lg bg-slate-50 p-3")
+      const expenseLabel = make("label", "text-sm font-medium", "Flete total de esta ruta (USD)")
+      const expenseInput = document.createElement("input")
+      expenseInput.type = "number"
+      expenseInput.min = "0"
+      expenseInput.step = "0.01"
+      expenseInput.required = true
+      expenseInput.value = savedRoute ? String(savedRoute.freightCost) : ""
+      expenseInput.placeholder = "Ej. 25.00"
+      expenseInput.className = "mt-1 block w-36 rounded border px-2 py-2"
+      expenseInput.setAttribute("aria-label", `Flete compartido para ruta ${group.date} ${group.zone}`)
+      expenseLabel.appendChild(expenseInput)
+      const expenseSave = button(savedRoute ? "Actualizar flete" : "Registrar flete", "rounded bg-sky-800 px-3 py-2 text-sm font-semibold text-white", () => {})
+      const expenseInfo = make("p", "w-full text-xs text-slate-600", savedRoute
+        ? `Flete de ruta contabilizado: ${moneyUSD(savedRoute.freightCost)} · Referencia promedio ${moneyUSD(Number(savedRoute.freightCost) / group.stops.length)} por parada.`
+        : "Aún no se ha contabilizado el flete de esta ruta.")
+      expenseSave.addEventListener("click", async () => {
+        const freightCost = Number(expenseInput.value)
+        if (expenseInput.value === "" || !Number.isFinite(freightCost) || freightCost < 0) {
+          setStatus("Ingresa un flete válido no negativo en USD.", expenseRow)
+          return
+        }
+        expenseSave.disabled = true
+        try {
+          await sendJson("/api/admin/wholesale/dispatch-costs", {
+            date: group.date,
+            zone: group.zone,
+            freightCost
+          }, "PUT")
+          await loadWorkflow()
+        } catch (error) {
+          setStatus(error.message, expenseRow)
+          expenseSave.disabled = false
+        }
+      })
+      expenseRow.append(expenseLabel, expenseSave, expenseInfo)
+      groupPanel.appendChild(expenseRow)
+      const routeFreightSummary = make("p", "mb-2 rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-950",
+        `Flete cobrado en pedidos: ${moneyUSD(chargedFreightTotal)} · Balance de esta ruta: ${moneyUSD(chargedFreightTotal - Number(savedRoute?.freightCost || 0))}`)
+      groupPanel.appendChild(routeFreightSummary)
+      group.stops.forEach((order, index) => {
+        const client = order.client || {}
+        const stop = make("article", "grid gap-3 border-t border-slate-200 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center")
+        const details = make("div", "min-w-0")
+        const identity = client.name || client.companyName || client.businessName || "Cliente mayorista"
+        details.append(make("p", "font-semibold", `${index + 1}. ${order.id} · ${identity}`))
+        const address = client.address || client.addressLine || client.direccion || order.deliveryAddress || order.address || "Falta dirección registrada"
+        details.append(make("p", address === "Falta dirección registrada" ? "text-sm font-semibold text-amber-700" : "text-sm text-slate-700", address))
+        const contact = [client.contactName || client.contact, client.phone || client.telefono || client.mobile, client.email].filter(Boolean).join(" · ")
+        details.append(make("p", "text-xs text-slate-500", `${contact || "Sin teléfono o contacto"} · ${formatDate(order.scheduledAt)} · ${order.deliveryWindow || "Sin ventana horaria"} · ${order.deliveryMethod || "Sin transporte"}`))
+        details.append(make("p", "text-xs text-slate-500", `Estado: ${order.status || "received"} · Total del pedido: ${money(order.total)}`))
+        const controls = make("div", "flex flex-wrap items-center gap-2")
+        const moveStop = async direction => {
+          const nextIndex = index + direction
+          if (nextIndex < 0 || nextIndex >= group.stops.length) return
+          const reordered = group.stops.slice()
+          ;[reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]]
+          const buttons = Array.from(groupPanel.querySelectorAll("[data-route-move]"))
+          buttons.forEach(control => { control.disabled = true })
+          try {
+            await Promise.all(reordered.map((item, position) =>
+              sendJson(`/api/admin/wholesale/orders/${encodeURIComponent(item.id)}`, { routePosition: position }, "PATCH")
+            ))
+            await loadWorkflow()
+          } catch (error) {
+            setStatus(`No se pudo guardar el orden completo de las paradas: ${error.message}`, groupPanel)
+            buttons.forEach(control => { control.disabled = false })
+          }
+        }
+        const up = button("Subir", "rounded border px-3 py-2 text-sm disabled:opacity-40", () => moveStop(-1))
+        up.dataset.routeMove = ""
+        up.disabled = index === 0
+        const down = button("Bajar", "rounded border px-3 py-2 text-sm disabled:opacity-40", () => moveStop(1))
+        down.dataset.routeMove = ""
+        down.disabled = index === group.stops.length - 1
+        const chargeBox = make("div", "flex flex-wrap items-end gap-2 border-t pt-2 md:col-span-2")
+        const chargeLabel = make("label", "text-xs font-semibold", "Flete cobrado al cliente (USD; se suma al pedido)")
+        const chargeInput = document.createElement("input")
+        chargeInput.type = "number"
+        chargeInput.min = "0"
+        chargeInput.step = "0.01"
+        chargeInput.value = String(Number(order.dispatchFreightCharged || 0))
+        chargeInput.className = "mt-1 block w-36 rounded border px-2 py-2 text-sm"
+        chargeInput.setAttribute("aria-label", `Flete cobrado a ${identity}`)
+        chargeLabel.appendChild(chargeInput)
+        const chargeSave = button("Guardar flete del pedido", "rounded border border-sky-700 px-3 py-2 text-sm font-semibold text-sky-900", async () => {
+          if (chargeInput.value === "" || !Number.isFinite(Number(chargeInput.value)) || Number(chargeInput.value) < 0) {
+            setStatus("Ingresa un flete cobrado válido no negativo en USD.", chargeBox)
+            return
+          }
+          chargeSave.disabled = true
+          try {
+            await sendJson(`/api/admin/wholesale/orders/${encodeURIComponent(order.id)}`, {
+              dispatchFreightCharged: Number(chargeInput.value)
+            }, "PATCH")
+            await loadWorkflow()
+          } catch (error) {
+            setStatus(error.message === "dispatch_freight_below_paid_amount"
+              ? "El flete haría que el total quede por debajo de lo ya pagado. Ajusta primero el pago registrado."
+              : error.message, chargeBox)
+            chargeSave.disabled = false
+          }
+        })
+        chargeBox.append(chargeLabel, chargeSave)
+        controls.append(up, down, chargeBox)
+        stop.append(details, controls)
+        groupPanel.appendChild(stop)
+      })
+      panel.appendChild(groupPanel)
+    }
+    routePanel.appendChild(panel)
+  }
+
   function renderDashboard() {
     dashboardPanel.replaceChildren()
     const open = orders.filter(order => !["delivered", "cancelled"].includes(order.status))
@@ -468,6 +625,12 @@
     const procurementItems = open.flatMap(order => groupOrderItems(order.items)).map(product => ({ ...product, procurementStatus: product.procurementStatus || "review" }))
     const procurementOpen = procurementItems.filter(product => !["received", "not_required"].includes(product.procurementStatus))
     const supplierPending = procurementItems.filter(product => ["supplier_needed", "requested"].includes(product.procurementStatus))
+    const purchaseFreightOrdered = Number(dispatchCosts?.purchaseFreightOrdered || 0)
+    const purchaseFreightReceived = Number(dispatchCosts?.purchaseFreightReceived || 0)
+    const dispatchFreightRecorded = Number(dispatchCosts?.dispatchFreightRecorded || 0)
+    const dispatchFreightCharged = Number(dispatchCosts?.dispatchFreightCharged || 0)
+    const dispatchFreightBalance = Number(dispatchCosts?.dispatchFreightBalance || 0)
+    const logisticsFreightAccounted = Number(dispatchCosts?.logisticsFreightAccounted || 0)
     const metrics = [
       ["Solicitudes sin confirmar", drafts.length],
       ["Pedidos abiertos", open.length],
@@ -476,7 +639,13 @@
       ["Por cobrar", money(outstanding)],
       ["Saldo a crédito", money(creditBalance)],
       ["Productos por resolver", procurementOpen.length],
-      ["Pendientes del proveedor", supplierPending.length]
+      ["Pendientes del proveedor", supplierPending.length],
+      ["Flete compra solicitado", moneyUSD(purchaseFreightOrdered)],
+      ["Flete compra recibido", moneyUSD(purchaseFreightReceived)],
+      ["Flete cobrado a clientes", moneyUSD(dispatchFreightCharged)],
+      ["Flete despachos", moneyUSD(dispatchFreightRecorded)],
+      ["Balance cobro vs. despacho", moneyUSD(dispatchFreightBalance)],
+      ["Flete logístico contabilizado", moneyUSD(logisticsFreightAccounted)]
     ]
     const grid = make("div", "grid gap-3 sm:grid-cols-2 xl:grid-cols-3")
     for (const [label, value] of metrics) {
@@ -512,6 +681,7 @@
     try {
       const orderData = await getJson("/api/admin/wholesale/orders")
       orders = orderData.orders || []
+      dispatchCosts = await getJson("/api/admin/wholesale/dispatch-costs")
       try {
         const inboxData = await getJson("/api/admin/wholesale/inbox")
         drafts = inboxData.drafts || []
@@ -529,6 +699,7 @@
       renderActivity()
       if (activeTab === "orders") renderOrdersView()
       if (activeTab === "schedule") renderSchedule()
+      if (activeTab === "routes") renderRoutes()
       if (activeTab === "dashboard") renderDashboard()
     } catch (error) {
       console.error("Error cargando el flujo mayorista:", error)

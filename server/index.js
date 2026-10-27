@@ -236,6 +236,428 @@ const quotesFile = path.join(dataDir, "quotes.json")
 const inventoryFile = path.join(dataDir, "inventory.json")
 const distributionOrdersFile = path.join(dataDir, "distribution-orders.json")
 
+const procurementFile = path.join(dataDir, "procurement.json")
+const dispatchCostsFile = path.join(dataDir, "dispatch-costs.json")
+
+function getProcurementState() {
+  const saved = readData(procurementFile)
+  return {
+    suppliers: Array.isArray(saved.suppliers) ? saved.suppliers : [],
+    productTerms: Array.isArray(saved.productTerms) ? saved.productTerms : [],
+    purchaseOrders: Array.isArray(saved.purchaseOrders) ? saved.purchaseOrders : []
+  }
+}
+
+app.get("/api/admin/procurement", requireAdmin, (req, res) => {
+  const state = getProcurementState()
+  const wholesaleOrders = readData(ordersFile)
+    .filter(order => order && order.source === "wholesale_portal" && order.status !== "cancelled")
+    .map(order => ({
+      id: String(order.id),
+      clientName: String(order.client && order.client.name || "Cliente mayorista"),
+      createdAt: order.createdAt,
+      items: (Array.isArray(order.items) ? order.items : []).map(item => ({
+        productId: Number(item.productId),
+        name: String(item.name || "Producto"),
+        qty: Number(item.qty || 0),
+        unitsTotal: Number(item.unitsTotal || 0),
+        saleUnit: item.saleUnit === "unit" ? "unit" : "package",
+        unitsPerPackage: Number(item.unitsPerPackage || 1)
+      }))
+    }))
+  res.json({ ok: true, ...state, catalog: readData(productsFile), wholesaleOrders })
+})
+
+app.get("/api/admin/procurement/forecast", requireAdmin, (req, res) => {
+  const state = getProcurementState()
+  const catalog = readData(productsFile)
+  const savedInventory = readData(inventoryFile)
+  const inventoryState = savedInventory && !Array.isArray(savedInventory) && savedInventory.products && savedInventory.movements
+    ? savedInventory
+    : {
+      products: Object.fromEntries(catalog.map(product => [String(product.id), {
+        productId: Number(product.id),
+        baseUnits: Math.max(0, Number(product.stock || 0)),
+        unitsPerPackage: Math.max(1, Number(product.unitsBundle || product["Units/Bundle"] || product.units_bundle || 1))
+      }])),
+      movements: []
+    }
+  const inventory = Object.values(inventoryState.products).map(item => ({ ...item, units: Number(item.baseUnits || 0) }))
+  const inventoryBalancesById = new Map(inventory.map(item => [Number(item.productId), item]))
+  for (const movement of inventoryState.movements) {
+    const item = inventoryBalancesById.get(Number(movement.productId))
+    if (item) item.units += Number(movement.units || 0)
+  }
+  const inventoryById = new Map(inventory.map(item => [Number(item.productId), item]))
+  const productById = new Map(catalog.map(item => [Number(item.id), item]))
+  const supplierById = new Map(state.suppliers.map(item => [item.id, item]))
+  const demandByProduct = new Map()
+  const orders = readData(ordersFile).filter(order =>
+    order && order.source === "wholesale_portal" && ["received", "preparing"].includes(order.status)
+  )
+
+  for (const order of orders) {
+    for (const item of Array.isArray(order.items) ? order.items : []) {
+      const productId = Number(item.productId)
+      const units = Number(item.unitsTotal || Number(item.qty || 0) * (item.saleUnit === "unit" ? 1 : Number(item.unitsPerPackage || 1)))
+      if (!Number.isSafeInteger(productId) || !Number.isSafeInteger(units) || units <= 0) continue
+      const quantity = Number(item.qty || 0)
+      const isUnitSale = item.saleUnit === "unit"
+      const packageName = String(item.packageName || "paquete")
+      const productDemand = demandByProduct.get(productId) || { units: 0, packages: 0, unitSales: 0, packageNames: new Set(), orderIds: new Map() }
+      productDemand.units += units
+      if (Number.isSafeInteger(quantity) && quantity > 0) {
+        const orderDemand = productDemand.orderIds.get(String(order.id)) || { packages: 0, units: 0, packageNames: new Set() }
+        if (isUnitSale) {
+          productDemand.unitSales += quantity
+          orderDemand.units += quantity
+        } else {
+          productDemand.packages += quantity
+          productDemand.packageNames.add(packageName)
+          orderDemand.packages += quantity
+          orderDemand.packageNames.add(packageName)
+        }
+        productDemand.orderIds.set(String(order.id), orderDemand)
+      }
+      demandByProduct.set(productId, productDemand)
+    }
+  }
+
+  const inboundBySupplierProduct = new Map()
+  for (const order of state.purchaseOrders.filter(item => item.status === "ordered")) {
+    for (const item of Array.isArray(order.items) ? order.items : []) {
+      const key = `${order.supplierId}:${Number(item.productId)}`
+      const units = Number(item.inventoryUnits || Number(item.quantity || 0) * Number(item.unitsPerPurchase || 1))
+      if (!Number.isSafeInteger(units) || units <= 0) continue
+      inboundBySupplierProduct.set(key, (inboundBySupplierProduct.get(key) || 0) + units)
+    }
+  }
+
+  const supplierGroups = new Map()
+  const unassigned = []
+  for (const [productId, demand] of demandByProduct) {
+    const product = productById.get(productId)
+    if (!product) continue
+    const availableUnits = Number(inventoryById.get(productId)?.units || 0)
+    const term = state.productTerms.find(item => Number(item.productId) === productId && item.preferredSupplier === true)
+    const supplier = term && supplierById.get(term.supplierId)
+    if (!term || !supplier) {
+      unassigned.push({
+        productId,
+        productName: String(product.name || "Producto"),
+        demandPackages: demand.packages,
+        demandUnitSales: demand.unitSales,
+        packageNames: [...demand.packageNames],
+        demandUnits: demand.units,
+        availableUnits,
+        orders: [...demand.orderIds].map(([id, details]) => ({ id, packages: details.packages, units: details.units, packageNames: [...details.packageNames] }))
+      })
+      continue
+    }
+    const key = supplier.id
+    if (!supplierGroups.has(key)) supplierGroups.set(key, { supplierId: supplier.id, supplierName: supplier.name, minimumOrderAmount: supplier.minimumOrderAmount, active: supplier.active, products: [] })
+    const inboundUnits = inboundBySupplierProduct.get(`${supplier.id}:${productId}`) || 0
+    const shortageUnits = Math.max(0, demand.units - availableUnits - inboundUnits)
+    const suggestedQuantity = supplier.active && shortageUnits > 0
+      ? Math.max(term.minimumQuantity, Math.ceil(shortageUnits / term.unitsPerPurchase))
+      : 0
+    supplierGroups.get(key).products.push({
+      productId,
+      productName: String(product.name || "Producto"),
+      productCode: String(product.code || ""),
+      termId: term.id,
+      purchaseUnit: term.purchaseUnit,
+      unitCost: term.unitCost,
+      unitsPerPurchase: term.unitsPerPurchase,
+      minimumQuantity: term.minimumQuantity,
+      demandPackages: demand.packages,
+      demandUnitSales: demand.unitSales,
+      packageNames: [...demand.packageNames],
+      demandUnits: demand.units,
+      availableUnits,
+      inboundUnits,
+      shortageUnits,
+      suggestedQuantity,
+      suggestedSubtotal: Number((suggestedQuantity * term.unitCost).toFixed(2)),
+      orders: [...demand.orderIds].map(([id, details]) => ({ id, packages: details.packages, units: details.units, packageNames: [...details.packageNames] })),
+      orderIds: [...demand.orderIds.keys()]
+    })
+  }
+
+  const suppliers = [...supplierGroups.values()].map(group => {
+    group.products.sort((a, b) => a.productName.localeCompare(b.productName))
+    group.suggestedTotal = Number(group.products.reduce((sum, item) => sum + item.suggestedSubtotal, 0).toFixed(2))
+    group.canCreatePurchaseOrder = group.active && group.suggestedTotal >= Number(group.minimumOrderAmount || 0) && group.suggestedTotal > 0
+    return group
+  })
+  suppliers.sort((a, b) => a.supplierName.localeCompare(b.supplierName))
+  res.json({ ok: true, generatedAt: new Date().toISOString(), demandOrderCount: orders.length, suppliers, unassigned })
+})
+
+function getDispatchCostKey(date, zone) {
+  return `${date}|${zone.trim().toLocaleLowerCase("es")}`
+}
+
+app.get("/api/admin/wholesale/dispatch-costs", requireAdmin, (req, res) => {
+  const savedCosts = readData(dispatchCostsFile)
+  const routes = Array.isArray(savedCosts.routes) ? savedCosts.routes : []
+  const purchaseOrders = getProcurementState().purchaseOrders
+  const purchaseFreightOrdered = purchaseOrders.filter(order => order.status === "ordered")
+    .reduce((sum, order) => sum + Number(order.freightCost || 0), 0)
+  const purchaseFreightReceived = purchaseOrders.filter(order => order.status === "received")
+    .reduce((sum, order) => sum + Number(order.freightCost || 0), 0)
+  const dispatchFreightRecorded = routes.reduce((sum, route) => sum + Number(route.freightCost || 0), 0)
+  const wholesaleOrders = readData(ordersFile).filter(order => order && order.source === "wholesale_portal" && order.status !== "cancelled")
+  const dispatchFreightCharged = wholesaleOrders.reduce((sum, order) => sum + Number(order.dispatchFreightCharged || 0), 0)
+  res.json({
+    ok: true,
+    routes,
+    purchaseFreightOrdered: Number(purchaseFreightOrdered.toFixed(2)),
+    purchaseFreightReceived: Number(purchaseFreightReceived.toFixed(2)),
+    dispatchFreightRecorded: Number(dispatchFreightRecorded.toFixed(2)),
+    dispatchFreightCharged: Number(dispatchFreightCharged.toFixed(2)),
+    dispatchFreightBalance: Number((dispatchFreightCharged - dispatchFreightRecorded).toFixed(2)),
+    logisticsFreightAccounted: Number((purchaseFreightReceived + dispatchFreightRecorded).toFixed(2))
+  })
+})
+
+app.put("/api/admin/wholesale/dispatch-costs", requireAdmin, (req, res) => {
+  const date = String(req.body && req.body.date || "").trim()
+  const zone = String(req.body && req.body.zone || "").trim().slice(0, 100)
+  const freightCost = Number(req.body && req.body.freightCost)
+  const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00Z`) : null
+  const validDate = parsedDate && !Number.isNaN(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === date
+  if (!validDate || !zone || !Number.isFinite(freightCost) || freightCost < 0 || freightCost > Number.MAX_SAFE_INTEGER / 100) {
+    return res.status(400).json({ error: "invalid_dispatch_cost" })
+  }
+  const state = readData(dispatchCostsFile)
+  const routes = Array.isArray(state.routes) ? state.routes : []
+  const key = getDispatchCostKey(date, zone)
+  const existing = routes.find(route => getDispatchCostKey(String(route.date), String(route.zone)) === key)
+  const route = {
+    date,
+    zone,
+    freightCost: Number((Math.round(freightCost * 100) / 100).toFixed(2)),
+    updatedAt: new Date().toISOString()
+  }
+  if (existing) Object.assign(existing, route)
+  else routes.push(route)
+  writeData(dispatchCostsFile, { routes })
+  res.json({ ok: true, route })
+})
+
+app.put("/api/admin/procurement", requireAdmin, (req, res) => {
+  const input = req.body || {}
+  if (!Array.isArray(input.suppliers) || !Array.isArray(input.productTerms)) {
+    return res.status(400).json({ error: "suppliers_and_product_terms_required" })
+  }
+  const catalog = readData(productsFile)
+  const catalogIds = new Set(catalog.map(product => Number(product.id)))
+  const suppliers = input.suppliers.map((supplier, index) => {
+    const name = String(supplier && supplier.name || "").trim().slice(0, 160)
+    const minimumOrderAmount = Number(supplier && supplier.minimumOrderAmount)
+    if (!name || !Number.isFinite(minimumOrderAmount) || minimumOrderAmount < 0) return null
+    return {
+      id: String(supplier.id || `SUP-${Date.now()}-${index}`).slice(0, 80),
+      name,
+      contact: String(supplier.contact || "").trim().slice(0, 120),
+      email: String(supplier.email || "").trim().slice(0, 160),
+      phone: String(supplier.phone || "").trim().slice(0, 80),
+      minimumOrderAmount,
+      active: supplier.active !== false
+    }
+  })
+  if (suppliers.some(supplier => !supplier)) return res.status(400).json({ error: "invalid_supplier" })
+  if (new Set(suppliers.map(supplier => supplier.id)).size !== suppliers.length) return res.status(400).json({ error: "duplicate_supplier_id" })
+
+  const supplierIds = new Set(suppliers.map(supplier => supplier.id))
+  const productTerms = input.productTerms.map((term, index) => {
+    const productId = Number(term && term.productId)
+    const unitsPerPurchase = Number(term && term.unitsPerPurchase)
+    const minimumQuantity = Number(term && term.minimumQuantity)
+    const unitCost = Number(term && term.unitCost)
+    const purchaseUnit = String(term && term.purchaseUnit || "").trim().slice(0, 80)
+    const supplierId = String(term && term.supplierId || "")
+    if (!catalogIds.has(productId) || !supplierIds.has(supplierId) || !purchaseUnit ||
+      !Number.isFinite(unitCost) || unitCost < 0 ||
+      !Number.isInteger(unitsPerPurchase) || unitsPerPurchase < 1 ||
+      !Number.isInteger(minimumQuantity) || minimumQuantity < 1) return null
+    return {
+      id: String(term.id || `TERM-${Date.now()}-${index}`).slice(0, 80),
+      productId,
+      supplierId,
+      supplierSku: String(term.supplierSku || "").trim().slice(0, 120),
+      unitCost,
+      purchaseUnit,
+      unitsPerPurchase,
+      minimumQuantity,
+      preferredSupplier: term.preferredSupplier === true
+    }
+  })
+  if (productTerms.some(term => !term)) return res.status(400).json({ error: "invalid_product_term" })
+  if (new Set(productTerms.map(term => term.id)).size !== productTerms.length) return res.status(400).json({ error: "duplicate_product_term_id" })
+  if (new Set(productTerms.map(term => `${term.supplierId}:${term.productId}`)).size !== productTerms.length) {
+    return res.status(400).json({ error: "duplicate_supplier_product" })
+  }
+  if (new Set(productTerms.filter(term => term.preferredSupplier).map(term => term.productId)).size !== productTerms.filter(term => term.preferredSupplier).length) {
+    return res.status(400).json({ error: "multiple_preferred_suppliers_for_product" })
+  }
+
+  const state = getProcurementState()
+  state.suppliers = suppliers
+  state.productTerms = productTerms
+  writeData(procurementFile, state)
+  res.json({ ok: true, suppliers, productTerms })
+})
+
+app.post("/api/admin/procurement/orders", requireAdmin, (req, res) => {
+  const input = req.body || {}
+  const state = getProcurementState()
+  const supplier = state.suppliers.find(item => item.id === String(input.supplierId) && item.active)
+  const requestedItems = Array.isArray(input.items) ? input.items : []
+  if (!supplier || !requestedItems.length) return res.status(400).json({ error: "active_supplier_and_items_required" })
+
+  const items = []
+  const usedTerms = new Set()
+  for (const requested of requestedItems) {
+    const term = state.productTerms.find(item => item.id === String(requested && requested.termId) && item.supplierId === supplier.id)
+    const product = term && readData(productsFile).find(item => Number(item.id) === term.productId)
+    const quantity = Number(requested && requested.quantity)
+    if (!term || !product || !Number.isInteger(quantity) || quantity < term.minimumQuantity || usedTerms.has(term.id)) {
+      return res.status(400).json({ error: "invalid_purchase_order_item", termId: requested && requested.termId })
+    }
+    const inventoryUnits = quantity * term.unitsPerPurchase
+    if (!Number.isSafeInteger(inventoryUnits) || inventoryUnits <= 0) {
+      return res.status(400).json({ error: "invalid_purchase_order_item", termId: term.id })
+    }
+    const rawSubtotal = quantity * term.unitCost
+    if (!Number.isFinite(rawSubtotal) || rawSubtotal < 0 || rawSubtotal > Number.MAX_SAFE_INTEGER / 100) {
+      return res.status(400).json({ error: "invalid_purchase_order_item", termId: term.id })
+    }
+    usedTerms.add(term.id)
+    items.push({
+      productId: term.productId,
+      productName: String(product.name || "Producto"),
+      productCode: String(product.code || ""),
+      supplierSku: term.supplierSku,
+      quantity,
+      purchaseUnit: term.purchaseUnit,
+      unitsPerPurchase: term.unitsPerPurchase,
+      unitCost: term.unitCost,
+      minimumQuantity: term.minimumQuantity,
+      subtotal: Number(rawSubtotal.toFixed(2))
+    })
+  }
+  const goodsSubtotal = Number(items.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2))
+  if (goodsSubtotal < supplier.minimumOrderAmount) {
+    return res.status(400).json({ error: "supplier_minimum_order_not_met", minimumOrderAmount: supplier.minimumOrderAmount, total: goodsSubtotal })
+  }
+  const freightCost = Number(input.freightCost == null || input.freightCost === "" ? 0 : input.freightCost)
+  if (!Number.isFinite(freightCost) || freightCost < 0 || freightCost > Number.MAX_SAFE_INTEGER / 100) {
+    return res.status(400).json({ error: "invalid_freight_cost" })
+  }
+  const freightCents = Math.round(freightCost * 100)
+  const weights = items.map(item => item.subtotal)
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0)
+  const fallbackWeights = items.map(item => item.quantity * item.unitsPerPurchase)
+  const allocationWeights = totalWeight > 0 ? weights : fallbackWeights
+  const allocationTotal = allocationWeights.reduce((sum, weight) => sum + weight, 0)
+  let allocatedCents = 0
+  items.forEach((item, index) => {
+    const cents = index === items.length - 1
+      ? freightCents - allocatedCents
+      : Math.round(freightCents * allocationWeights[index] / allocationTotal)
+    allocatedCents += cents
+    item.freightAllocation = Number((cents / 100).toFixed(2))
+    item.inventoryUnits = item.quantity * item.unitsPerPurchase
+    item.landedTotal = Number((item.subtotal + item.freightAllocation).toFixed(2))
+    item.landedCostPerUnit = Number((item.landedTotal / item.inventoryUnits).toFixed(6))
+  })
+  const requestedSourceOrderIds = Array.isArray(input.sourceWholesaleOrderIds)
+    ? input.sourceWholesaleOrderIds.map(id => String(id || "").trim()).filter(Boolean)
+    : [String(input.sourceWholesaleOrderId || "").trim()].filter(Boolean)
+  const wholesaleOrders = readData(ordersFile).filter(order => order && order.source === "wholesale_portal")
+  if (requestedSourceOrderIds.some(id => !wholesaleOrders.some(order => String(order.id) === id))) {
+    return res.status(400).json({ error: "wholesale_order_not_found" })
+  }
+  const sourceWholesaleOrderIds = [...new Set(requestedSourceOrderIds)]
+
+  const now = new Date().toISOString()
+  const order = {
+    id: `COMP-${Date.now()}`,
+    supplierId: supplier.id,
+    supplierName: supplier.name,
+    sourceWholesaleOrderId: sourceWholesaleOrderIds.length === 1 ? sourceWholesaleOrderIds[0] : "",
+    sourceWholesaleOrderIds,
+    createdAt: now,
+    updatedAt: now,
+    status: "draft",
+    currency: "USD",
+    items,
+    goodsSubtotal,
+    freightCost: Number((freightCents / 100).toFixed(2)),
+    total: Number((goodsSubtotal + freightCents / 100).toFixed(2)),
+    notes: String(input.notes || "").trim().slice(0, 1000)
+  }
+  state.purchaseOrders.unshift(order)
+  writeData(procurementFile, state)
+  res.json({ ok: true, order })
+})
+
+app.patch("/api/admin/procurement/orders/:id", requireAdmin, (req, res) => {
+  const state = getProcurementState()
+  const order = state.purchaseOrders.find(item => String(item.id) === String(req.params.id))
+  if (!order) return res.status(404).json({ error: "purchase_order_not_found" })
+  const nextStatus = String(req.body && req.body.status || "")
+  if (nextStatus === "ordered" && order.status === "draft") {
+    order.status = "ordered"
+  } else if (nextStatus === "cancelled" && ["draft", "ordered"].includes(order.status)) {
+    order.status = "cancelled"
+  } else if (nextStatus === "received" && order.status === "ordered") {
+    const inventory = getInventoryState()
+    if (!Array.isArray(inventory.movements)) inventory.movements = []
+    const catalog = readData(productsFile)
+    for (const item of order.items) {
+      let inventoryProduct = inventory.products[String(item.productId)]
+      if (!inventoryProduct) {
+        const catalogProduct = catalog.find(product => Number(product.id) === Number(item.productId))
+        if (!catalogProduct) return res.status(400).json({ error: "purchase_order_product_not_found", productId: item.productId })
+        inventoryProduct = inventory.products[String(item.productId)] = {
+          productId: Number(item.productId),
+          name: String(catalogProduct.name || "Producto"),
+          code: String(catalogProduct.code || ""),
+          baseUnits: 0,
+          unitsPerPackage: Math.max(1, Number(catalogProduct.unitsBundle || catalogProduct["Units/Bundle"] || catalogProduct.units_bundle || 1))
+        }
+      }
+      const movementId = `MOV-${order.id}-${item.productId}`
+      if (!inventory.movements.some(movement => movement.id === movementId)) {
+        const units = Number(item.quantity) * Number(item.unitsPerPurchase)
+        if (!Number.isSafeInteger(units) || units <= 0) return res.status(400).json({ error: "invalid_received_quantity", productId: item.productId })
+        inventory.movements.push({
+          id: movementId,
+          createdAt: new Date().toISOString(),
+          productId: Number(item.productId),
+          type: "in",
+          packages: Number(item.quantity),
+          units,
+          reason: `Compra recibida de ${order.supplierName}`,
+          reference: order.id,
+          purchaseOrderId: order.id
+        })
+      }
+    }
+    writeData(inventoryFile, inventory)
+    order.status = "received"
+    order.receivedAt = new Date().toISOString()
+  } else {
+    return res.status(400).json({ error: "invalid_purchase_order_status_transition" })
+  }
+  order.updatedAt = new Date().toISOString()
+  writeData(procurementFile, state)
+  res.json({ ok: true, order })
+})
+
 function getInventoryState() {
   let state = readData(inventoryFile)
   if (!state || Array.isArray(state) || typeof state !== "object" || !state.products || !state.movements) {
@@ -650,7 +1072,7 @@ app.post("/api/wholesale/cart/order", requireClient, (req, res) => {
     client: { id: req.client.id, name: `${req.client.nombre || ""} ${req.client.apellido || ""}`.trim(), email: req.client.email || "", phone: req.client.celular || "", zona: req.client.zona || "", address: req.client.direccion || "", company: req.client.empresa || "", companyRif: req.client.rifEmpresa || "", fiscalAddress: req.client.direccionFiscal || "", type: req.client.tipo || "" },
     items: enriched.items,
     total: enriched.total,
-    deliveryMethod: "Solo despacho",
+    deliveryMethod: "",
     notes: String(req.body && req.body.notes || "")
   }
   const orders = readData(ordersFile)
@@ -667,7 +1089,23 @@ app.post("/api/wholesale/cart/order", requireClient, (req, res) => {
 })
 
 app.get("/api/admin/wholesale/orders", requireAdmin, (req, res) => {
-  const orders = readData(ordersFile).filter(order => order && order.source === "wholesale_portal")
+  const clients = readData(clientsFile)
+  const orders = readData(ordersFile).filter(order => order && order.source === "wholesale_portal").map(order => {
+    const savedClient = order.client || {}
+    const directoryClient = clients.find(client => Number(client.id) === Number(savedClient.id))
+    return {
+      ...order,
+      client: {
+        ...savedClient,
+        name: savedClient.name || `${directoryClient && directoryClient.nombre || ""} ${directoryClient && directoryClient.apellido || ""}`.trim() || "Cliente mayorista",
+        email: savedClient.email || directoryClient && directoryClient.email || "",
+        phone: savedClient.phone || savedClient.celular || directoryClient && directoryClient.celular || "",
+        zone: savedClient.zone || savedClient.zona || directoryClient && directoryClient.zona || "",
+        address: savedClient.address || savedClient.direccion || directoryClient && directoryClient.direccion || "",
+        company: savedClient.company || savedClient.empresa || directoryClient && directoryClient.empresa || ""
+      }
+    }
+  })
   orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   res.json({ ok: true, orders })
 })
@@ -723,7 +1161,7 @@ app.post("/api/admin/wholesale/inbox/:id/convert", requireAdmin, (req, res) => {
     paidAmount: 0,
     paymentMethod,
     source: "wholesale_portal",
-    client: { id: client.id, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), email: client.email || "", phone: client.celular || "", zone: client.zona || "", company: client.empresa || "" },
+    client: { id: client.id, name: `${client.nombre || ""} ${client.apellido || ""}`.trim(), email: client.email || "", phone: client.celular || "", zone: client.zona || "", address: client.direccion || "", company: client.empresa || "" },
     items: enriched.items,
     total: enriched.total,
     deliveryMethod: "",
@@ -746,6 +1184,20 @@ app.patch("/api/admin/wholesale/orders/:id", requireAdmin, (req, res) => {
   const orders = readData(ordersFile)
   const order = orders.find(item => String(item.id) === String(req.params.id) && item.source === "wholesale_portal")
   if (!order) return res.status(404).json({ error: "order_not_found" })
+  if (req.body.dispatchFreightCharged != null) {
+    const chargedFreight = Number(req.body.dispatchFreightCharged)
+    if (!Number.isFinite(chargedFreight) || chargedFreight < 0 || chargedFreight > Number.MAX_SAFE_INTEGER / 100) {
+      return res.status(400).json({ error: "invalid_dispatch_freight_charged" })
+    }
+    const roundedFreight = Math.round(chargedFreight * 100) / 100
+    const currentFreight = Number(order.dispatchFreightCharged || 0)
+    const newTotal = Number((Number(order.total || 0) - currentFreight + roundedFreight).toFixed(2))
+    if (newTotal < Number(order.paidAmount || 0)) return res.status(400).json({ error: "dispatch_freight_below_paid_amount" })
+    order.dispatchFreightCharged = Number(roundedFreight.toFixed(2))
+    order.total = newTotal
+    if (Number(order.paidAmount || 0) >= newTotal) order.collectionStatus = "paid"
+    else if (order.collectionStatus === "paid") order.collectionStatus = Number(order.paidAmount || 0) > 0 ? "partial" : "pending"
+  }
   const allowedStatus = ["received", "preparing", "ready_dispatch", "dispatched", "delivered", "cancelled"]
   const allowedCollection = ["pending", "partial", "paid", "overdue"]
   const allowedPaymentMethods = ["cash", "credit"]
@@ -771,6 +1223,11 @@ app.patch("/api/admin/wholesale/orders/:id", requireAdmin, (req, res) => {
   }
   if (req.body.deliveryWindow != null) order.deliveryWindow = String(req.body.deliveryWindow).slice(0, 120)
   if (req.body.dispatchNotes != null) order.dispatchNotes = String(req.body.dispatchNotes).slice(0, 500)
+  if (req.body.routePosition != null) {
+    const routePosition = Number(req.body.routePosition)
+    if (!Number.isSafeInteger(routePosition) || routePosition < 0) return res.status(400).json({ error: "invalid_route_position" })
+    order.routePosition = routePosition
+  }
   if (req.body.procurementItems != null) {
     if (!Array.isArray(req.body.procurementItems)) return res.status(400).json({ error: "procurement_items_must_be_array" })
     const allowedProcurementStatuses = ["review", "supplier_needed", "requested", "received", "not_required"]

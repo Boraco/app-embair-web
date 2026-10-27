@@ -855,6 +855,16 @@ function getWholesaleProducts() {
   return readData(wholesaleProductsFile)
 }
 
+function getWholesalePackageBasePrice(item) {
+  const unitWholesalePrice = item.unitWholesalePrice == null ? null : Number(item.unitWholesalePrice)
+  if (unitWholesalePrice == null) {
+    return item.wholesalePrice == null ? null : Number(item.wholesalePrice)
+  }
+  const unitsPerPackage = Math.max(1, Number(item.unitsPerPackage) || 1)
+  return Number((unitWholesalePrice * unitsPerPackage).toFixed(2))
+}
+
+
 function enrichWholesaleProducts() {
   const products = readData(productsFile)
   const config = getWholesaleProducts()
@@ -870,7 +880,7 @@ function enrichWholesaleProducts() {
           packageName: item.packageName || "Paquete",
           unitsPerPackage: Number(item.unitsPerPackage || 1),
           minimumQuantity: Number(item.minimumQuantity || 1),
-          wholesalePrice: item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+          wholesalePrice: getWholesalePackageBasePrice(item),
           unitWholesalePrice: item.unitWholesalePrice == null ? null : Number(item.unitWholesalePrice),
           packagePrice: item.packagePrice == null ? null : Number(item.packagePrice),
           availability: item.availability || "Disponible",
@@ -891,7 +901,11 @@ app.get("/api/wholesale/products", requireClient, (req, res) => {
 })
 
 app.get("/api/admin/wholesale/products", requireAdmin, (req, res) => {
-  res.json({ ok: true, products: getWholesaleProducts(), catalog: readData(productsFile) })
+  const products = getWholesaleProducts().map(item => ({
+    ...item,
+    wholesalePrice: item.unitWholesalePrice == null ? getWholesalePackageBasePrice(item) : null
+  }))
+  res.json({ ok: true, products, catalog: readData(productsFile) })
 })
 
 app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
@@ -919,7 +933,7 @@ app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
       packageName: String(item.packageName || "Paquete").trim(),
       unitsPerPackage: Math.max(1, Number(item.unitsPerPackage || 1)),
       minimumQuantity: Math.max(1, Number(item.minimumQuantity || 1)),
-      wholesalePrice: item.wholesalePrice === "" || item.wholesalePrice == null ? null : Number(item.wholesalePrice),
+      wholesalePrice: unitWholesalePrice == null && item.wholesalePrice !== "" && item.wholesalePrice != null ? Number(item.wholesalePrice) : null,
       unitWholesalePrice,
       packagePrice: item.packagePrice === "" || item.packagePrice == null ? null : Number(item.packagePrice),
       availability: ["Disponible", "Bajo Pedido", "Agotado"].includes(item.availability) ? item.availability : "Disponible",

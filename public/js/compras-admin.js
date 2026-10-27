@@ -93,18 +93,9 @@
   function renderSelects() {
     const activeSuppliers = state.suppliers.filter(supplier => supplier.active)
     const supplierOptions = activeSuppliers.map(supplier => `<option value="${escapeHtml(supplier.id)}">${escapeHtml(supplier.name)}</option>`).join("")
-    const currentTermSupplier = $("term-supplier").value
     const currentOrderSupplier = $("order-supplier").value
-    $("term-supplier").innerHTML = `<option value="">Selecciona proveedor…</option>${supplierOptions}`
     $("order-supplier").innerHTML = `<option value="">Selecciona proveedor…</option>${supplierOptions}`
-    if (activeSuppliers.some(supplier => supplier.id === currentTermSupplier)) $("term-supplier").value = currentTermSupplier
     if (activeSuppliers.some(supplier => supplier.id === currentOrderSupplier)) $("order-supplier").value = currentOrderSupplier
-
-    const currentProduct = $("term-product").value
-    const catalogOptions = state.catalog.slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
-      .map(product => `<option value="${Number(product.id)}">${escapeHtml(product.name)}${product.code ? ` · ${escapeHtml(product.code)}` : ""}</option>`).join("")
-    $("term-product").innerHTML = `<option value="">Selecciona producto…</option>${catalogOptions}`
-    if (state.catalog.some(product => String(product.id) === currentProduct)) $("term-product").value = currentProduct
 
     const currentSource = $("source-order").value
     $("source-order").innerHTML = `<option value="">Sin pedido asociado</option>${state.wholesaleOrders.map(order => `<option value="${escapeHtml(order.id)}">${escapeHtml(order.id)} · ${escapeHtml(order.clientName)}</option>`).join("")}`
@@ -133,29 +124,18 @@
       const supplier = supplierById(term.supplierId) || {}
       const baseUnitCost = Number(term.unitCost) / Math.max(1, Number(term.unitsPerPurchase))
       const receivedUnitCost = getReceivedLandedCost(term.productId, term.supplierId)
-      const marginCost = receivedUnitCost == null ? baseUnitCost : receivedUnitCost
       const salePrice = Number(product.price)
       const hasSalePrice = product.price != null && Number.isFinite(salePrice)
-      const margin = hasSalePrice ? salePrice - marginCost : null
+      const margin = hasSalePrice ? salePrice - (receivedUnitCost ?? baseUnitCost) : null
       return `<tr class="border-b">
         <td class="py-3"><p class="font-semibold">${escapeHtml(product.name || "Producto")}${term.preferredSupplier ? ' <span class="rounded bg-sky-100 px-1.5 py-0.5 text-xs text-sky-800">Principal</span>' : ""}</p><p class="text-xs text-slate-500">${escapeHtml(supplier.name || "Proveedor")} · ${escapeHtml(term.supplierSku || "Sin código proveedor")}</p></td>
         <td>${money(term.unitCost)} / ${escapeHtml(term.purchaseUnit)}</td>
         <td>${money(baseUnitCost)}</td>
         <td>${receivedUnitCost == null ? '<span class="text-xs text-slate-500">Sin recepción</span>' : `${money(receivedUnitCost)}${margin == null ? "" : `<span class="block text-xs ${margin >= 0 ? "text-emerald-700" : "text-rose-700"}">Margen vs. venta: ${money(margin)}</span>`}`}</td>
         <td>${Number(term.minimumQuantity)} ${escapeHtml(term.purchaseUnit)}${Number(term.unitsPerPurchase) > 1 ? `<span class="block text-xs text-slate-500">× ${Number(term.unitsPerPurchase)} unidades</span>` : ""}</td>
-        <td class="text-right"><button type="button" data-edit-term="${escapeHtml(term.id)}" class="rounded border px-2 py-1 text-xs">Editar</button><button type="button" data-delete-term="${escapeHtml(term.id)}" class="ml-1 rounded border border-rose-200 px-2 py-1 text-xs text-rose-700">Quitar</button></td>
+        <td>${term.preferredSupplier ? "Sí" : "—"}</td>
       </tr>`
-    }).join("") : '<tr><td colspan="6" class="py-4 text-sm text-slate-500">Agrega condiciones para comenzar a registrar costos privados.</td></tr>'
-  }
-
-  function clearTermForm() {
-    $("term-form").reset()
-    $("term-id").value = ""
-    $("term-unit").value = "empaque"
-    $("term-units").value = "1"
-    $("term-minimum").value = "1"
-    $("term-preferred").checked = false
-    renderSelects()
+    }).join("") : '<tr><td colspan="6" class="py-4 text-sm text-slate-500">Aún no hay condiciones de compra. Configúralas desde los productos mayoristas.</td></tr>'
   }
 
   async function saveSettings() {
@@ -469,85 +449,6 @@
     $("supplier-minimum").value = supplier.minimumOrderAmount
     $("supplier-active").checked = supplier.active
     $("supplier-name").focus()
-  })
-
-  $("term-form").addEventListener("submit", async event => {
-    event.preventDefault()
-    const term = {
-      id: $("term-id").value || `TERM-${Date.now()}`,
-      supplierId: $("term-supplier").value,
-      productId: Number($("term-product").value),
-      supplierSku: $("term-sku").value.trim(),
-      unitCost: Number($("term-cost").value),
-      purchaseUnit: $("term-unit").value.trim(),
-      unitsPerPurchase: Number($("term-units").value),
-      minimumQuantity: Number($("term-minimum").value),
-      preferredSupplier: $("term-preferred").checked
-    }
-    const existing = termById(term.id)
-    if (!term.preferredSupplier && !state.productTerms.some(item => item.preferredSupplier && Number(item.productId) === term.productId && item.id !== term.id) && !existing?.preferredSupplier) {
-      term.preferredSupplier = true
-    }
-    if (term.preferredSupplier) {
-      state.productTerms = state.productTerms.map(item => Number(item.productId) === term.productId ? { ...item, preferredSupplier: false } : item)
-    }
-    const conflict = state.productTerms.find(item => item.supplierId === term.supplierId && item.productId === term.productId && item.id !== term.id)
-    if (conflict) {
-      conflict.supplierSku = term.supplierSku
-      conflict.unitCost = term.unitCost
-      conflict.purchaseUnit = term.purchaseUnit
-      conflict.unitsPerPurchase = term.unitsPerPurchase
-      conflict.minimumQuantity = term.minimumQuantity
-      conflict.preferredSupplier = term.preferredSupplier
-    } else {
-      const index = state.productTerms.findIndex(item => item.id === term.id)
-      if (index >= 0) state.productTerms[index] = term
-      else state.productTerms.push(term)
-    }
-    try {
-      await saveSettings()
-      clearTermForm()
-      await load()
-      showStatus("Costo y condiciones guardados de forma privada.")
-    } catch (error) {
-      showStatus(error.message, true)
-    }
-  })
-
-  $("term-clear").addEventListener("click", clearTermForm)
-  $("term-product").addEventListener("change", () => {
-    const productId = Number($("term-product").value)
-    const editingId = $("term-id").value
-    const primary = state.productTerms.find(term => Number(term.productId) === productId && term.preferredSupplier && term.id !== editingId)
-    $("term-preferred").checked = !primary
-  })
-  $("terms-list").addEventListener("click", async event => {
-    const edit = event.target.closest("[data-edit-term]")
-    if (edit) {
-      const term = termById(edit.dataset.editTerm)
-      if (!term) return
-      $("term-id").value = term.id
-      $("term-supplier").value = term.supplierId
-      $("term-product").value = String(term.productId)
-      $("term-sku").value = term.supplierSku || ""
-      $("term-cost").value = term.unitCost
-      $("term-unit").value = term.purchaseUnit
-      $("term-units").value = term.unitsPerPurchase
-      $("term-minimum").value = term.minimumQuantity
-      $("term-preferred").checked = term.preferredSupplier === true
-      $("term-supplier").focus()
-      return
-    }
-    const remove = event.target.closest("[data-delete-term]")
-    if (!remove || !confirm("¿Quitar este costo y condición del proveedor? Las órdenes existentes conservarán su costo guardado.")) return
-    state.productTerms = state.productTerms.filter(term => term.id !== remove.dataset.deleteTerm)
-    try {
-      await saveSettings()
-      await load()
-      showStatus("Condición de compra quitada. Las órdenes existentes no se modificaron.")
-    } catch (error) {
-      showStatus(error.message, true)
-    }
   })
 
   $("order-supplier").addEventListener("change", () => {

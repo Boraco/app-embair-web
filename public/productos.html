@@ -170,6 +170,15 @@
           <p class="text-xs text-slate-500 mt-1">Puede combinarse con “Bajo Pedido” para coordinar entrega y cotización previa.</p>
         </div>
         <div>
+          <label class="block text-sm mb-1">Canal de venta</label>
+          <select id="prod-catalog-visibility" class="w-full border rounded px-3 py-2">
+            <option value="both">Público y mayorista</option>
+            <option value="public">Solo público</option>
+            <option value="wholesale">Solo mayorista</option>
+          </select>
+          <p class="text-xs text-slate-500 mt-1">El empaque, mínimo y precio mayorista se configuran en Distribución mayorista.</p>
+        </div>
+        <div>
           <label class="block text-sm mb-1">Etiqueta (Promoción)</label>
           <select id="prod-label" class="w-full border rounded px-3 py-2">
             <option value="">Ninguna</option>
@@ -341,6 +350,7 @@
     const quoteEl = document.getElementById("prod-quote")
     const availEl = document.getElementById("prod-available")
     const deliveryModeEl = document.getElementById("prod-delivery-mode")
+    const catalogVisibilityEl = document.getElementById("prod-catalog-visibility")
     const labelEl = document.getElementById("prod-label")
     const orderEl = document.getElementById("prod-order")
     const imgEl = document.getElementById("prod-img")
@@ -356,6 +366,12 @@
     const datasheetEl = document.getElementById("prod-datasheet")
     const datasheetFileEl = document.getElementById("prod-datasheet-file")
     const datasheetStatusEl = document.getElementById("prod-datasheet-status")
+    function normalizeCatalogVisibility(value) {
+      const normalized = String(value || "").trim().toLowerCase()
+      if (["wholesale", "solo mayorista", "mayorista"].includes(normalized)) return "wholesale"
+      if (["public", "solo publico", "solo público"].includes(normalized)) return "public"
+      return "both"
+    }
     const saveBtn = document.getElementById("save-product")
     const resetBtn = document.getElementById("reset-form")
     const exportBtn = document.getElementById("export-products")
@@ -1045,6 +1061,7 @@
             quoteEl.checked = p.price == null
             availEl.value = p.available === "Solo Despacho" ? "Disponible" : (p.available || "Disponible")
             if (deliveryModeEl) deliveryModeEl.value = isSoloDespacho(p) ? "Solo Despacho" : "Tienda"
+            if (catalogVisibilityEl) catalogVisibilityEl.value = normalizeCatalogVisibility(p.catalogVisibility)
             labelEl.value = p.label || ""
             orderEl.value = p.order || ""
             stockEl.value = p.stock != null ? String(p.stock) : ""
@@ -1109,6 +1126,7 @@
       const price = quoteEl.checked ? null : Number(priceEl.value || 0)
       const available = availEl.value
       const deliveryMode = deliveryModeEl ? deliveryModeEl.value : "Tienda"
+      const catalogVisibility = catalogVisibilityEl ? normalizeCatalogVisibility(catalogVisibilityEl.value) : "both"
       const label = labelEl.value
       const order = orderEl.value ? Number(orderEl.value) : 999
       let img = imgEl.value.trim()
@@ -1151,10 +1169,10 @@
       if (!name) return
       if (id) {
         const idx = PRODUCTS.findIndex(x => Number(x.id) === id)
-        if (idx >= 0) PRODUCTS[idx] = { ...PRODUCTS[idx], id, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet }
+        if (idx >= 0) PRODUCTS[idx] = { ...PRODUCTS[idx], id, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, catalogVisibility, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet }
       } else {
         const newId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x => Number(x.id) || 0)) + 1 : 1
-        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet })
+        PRODUCTS.push({ id: newId, name, code, brand, sku, category, subcategory, material, tags, stock, price, available, deliveryMode, catalogVisibility, label, order, img, pack, packInfo, unitsBundle, volume, desc, specs, datasheet })
       }
       saveProducts(PRODUCTS)
       renderProducts()
@@ -1180,7 +1198,7 @@
     exportCsvBtn.addEventListener("click", () => {
       // Export as Excel instead of CSV if xlsx is available, else fallback
       if (typeof XLSX !== 'undefined') {
-        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Modalidad logística", "Stock", "Etiqueta", "Prioridad", "Unidades/Bulto", "Volumen (ft3)", "Imagen URL", "Empaque URL", "Info Empaque", "Descripción", "Especificaciones", "Ficha Técnica"]
+        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Modalidad logística", "Canal de venta", "Stock", "Etiqueta", "Prioridad", "Unidades/Bulto", "Volumen (ft3)", "Imagen URL", "Empaque URL", "Info Empaque", "Descripción", "Especificaciones", "Ficha Técnica"]
         const data = PRODUCTS.map(p => [
           p.name || "",
           p.code || "",
@@ -1193,6 +1211,7 @@
           p.price == null ? "Cotizar" : p.price,
           p.available || "",
           p.deliveryMode || (p.available === "Solo Despacho" ? "Solo Despacho" : "Tienda"),
+          normalizeCatalogVisibility(p.catalogVisibility),
           p.stock || "",
           p.label || "",
           p.order || "",
@@ -1211,7 +1230,7 @@
         XLSX.writeFile(wb, "backup_productos.xlsx")
       } else {
         // Fallback CSV
-        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Empaque"]
+        const headers = ["Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", "Material", "Etiquetas", "Precio", "Disponibilidad", "Empaque", "Canal de venta"]
         const lines = []
         lines.push(headers.join(";"))
         for (const p of PRODUCTS) {
@@ -1226,7 +1245,8 @@
             (Array.isArray(p.tags) ? p.tags.join(", ") : (p.tags || "")),
             p.price == null ? "Cotizar" : String(p.price),
             p.available || "",
-            p.packInfo || ""
+            p.packInfo || "",
+            normalizeCatalogVisibility(p.catalogVisibility)
           ].map(v => {
             const s = String(v).replace(/"/g, '""')
             return `"${s}"`
@@ -1515,14 +1535,14 @@
     downloadTemplateBtn.addEventListener("click", () => {
       const headers = [
         "Nombre", "Código", "Marca", "SKU", "Categoría", "Subcategoría", 
-        "Material", "Etiquetas", "Precio", "Disponibilidad", "Stock", "Etiqueta", "Prioridad", "Imagen URL", 
-        "Empaque URL", "Info Empaque", "Descripción", "Especificaciones"
+        "Material", "Etiquetas", "Precio", "Disponibilidad", "Modalidad logística", "Canal de venta", "Stock", "Etiqueta", "Prioridad", "Unidades/Bulto", "Volumen (ft3)", "Imagen URL", 
+        "Empaque URL", "Info Empaque", "Descripción", "Especificaciones", "Ficha Técnica"
       ]
       const sample = [
         "Producto Ejemplo", "COD-001", "MarcaX", "SKU-123", "Electricidad", 
-        "Cables", "Cobre", "cable, cobre, rollo", 1500, "Disponible", 100, "Oferta", 1,
+        "Cables", "Cobre", "cable, cobre, rollo", 1500, "Disponible", "Tienda", "Público y mayorista", 100, "Oferta", 1, 12, 0.5,
         "https://via.placeholder.com/400", "https://via.placeholder.com/400", 
-        "Rollo 100m", "Descripción del producto...", "Voltaje: 220V\nColor: Negro"
+        "Caja x12", "Descripción del producto...", "Voltaje: 220V\nColor: Negro", ""
       ]
       
       const ws = XLSX.utils.aoa_to_sheet([headers, sample])
@@ -1553,6 +1573,7 @@
               brand: row["Marca"] || row["marca"] || "",
               sku: row["SKU"] || row["sku"] || "",
               category: row["Categoría"] || row["Categoria"] || "General",
+              catalogVisibility: normalizeCatalogVisibility(row["Canal de venta"] || row["Visibilidad"]),
               subcategory: row["Subcategoría"] || row["Subcategoria"] || "",
               material: row["Material"] || row["material"] || "",
               tags: String(row["Etiquetas"] || row["etiquetas"] || row["tags"] || "")
@@ -1562,6 +1583,7 @@
                 .filter((v, idx, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === idx),
               price: (row["Precio"] === "Cotizar" || !row["Precio"]) ? null : Number(row["Precio"]),
               available: row["Disponibilidad"] || "Disponible",
+              deliveryMode: /solo\s*despacho/i.test(String(row["Modalidad logística"] || "")) ? "Solo Despacho" : "Tienda",
               stock: row["Stock"] ? Number(row["Stock"]) : null,
               label: row["Etiqueta"] || row["etiqueta"] || "",
               order: row["Prioridad"] || row["prioridad"] || row["Orden"] || 999,
@@ -1599,6 +1621,7 @@
                 price: (cols[7] === "Cotizar" || !cols[7]) ? null : Number(cols[7]),
                 available: cols[8] || "Disponible",
                 packInfo: cols[9] || "",
+                catalogVisibility: normalizeCatalogVisibility(cols[11]),
                 img: "https://via.placeholder.com/400x300?text=Sin+Imagen"
               })
             }
@@ -1611,31 +1634,41 @@
         }
 
         if (Array.isArray(arr) && arr.length > 0) {
-          let maxId = PRODUCTS.length ? Math.max(...PRODUCTS.map(x => x.id)) : 0
-          let count = 0
+          const additions = []
           for (const p of arr) {
-            if (!p.name) continue
-            p.id = ++maxId
+            if (!p || typeof p !== "object" || !p.name) continue
+            const product = { ...p }
+            product.catalogVisibility = normalizeCatalogVisibility(product.catalogVisibility || product.visibility)
             // Ensure defaults
-            if (!p.img) p.img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
-            if (!p.category) p.category = "General"
-            if (typeof p.tags === "string") {
-              p.tags = String(p.tags || "")
+            if (!product.img) product.img = "https://via.placeholder.com/400x300?text=Sin+Imagen"
+            if (!product.category) product.category = "General"
+            if (typeof product.tags === "string") {
+              product.tags = String(product.tags || "")
                 .split(/[,\n;]+/g)
                 .map(s => String(s || "").trim())
                 .filter(Boolean)
                 .filter((v, idx, arr) => arr.findIndex(x => x.toLowerCase() === v.toLowerCase()) === idx)
             }
-            if (!Array.isArray(p.tags)) p.tags = []
-            PRODUCTS.push(p)
-            count++
+            if (!Array.isArray(product.tags)) product.tags = []
+            additions.push(product)
           }
-          saveProducts(PRODUCTS)
+
+          const res = await fetchAdmin("/api/products/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(additions)
+          })
+          const result = await res.json().catch(() => ({}))
+          if (!res.ok) throw new Error(result.error || `http_${res.status}`)
+          if (!Array.isArray(result.products)) throw new Error("Respuesta inválida del servidor")
+
+          PRODUCTS = result.products
+          localStorage.setItem("products", JSON.stringify(PRODUCTS))
           renderProducts()
           importBox.classList.add("hidden")
           importText.value = ""
           fileInput.value = ""
-          alert(`Se agregaron ${count} productos al catálogo.`)
+          alert(`Se agregaron ${result.added} productos al catálogo.`)
         } else {
           alert("No se encontraron datos válidos. Asegúrate de usar la Plantilla Excel, CSV o JSON.")
         }

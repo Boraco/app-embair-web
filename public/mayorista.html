@@ -121,7 +121,7 @@
     </div>
   </header>
   
-  <main class="max-w-7xl mx-auto px-4 py-8">
+  <main class="max-w-[1600px] mx-auto px-4 py-8">
     <section id="login-panel" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
       <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">Acceso privado</p>
       <h2 class="text-2xl font-bold mb-2">Catálogo para distribuidores</h2>
@@ -153,7 +153,7 @@
         </div>
       </section>
       <div>
-        <div id="products" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4"></div>
+        <div id="products" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3"></div>
       </div>
     </section>
   </main>
@@ -297,10 +297,10 @@
       const opts = paymentOptions(usd)
       if (!opts || (!opts.bsBinance && !opts.bsBcv)) return ""
       const rows = []
-      if (opts.bsBinance) rows.push(`<div class="flex justify-between gap-2"><span>Bs tasa Binance</span><strong>${moneyBs(opts.bsBinance)}</strong></div>`)
-      if (opts.bsBcv) rows.push(`<div class="flex justify-between gap-2"><span>Bs tasa BCV</span><strong>${moneyBs(opts.bsBcv)}</strong></div>`)
-      if (opts.refUsdBcv) rows.push(`<div class="flex justify-between gap-2 text-slate-400"><span>Ref. $ BCV</span><span>${money(opts.refUsdBcv)}</span></div>`)
-      return `<div class="${compact ? "mt-1 text-[11px] leading-4" : "mt-2 text-xs leading-5"} text-slate-500 border-t border-dashed border-slate-200 pt-1.5 space-y-0.5">${rows.join("")}</div>`
+      if (opts.bsBinance) rows.push(`<div class="flex justify-between gap-1"><span>Bs Binance</span><strong>${moneyBs(opts.bsBinance)}</strong></div>`)
+      if (opts.bsBcv) rows.push(`<div class="flex justify-between gap-1"><span>Bs BCV</span><strong>${moneyBs(opts.bsBcv)}</strong></div>`)
+      if (opts.refUsdBcv && !compact) rows.push(`<div class="flex justify-between gap-1 text-slate-400"><span>Ref. $ BCV</span><span>${money(opts.refUsdBcv)}</span></div>`)
+      return `<div class="${compact ? "mt-1 text-[10px] leading-3.5" : "mt-2 text-xs leading-5"} text-slate-500 border-t border-dashed border-slate-200 pt-1 space-y-0.5">${rows.join("")}</div>`
     }
 
     async function loadExchangeRates() {
@@ -482,27 +482,25 @@
         const code = p.code || p.sku || ""
         const description = String(p.desc || "").trim()
         const summary = description || (Array.isArray(p.specs) ? p.specs.filter(Boolean).join(" · ") : "")
-        return `<article data-product-card="${p.id}" class="flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+        return `<article data-product-card="${p.id}" class="flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <button type="button" data-product-detail="${p.id}" class="block w-full min-w-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#10165c]" aria-label="Ver detalles de ${p.name}">
-            <span class="block aspect-[4/3] bg-slate-100"><img src="${p.img || ""}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain p-2" onerror="this.style.display='none'"></span>
-            <span class="block p-3 pb-2 sm:p-4 sm:pb-2">
-              <span class="mb-2 flex flex-wrap gap-1">${tags.map(tag => `<span class="rounded-full bg-orange-50 px-2 py-1 text-[11px] text-orange-700">${tag}</span>`).join("")}</span>
-              <span role="heading" aria-level="3" class="product-title block text-sm font-bold leading-5 sm:text-base">${p.name}</span>
-              <span class="mt-2 block break-words text-xs leading-5 text-slate-500">${p.category || p.categoria || "General"}${code ? ` · ${code}` : ""}</span>
-              ${summary ? `<span class="mt-2 line-clamp-2 block break-words text-xs leading-5 text-slate-600">${summary}</span>` : ""}
-              <span class="mt-2 block text-xs font-semibold text-[#10165c]">Ver ficha completa</span>
+            <span class="block aspect-[5/3] bg-slate-100"><img src="${p.img || ""}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain p-2" onerror="this.style.display='none'"></span>
+            <span class="block p-2.5 pb-1.5">
+              <span class="mb-1 flex flex-wrap gap-1">${tags.map(tag => `<span class="rounded-full bg-orange-50 px-1.5 py-0.5 text-[10px] text-orange-700">${tag}</span>`).join("")}</span>
+              <span role="heading" aria-level="3" class="product-title block text-[13px] font-bold leading-4 line-clamp-2">${p.name}</span>
+              <span class="mt-1 block truncate text-[11px] leading-4 text-slate-500">${p.category || p.categoria || "General"}${code ? ` · ${code}` : ""}</span>
             </span>
           </button>
-          <div class="mt-auto px-4 pb-4">
-            <p class="text-xs leading-5 text-slate-500">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} unidades</p>
-            <p class="mt-1 text-xs leading-5 text-slate-500">Mínimo: ${w.minimumQuantity || 1} ${w.packageName || "paquete"}(s)</p>
-            <div class="mt-2"><p class="text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-2xl font-bold text-[#10165c]">${money(unitPrice)}</strong>${paymentOptionsHtml(unitPrice, true)}</div>
-            <p class="mt-1 text-xs text-slate-500">Paquete: <strong class="text-slate-700">${money(w.wholesalePrice)}</strong></p>${w.wholesalePrice != null && w.unitsPerPackage > 1 ? paymentOptionsHtml(w.wholesalePrice, true) : ""}
-            ${w.unitWholesalePrice != null ? `<label class="mt-2 block text-xs font-semibold text-slate-600">Comprar por<select data-sale-unit="${p.id}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm"><option value="package">${w.packageName || "Empaque"}</option><option value="unit">Unidad</option></select></label>` : ""}
-            <div class="product-actions mt-3"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="min-w-0 break-words rounded-lg border border-slate-300 px-2 py-2 text-xs font-bold leading-4 text-slate-700 transition hover:bg-slate-50 sm:px-3" title="Compartir ficha"><span class="sm:hidden">Compartir</span><span class="hidden sm:inline">Compartir ficha</span></button><button type="button" data-add-product="${p.id}" onclick="addSelectedProduct(${p.id}, ${w.minimumQuantity || 1})" class="min-w-0 break-words rounded-lg bg-amber-500 px-2 py-2 text-xs font-bold leading-4 text-white transition hover:bg-amber-600 sm:px-3"><span class="sm:hidden">Agregar</span><span class="hidden sm:inline">Agregar solicitud</span></button></div>
-            <div class="mt-3 flex flex-wrap gap-1"><span class="rounded-full bg-amber-50 px-2 py-1 text-[11px] text-amber-700">${w.availability || "Disponible"}</span><span class="rounded-full bg-sky-50 px-2 py-1 text-[11px] text-sky-700">Solo despacho</span></div>
+          <div class="mt-auto px-2.5 pb-3">
+            <p class="text-[10px] leading-4 text-slate-400">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} und. · Mín. ${w.minimumQuantity || 1}</p>
+            <div class="mt-1 flex items-baseline justify-between gap-1"><p class="text-[10px] font-semibold text-slate-500">Unidad</p><strong class="text-lg font-bold text-[#10165c]">${money(unitPrice)}</strong></div>
+            ${paymentOptionsHtml(unitPrice, true)}
+            <p class="mt-0.5 text-[11px] text-slate-500">Paquete: <strong class="text-slate-700">${money(w.wholesalePrice)}</strong></p>
+            ${w.unitWholesalePrice != null ? `<label class="mt-1.5 block text-[10px] font-semibold text-slate-600">Comprar por<select data-sale-unit="${p.id}" class="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-1.5 py-1 text-xs"><option value="package">${w.packageName || "Empaque"}</option><option value="unit">Unidad</option></select></label>` : ""}
+            <div class="product-actions mt-2 flex gap-1.5"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="flex-1 min-w-0 rounded-md border border-slate-300 px-1 py-1.5 text-[11px] font-bold leading-3 text-slate-700 transition hover:bg-slate-50" title="Compartir ficha">Compartir</button><button type="button" data-add-product="${p.id}" onclick="addSelectedProduct(${p.id}, ${w.minimumQuantity || 1})" class="flex-1 min-w-0 rounded-md bg-amber-500 px-1 py-1.5 text-[11px] font-bold leading-3 text-white transition hover:bg-amber-600">Agregar</button></div>
+            <div class="mt-1.5 flex flex-wrap gap-1"><span class="rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-700">${w.availability || "Disponible"}</span></div>
           </div>
-        </article>` 
+        </article>`
       }).join("")
 
       const categoryFilters = `<nav class="col-span-full -mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2" aria-label="Filtrar productos por categoría">
@@ -516,7 +514,7 @@
 
       $("products").innerHTML = `${categoryFilters}${selectedWholesaleCategory
         ? (visible.length
-          ? `<div class="col-span-full grid grid-cols-2 gap-3 sm:gap-4">${productCards(visible)}</div>`
+          ? `<div class="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">${productCards(visible)}</div>`
           : `<p class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">No encontramos productos en esta categoría con esa búsqueda.</p>`)
         : groupedProducts.length
         ? `${groupedProducts.map((group, index) => `<details data-category-section="${index}" class="col-span-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm" ${q || index === 0 ? "open" : ""}>
@@ -524,7 +522,7 @@
               <span class="min-w-0">${group.category}</span>
               <span class="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-500">${group.items.length} ${group.items.length === 1 ? "producto" : "productos"}</span>
             </summary>
-            <div class="grid grid-cols-2 gap-3 border-t border-slate-100 p-3 sm:gap-4 sm:p-4">${productCards(group.items)}</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 border-t border-slate-100 p-3">${productCards(group.items)}</div>
           </details>`).join("")}`
         : `<p class="col-span-full py-8 text-center text-sm text-slate-500">No encontramos productos con esos filtros.</p>`}`
     }

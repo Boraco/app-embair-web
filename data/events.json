@@ -1,5 +1,453 @@
 [
   {
+    "id": "1793211156083",
+    "createdAt": "2026-10-28T18:12:36.083Z",
+    "type": "assistant_message",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "stage": "ready"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793211154944",
+    "createdAt": "2026-10-28T18:12:34.944Z",
+    "type": "assistant_open",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/landing.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793210769082",
+    "createdAt": "2026-10-28T18:06:09.082Z",
+    "type": "assistant_open",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/landing.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793210734249",
+    "createdAt": "2026-10-28T18:05:34.249Z",
+    "type": "assistant_open",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/landing.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793210718190",
+    "createdAt": "2026-10-28T18:05:18.190Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/landing.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793209354383",
+    "type": "wholesale_cart_add",
+    "sessionId": "",
+    "email": "test-mayorista@embair.local",
+    "meta": {
+      "productId": 82,
+      "qty": 25,
+      "saleUnit": "package",
+      "clientId": 999999
+    },
+    "createdAt": "2026-10-28T17:42:34.383Z",
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793209333787",
+    "type": "wholesale_login",
+    "sessionId": "",
+    "email": "test-mayorista@embair.local",
+    "meta": {
+      "clientId": 999999
+    },
+    "createdAt": "2026-10-28T17:42:13.787Z",
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793209333750",
+    "type": "wholesale_login",
+    "sessionId": "",
+    "email": "test-mayorista@embair.local",
+    "meta": {
+      "clientId": 999999
+    },
+    "createdAt": "2026-10-28T17:42:13.751Z",
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793208941286",
+    "createdAt": "2026-10-28T17:35:41.286Z",
+    "type": "product_view",
+    "sessionId": "sess_a207inw4mdhmvseayg9",
+    "email": "",
+    "deviceId": "dev_gjf68udcosmmvseayg9",
+    "meta": {
+      "productId": 44,
+      "origin": "grid_primary",
+      "label": "",
+      "category": "Electricidad",
+      "path": "/index.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793208865783",
+    "createdAt": "2026-10-28T17:34:25.783Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/index.html"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793053981419",
+    "createdAt": "2026-10-26T22:33:01.419Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793028109509",
+    "createdAt": "2026-10-26T15:21:49.509Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793021912483",
+    "createdAt": "2026-10-26T13:38:32.483Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=THHN"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793021899619",
+    "createdAt": "2026-10-26T13:38:19.619Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=BREAKER"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793021870394",
+    "createdAt": "2026-10-26T13:37:50.394Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=EMT"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793021855277",
+    "createdAt": "2026-10-26T13:37:35.277Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=CONDUIT"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793021476553",
+    "createdAt": "2026-10-26T13:31:16.553Z",
+    "type": "quote_channel_click",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "channel": "email",
+      "source": "landing",
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1793020878228",
+    "createdAt": "2026-10-26T13:21:18.228Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793019458421",
+    "createdAt": "2026-10-26T12:57:38.421Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/cotizaciones"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1793016979050",
+    "createdAt": "2026-10-26T12:16:19.050Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1792971302854",
+    "createdAt": "2026-10-25T23:35:02.854Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1792970554951",
+    "createdAt": "2026-10-25T23:22:34.951Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=THHN"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1792970499976",
+    "createdAt": "2026-10-25T23:21:39.976Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.143.1 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1792970450940",
+    "createdAt": "2026-10-25T23:20:50.940Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1792773408171",
+    "createdAt": "2026-10-23T16:36:48.171Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1792773016352",
+    "createdAt": "2026-10-23T16:30:16.352Z",
+    "type": "portal_view",
+    "sessionId": "sess_uav1daqq1pamtxq07l5",
+    "email": "",
+    "deviceId": "dev_btjktbrg04cmtxq07l5",
+    "meta": {
+      "path": "/app?portal=1&category=Electricidad&search=EMT"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1792772975792",
+    "createdAt": "2026-10-23T16:29:35.792Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1792772961008",
+    "createdAt": "2026-10-23T16:29:21.008Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.142.0 Chrome/150.0.7871.250 Electron/43.7.7 Safari/537.36"
+  },
+  {
+    "id": "1791236858910",
+    "createdAt": "2026-10-05T21:47:38.910Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1791235637586",
+    "createdAt": "2026-10-05T21:27:17.586Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1789833530563",
+    "createdAt": "2026-09-19T15:58:50.563Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1789482068632",
+    "createdAt": "2026-09-15T14:21:08.633Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1789476185422",
+    "createdAt": "2026-09-15T12:43:05.422Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+  },
+  {
+    "id": "1789476126521",
+    "createdAt": "2026-09-15T12:42:06.521Z",
+    "type": "landing_visit",
+    "sessionId": "",
+    "email": "",
+    "deviceId": "",
+    "meta": {
+      "path": "/"
+    },
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
+  },
+  {
     "id": "1789342830751",
     "createdAt": "2026-09-13T23:40:30.751Z",
     "type": "product_view",

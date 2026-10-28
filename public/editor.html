@@ -14,6 +14,9 @@
     .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
     .tab-inactive { border-bottom: 2px solid transparent; color: #64748b; }
     .tab-inactive:hover { color: #334155; }
+    .slide-drag-handle { cursor: grab; }
+    .slide-drag-handle:active { cursor: grabbing; }
+    .slide-upload:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 pb-20">
@@ -95,6 +98,42 @@
         </div>
     </section>
 
+    <!-- 1.6. TASAS DE CAMBIO (Bs / USD) -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <h2 class="font-bold text-lg text-slate-800">Tasas de Cambio (Bs / USD)</h2>
+            <span class="text-xs text-slate-500 bg-slate-200 px-2 py-1 rounded">Global</span>
+        </div>
+        <div class="p-6 grid md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Tasa BCV (Bs por $)</label>
+                    <input id="config-rate-bcv" type="number" min="0" step="0.01" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: 888.12" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Tasa Binance USDT (Bs por USDT)</label>
+                    <input id="config-rate-binance" type="number" min="0" step="0.01" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: 1010" />
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Margen de protección (%)</label>
+                    <input id="config-rate-margin" type="number" min="0" max="100" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ej: 10" />
+                </div>
+                <p id="config-rates-updated" class="text-xs text-slate-400"></p>
+            </div>
+            <div class="space-y-4">
+                <div class="p-4 bg-emerald-50 text-emerald-900 text-xs rounded-lg border border-emerald-100 space-y-2">
+                    <p class="font-bold text-sm">💱 ¿Cómo se aplican?</p>
+                    <p><strong>Tienda pública:</strong> bajo cada precio se muestra la referencia en Bs a tasa BCV (precio × BCV).</p>
+                    <p><strong>Mayorista:</strong> se muestran 3 opciones de pago: USDT (precio base), Bs a tasa Binance y Bs a tasa BCV con ajuste: <code>precio × (Binance ÷ BCV) × (1 + margen)</code>.</p>
+                </div>
+                <div id="config-rates-preview" class="p-4 bg-slate-50 text-slate-700 text-xs rounded-lg border border-slate-200 hidden">
+                    <p class="font-bold text-sm mb-2">Vista previa (producto de $1.50)</p>
+                    <div id="config-rates-preview-body" class="space-y-1"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- 1.5. INFORMACIÓN DE CONTACTO (Pie de Página) -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
@@ -129,8 +168,11 @@
         <!-- 2. HERO / CARRUSEL -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                <h2 class="font-bold text-lg text-slate-800">Portada Principal (Landing)</h2>
-                <button id="add-slide-btn" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition">+ Añadir Slide</button>
+                <div>
+                    <h2 class="font-bold text-lg text-slate-800">Portada Principal (Landing)</h2>
+                    <p class="mt-1 text-sm text-slate-500">Elige las imágenes que se mostrarán en la portada de tu sitio.</p>
+                </div>
+                <button id="add-slide-btn" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">+ Añadir imagen</button>
             </div>
             <div class="p-6 space-y-6">
                 <!-- Landing Hero Text -->
@@ -149,9 +191,14 @@
                 <!-- Slides -->
                 <div class="grid gap-6 lg:grid-cols-2">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Imágenes del Carrusel</h3>
-                    <p class="text-sm text-slate-500 mb-4">Configura el carrusel principal de la Landing Page.</p>
-                    <div id="slides-container" class="space-y-4">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-700">Imágenes del carrusel</h3>
+                            <p class="mt-1 text-sm text-slate-500">Haz clic en una imagen para cambiarla. Arrastra las tarjetas para cambiar el orden.</p>
+                        </div>
+                        <span id="landing-slide-count" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700" aria-live="polite">0 imágenes</span>
+                    </div>
+                    <div id="slides-container" class="space-y-4" aria-label="Imágenes de la portada">
                         <!-- Slides will be injected here -->
                     </div>
                 </div>
@@ -282,8 +329,11 @@
         <!-- PORTAL SLIDES -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                <h2 class="font-bold text-lg text-slate-800">Portada del Catálogo</h2>
-                <button id="add-portal-slide-btn" class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold hover:bg-blue-200 transition">+ Añadir Slide</button>
+                <div>
+                    <h2 class="font-bold text-lg text-slate-800">Portada del Catálogo</h2>
+                    <p class="mt-1 text-sm text-slate-500">Usa imágenes distintas para el portal o comparte las de la landing.</p>
+                </div>
+                <button id="add-portal-slide-btn" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">+ Añadir imagen</button>
             </div>
             <div class="p-6 space-y-6">
                 <!-- Portal Hero Text -->
@@ -305,8 +355,11 @@
                 </div>
                 
                 <div id="portal-slides-wrapper">
-                    <p class="text-sm text-slate-500 mb-4">Configura los slides específicos para el portal de clientes. Si está vacío, se mostrarán productos destacados por defecto.</p>
-                    <div id="portal-slides-container" class="space-y-4">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+                        <p class="text-sm text-slate-500">Si lo dejas vacío, se mostrarán productos destacados por defecto.</p>
+                        <span id="portal-slide-count" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700" aria-live="polite">0 imágenes</span>
+                    </div>
+                    <div id="portal-slides-container" class="space-y-4" aria-label="Imágenes de la portada del catálogo">
                         <!-- Portal Slides injected here -->
                     </div>
                 </div>
@@ -339,24 +392,46 @@
 
   <!-- Templates for JS -->
   <template id="slide-template">
-    <div class="slide-item bg-white border border-slate-200 rounded-lg p-4 relative group draggable-item">
-        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-            <button class="delete-slide text-red-400 hover:text-red-600 p-1">🗑️</button>
+    <article class="slide-item overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-md">
+        <div class="slide-drag-handle flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3">
+            <div class="flex items-center gap-2">
+                <span class="text-slate-400" aria-hidden="true">⠿</span>
+                <span class="slide-position text-xs font-bold uppercase tracking-wider text-slate-600">Imagen 1</span>
+                <span class="text-xs text-slate-400">Arrastra para ordenar</span>
+            </div>
+            <button type="button" class="delete-slide rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-red-50 hover:text-red-600">Quitar</button>
         </div>
-        <div class="grid md:grid-cols-[120px_1fr] gap-4 items-start">
-            <div class="bg-slate-100 h-24 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer upload-trigger">
-                <img src="" class="slide-img-preview absolute inset-0 w-full h-full object-cover hidden" />
-                <span class="text-xs text-slate-400 text-center px-2">Click para imagen</span>
+        <div class="grid gap-4 p-4 md:grid-cols-[minmax(180px,0.9fr)_1.1fr]">
+            <div>
+                <button type="button" class="slide-upload upload-trigger group relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-100 text-left transition hover:border-blue-400 hover:bg-blue-50" aria-label="Seleccionar imagen para este slide">
+                    <img src="" alt="" class="slide-img-preview absolute inset-0 h-full w-full object-cover hidden" />
+                    <span class="slide-upload-placeholder relative z-10 flex flex-col items-center gap-2 px-3 text-center text-slate-500 transition group-hover:text-blue-700">
+                        <span class="text-3xl" aria-hidden="true">＋</span>
+                        <span class="text-sm font-semibold">Selecciona una imagen</span>
+                        <span class="text-xs">JPG, PNG o WebP</span>
+                    </span>
+                    <span class="slide-upload-overlay absolute inset-x-0 bottom-0 z-10 hidden bg-slate-950/65 px-3 py-2 text-center text-xs font-semibold text-white">Cambiar imagen</span>
+                </button>
                 <input type="file" accept="image/*" class="hidden slide-file-input">
                 <input type="hidden" class="slide-img-url">
+                <p class="slide-image-status mt-2 min-h-4 text-xs text-slate-500" role="status" aria-live="polite">La imagen se mostrará en la portada del sitio.</p>
             </div>
-            <div class="space-y-2">
-                <input type="text" class="slide-title w-full border-b border-slate-200 pb-1 text-sm font-bold focus:border-blue-500 outline-none" placeholder="Título del Slide (Ej: Gran Oferta)" />
-                <textarea class="slide-subtitle w-full border-b border-slate-200 pb-1 text-xs text-slate-600 focus:border-blue-500 outline-none resize-none" rows="2" placeholder="Subtítulo o descripción breve..."></textarea>
-                <input type="text" class="slide-link w-full text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded border-none focus:ring-1 focus:ring-blue-500" placeholder="Enlace opcional (Ej: /productos.html?cat=ofertas)" />
+            <div class="space-y-3">
+                <label class="block">
+                    <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Título</span>
+                    <input type="text" class="slide-title w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="Ej.: Soluciones para tu próximo proyecto" />
+                </label>
+                <label class="block">
+                    <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Descripción breve</span>
+                    <textarea class="slide-subtitle w-full resize-y rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" rows="2" placeholder="Un texto breve para acompañar la imagen"></textarea>
+                </label>
+                <label class="block">
+                    <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Enlace opcional</span>
+                    <input type="text" class="slide-link w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" placeholder="/productos.html?cat=ofertas" />
+                </label>
             </div>
         </div>
-    </div>
+    </article>
   </template>
 
   <template id="section-text-template">
@@ -387,15 +462,13 @@
                     <option value="right">Imagen a la Derecha</option>
                 </select>
             </div>
-            <div class="bg-slate-100 rounded-lg flex items-center justify-center relative overflow-hidden cursor-pointer upload-trigger min-h-[150px]">
+            <button type="button" class="upload-trigger group relative flex min-h-[180px] w-full items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-100 transition hover:border-blue-400 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" aria-label="Seleccionar imagen de la sección">
                 <img src="" class="section-img-preview absolute inset-0 w-full h-full object-cover hidden" />
-                <div class="text-center p-4">
-                    <span class="block text-2xl mb-1">📷</span>
-                    <span class="text-xs text-slate-400">Click para subir imagen</span>
-                </div>
-                <input type="file" accept="image/*" class="hidden section-file-input">
-                <input type="hidden" class="section-img-url">
-            </div>
+                <span class="section-upload-placeholder relative z-10 text-center p-4 text-sm font-medium text-slate-500 group-hover:text-blue-700">＋<br>Selecciona una imagen</span>
+            </button>
+            <input type="file" accept="image/*" class="hidden section-file-input">
+            <input type="hidden" class="section-img-url">
+            <p class="section-image-status text-xs text-slate-500" role="status" aria-live="polite">Añade una imagen para acompañar el contenido.</p>
         </div>
     </div>
   </template>
@@ -481,8 +554,16 @@
         const fd = new FormData()
         fd.append("file", file)
         const res = await fetchAdmin("/api/upload", { method: "POST", body: fd })
-        const data = await res.json()
-        return data.ok ? data.url : null
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || !data.ok || !data.url) {
+            const messages = {
+                file_too_large: "La imagen supera el límite permitido de 15 MB.",
+                unsupported_file_type: "El formato de esta imagen no es compatible.",
+                invalid_image: "No se pudo procesar esta imagen. Prueba con otro archivo."
+            }
+            throw new Error(messages[data.error] || `No se pudo subir la imagen (HTTP ${res.status}).`)
+        }
+        return data.url
     }
 
     function switchTab(tab) {
@@ -842,6 +923,16 @@
             document.getElementById("config-primaryColor").value = config.primaryColor || "#4f46e5"
             document.getElementById("config-secondaryColor").value = config.secondaryColor || "#0ea5e9"
 
+            // 1.6 Tasas de cambio
+            const rates = config.exchangeRates || {}
+            document.getElementById("config-rate-bcv").value = rates.bcv || ""
+            document.getElementById("config-rate-binance").value = rates.binance || ""
+            document.getElementById("config-rate-margin").value = rates.marginPercent != null ? rates.marginPercent : ""
+            document.getElementById("config-rates-updated").textContent = rates.updatedAt
+                ? "Última actualización: " + new Date(rates.updatedAt).toLocaleString("es-VE")
+                : "Aún no configuras las tasas."
+            updateRatesPreview()
+
             // 2. Landing Slides & Text
             document.getElementById("config-heroTitle").value = config.heroTitle || ""
             document.getElementById("config-heroSubtitle").value = config.heroSubtitle || ""
@@ -986,7 +1077,7 @@
                     preview.src = url
                     preview.classList.remove("hidden")
                 }
-            } catch(e) { alert("Error al subir") }
+            } catch(e) { alert(e.message || "Error al subir la imagen.") }
             btnUploadLogo.textContent = "Subir"
         })
 
@@ -1066,6 +1157,13 @@
                 email: document.getElementById("config-email").value,
                 mapUrl: document.getElementById("config-mapUrl").value,
 
+                // Tasas de cambio
+                exchangeRates: {
+                    bcv: Number(document.getElementById("config-rate-bcv").value || 0),
+                    binance: Number(document.getElementById("config-rate-binance").value || 0),
+                    marginPercent: Number(document.getElementById("config-rate-margin").value || 0)
+                },
+
                 // Sections
                 sections: Array.from(document.querySelectorAll(".section-item")).map(el => ({
                     type: el.dataset.type,
@@ -1103,6 +1201,30 @@
 
     // --- HELPER FUNCTIONS ---
 
+    function updateRatesPreview() {
+        const bcv = Number(document.getElementById("config-rate-bcv").value || 0)
+        const binance = Number(document.getElementById("config-rate-binance").value || 0)
+        const margin = Number(document.getElementById("config-rate-margin").value || 0)
+        const box = document.getElementById("config-rates-preview")
+        const body = document.getElementById("config-rates-preview-body")
+        if (!bcv || !binance) { box.classList.add("hidden"); return }
+        const base = 1.50
+        const factor = (binance / bcv) * (1 + margin / 100)
+        const refUsd = base * factor
+        const fmtUsd = v => "$" + v.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        const fmtBs = v => "Bs. " + v.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        body.innerHTML = `
+            <p>🏪 <strong>Tienda pública:</strong> ${fmtUsd(base)} → ${fmtBs(base * bcv)} (BCV)</p>
+            <p>🏭 <strong>Mayorista USDT:</strong> ${fmtUsd(base)}</p>
+            <p>🏭 <strong>Bs tasa Binance:</strong> ${fmtBs(base * binance)}</p>
+            <p>🏭 <strong>Bs tasa BCV:</strong> ${fmtBs(refUsd * bcv)} <span class="text-slate-400">(ref ${fmtUsd(refUsd)})</span></p>
+        `
+        box.classList.remove("hidden")
+    }
+    ["config-rate-bcv", "config-rate-binance", "config-rate-margin"].forEach(id => {
+        document.getElementById(id).addEventListener("input", updateRatesPreview)
+    })
+
     function togglePortalSlidesWrapper() {
         const checkbox = document.getElementById("config-useLandingSlidesOnPortal")
         const wrapper = document.getElementById("portal-slides-wrapper")
@@ -1113,23 +1235,44 @@
         }
     }
 
+    function updateSlidePositions(container) {
+        const slides = container.querySelectorAll(".slide-item")
+        slides.forEach((slide, index) => {
+            slide.querySelector(".slide-position").textContent = `Imagen ${index + 1}`
+        })
+        const counterId = container.id === "slides-container" ? "landing-slide-count" : "portal-slide-count"
+        const counter = document.getElementById(counterId)
+        if (counter) counter.textContent = `${slides.length} ${slides.length === 1 ? "imagen" : "imágenes"}`
+    }
+
+    function setSlideImage(root, url) {
+        const preview = root.querySelector(".slide-img-preview")
+        preview.src = url
+        preview.classList.remove("hidden")
+        root.querySelector(".slide-upload-placeholder").classList.add("hidden")
+        root.querySelector(".slide-img-url").value = url
+    }
+
     function addSlide(data = {}, containerId) {
         const tpl = document.getElementById("slide-template")
         const clone = tpl.content.cloneNode(true)
         const root = clone.querySelector(".slide-item")
+        const container = document.getElementById(containerId)
         
         // Fill Data
         if(data.title) root.querySelector(".slide-title").value = data.title
         if(data.subtitle) root.querySelector(".slide-subtitle").value = data.subtitle
         if(data.link) root.querySelector(".slide-link").value = data.link
         if(data.img) {
-            root.querySelector(".slide-img-url").value = data.img
-            root.querySelector(".slide-img-preview").src = data.img
-            root.querySelector(".slide-img-preview").classList.remove("hidden")
+            setSlideImage(root, data.img)
+            root.querySelector(".slide-image-status").textContent = "Imagen lista. Guarda los cambios para publicar."
         }
 
         // Events
-        root.querySelector(".delete-slide").addEventListener("click", () => root.remove())
+        root.querySelector(".delete-slide").addEventListener("click", () => {
+            root.remove()
+            updateSlidePositions(container)
+        })
         
         const uploadTrigger = root.querySelector(".upload-trigger")
         const fileInput = root.querySelector(".slide-file-input")
@@ -1137,16 +1280,25 @@
         fileInput.addEventListener("change", async (e) => {
             const file = e.target.files[0]
             if(!file) return
-            // Visual feedback could be added here
-            const url = await uploadFile(file)
-            if(url) {
-                root.querySelector(".slide-img-url").value = url
-                root.querySelector(".slide-img-preview").src = url
-                root.querySelector(".slide-img-preview").classList.remove("hidden")
+            const status = root.querySelector(".slide-image-status")
+            uploadTrigger.disabled = true
+            status.className = "slide-image-status mt-2 min-h-4 text-xs text-blue-700"
+            status.textContent = "Subiendo imagen..."
+            try {
+                const url = await uploadFile(file)
+                setSlideImage(root, url)
+                status.textContent = "Imagen lista. Guarda los cambios para publicar."
+            } catch(error) {
+                status.className = "slide-image-status mt-2 min-h-4 text-xs text-red-600"
+                status.textContent = error.message || "No se pudo subir la imagen."
+            } finally {
+                uploadTrigger.disabled = false
+                fileInput.value = ""
             }
         })
 
-        document.getElementById(containerId).appendChild(root)
+        container.appendChild(root)
+        updateSlidePositions(container)
     }
 
     function addService(data = {}) {
@@ -1183,6 +1335,8 @@
                 root.querySelector(".section-img-url").value = data.img
                 root.querySelector(".section-img-preview").src = data.img
                 root.querySelector(".section-img-preview").classList.remove("hidden")
+                root.querySelector(".section-upload-placeholder").classList.add("hidden")
+                root.querySelector(".section-image-status").textContent = "Imagen lista."
             }
             
             // Upload Logic
@@ -1192,11 +1346,22 @@
             fileInput.addEventListener("change", async (e) => {
                 const file = e.target.files[0]
                 if(!file) return
-                const url = await uploadFile(file)
-                if(url) {
+                const status = root.querySelector(".section-image-status")
+                uploadTrigger.disabled = true
+                status.textContent = "Subiendo imagen..."
+                try {
+                    const url = await uploadFile(file)
                     root.querySelector(".section-img-url").value = url
                     root.querySelector(".section-img-preview").src = url
                     root.querySelector(".section-img-preview").classList.remove("hidden")
+                    root.querySelector(".section-upload-placeholder").classList.add("hidden")
+                    status.textContent = "Imagen lista. Guarda los cambios para publicar."
+                } catch(error) {
+                    status.className = "section-image-status text-xs text-red-600"
+                    status.textContent = error.message || "No se pudo subir la imagen."
+                } finally {
+                    uploadTrigger.disabled = false
+                    fileInput.value = ""
                 }
             })
         }

@@ -9,7 +9,7 @@
   "slides": [
     {
       "title": "Brindamos soluciones Integrales en la compra de Materiales Eléctricos, Plomería y Ferretería",
-      "subtitle": "Tenemos mas de 10 años impulsando proyectos de construcción y remodelaciones a nivel nacional. Somos el alíado estratégico que tu proyecto u obra civil necesita con precios competitivos al mayor. ",
+      "subtitle": "Tenemos más de 10 años impulsando proyectos de construcción y remodelaciones en Caracas. Atendemos requerimientos especiales y pedidos puntuales para proyectos u obras, con precios competitivos al mayor.",
       "link": "dice que enlace opcional",
       "img": "/uploads/6_1771950856280.png"
     },
@@ -84,5 +84,17 @@
       },
       "General": {}
     }
+  },
+  "wholesaleLogoSlides": [
+    {
+      "url": "/uploads/correo_JPG_339e2f93-937f-4042-ab69-acf542633171.webp",
+      "alt": "Implasvenca"
+    }
+  ],
+  "exchangeRates": {
+    "bcv": 888.12,
+    "binance": 1010,
+    "marginPercent": 10,
+    "updatedAt": "2026-10-28T17:28:26.884Z"
   }
 }

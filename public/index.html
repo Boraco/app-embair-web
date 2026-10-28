@@ -7,6 +7,7 @@
   <link rel="apple-touch-icon" href="https://embair.es/uploads/version_malu_Definitivo_Comercizlizadora_Embair_04_1771955690722.png" />
   <title>Tienda On Line EMBAIR</title>
   <meta name="description" content="Materiales Eléctricos | Plomería | Construcción | Herramientas. Explora nuestra Tienda On Line y realiza tu pedido por WhatsApp.">
+  <link rel="canonical" href="https://embair.es/app">
   <meta name="keywords" content="electricidad, plomería, herramientas, ferretería, construcción, catálogo online">
   <meta property="og:title" content="Tienda On Line EMBAIR">
   <meta property="og:description" content="Materiales Eléctricos | Plomería | Construcción | Herramientas. Explora nuestra Tienda On Line y realiza tu pedido por WhatsApp.">
@@ -41,6 +42,8 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .filter-chip { transition: all 0.2s; white-space: nowrap; }
     .filter-chip.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
+    #catalog-toolbar.is-scrolled #catalog-category-controls { display: none; }
+    #catalog-toolbar { top: var(--header-h, 60px); scroll-margin-top: calc(var(--header-h, 60px) + 8px); }
     .drawer-open { overflow: hidden; }
     .modal-open { overflow: hidden; }
     #assistant-root { bottom: 7rem; }
@@ -121,7 +124,7 @@
 
   <main class="max-w-6xl mx-auto px-4 py-3 md:py-5 pb-24 md:pb-8">
     <!-- Marquee Section -->
-    <div id="marquee-container" class="mb-12 hidden">
+    <div id="marquee-container" class="hidden">
        <!-- Marquee injected by JS -->
     </div>
 
@@ -134,14 +137,14 @@
         <h3 class="text-2xl font-bold text-slate-900">Ofertas y Novedades</h3>
         <span class="animate-pulse w-2 h-2 rounded-full bg-red-500"></span>
       </div>
-      <div id="featured-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div id="featured-grid" class="grid grid-cols-2 md:grid-cols-4 2xl:grid-cols-5 gap-4">
         <!-- Featured items injected here -->
       </div>
     </section>
 
     <section id="catalogo" class="mb-10 mt-4">
       <!-- Toolbar -->
-      <div class="sticky top-[60px] z-40 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl mb-5 bg-[#001B71]/90 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+      <div id="catalog-toolbar" class="sticky z-40 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl mb-5 bg-[#001B71]/90 backdrop-blur-xl shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
         <div class="max-w-5xl mx-auto">
           <div class="flex items-center gap-2 mb-1">
             <div class="w-5 h-5 text-[#FF6B00] animate-pulse">
@@ -158,7 +161,7 @@
           </div>
           <div class="mt-1 text-[11px] md:text-xs text-white/60 italic leading-tight">Busca por referencia, marca o normativa técnica (RETIE/NTC).</div>
 
-          <div class="mt-1.5 flex flex-col md:flex-row gap-2 md:items-center">
+          <div id="catalog-category-controls" class="mt-1.5 flex flex-col md:flex-row gap-2 md:items-center">
             <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 flex-1">
               <button type="button" data-cat-chip="__FAV__" class="min-w-0 flex items-center justify-center gap-1 px-2 py-0.5 rounded-full border border-transparent text-white/80 text-[10px] md:text-xs font-semibold leading-none transition-colors">
                 <svg class="w-4 h-4 md:w-[18px] md:h-[18px] text-white/80" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27Z"/></svg>
@@ -206,7 +209,7 @@
         </div>
       </div>
 
-      <div id="prod-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+      <div id="prod-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
       <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
         <p>Cargando productos...</p>
@@ -234,11 +237,14 @@
 
       <div class="p-4 border-t border-slate-100 bg-slate-50">
         <div id="cart-logistics-notice" class="hidden mb-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-800">
-          Este pedido incluye productos de <strong>Solo Despacho</strong>. La entrega o el flete al sitio se coordinarán previamente por WhatsApp.
+          Material para despacho; transporte y logística a consolidar según su pedido.
         </div>
         <div class="flex items-center justify-between mb-4">
           <span class="text-slate-600">Total estimado</span>
-          <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
+          <div class="text-right">
+            <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
+            <div id="drawer-total-bs" class="text-[11px] font-normal text-slate-400"></div>
+          </div>
         </div>
         <button id="send-wa-drawer" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3.5 font-semibold shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2">
           <span>Enviar pedido por WhatsApp</span>
@@ -402,6 +408,7 @@
                     <div id="pm-tags" class="flex flex-wrap gap-2 mb-2 hidden"></div>
                     <h3 class="text-2xl font-bold leading-tight text-slate-900 mb-2" id="pm-title"></h3>
                     <p class="text-3xl font-bold text-blue-600 mb-4" id="pm-price"></p>
+                    <div id="pm-logistics-notice" class="hidden mb-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm leading-relaxed text-sky-800">Material para despacho; transporte y logística a consolidar según su pedido.</div>
                     <div class="prose prose-sm text-slate-500 mb-6">
                       <p id="pm-desc"></p>
                     </div>
@@ -444,6 +451,18 @@
       const categorySelect = document.getElementById("category-select")
       const searchBtn = document.getElementById("search-btn")
       const categoryChips = Array.from(document.querySelectorAll("[data-cat-chip]"))
+      const catalogToolbar = document.getElementById("catalog-toolbar")
+
+      const updateCatalogToolbar = () => {
+        const header = document.querySelector("header")
+        const headerH = header ? Math.round(header.getBoundingClientRect().height) : 60
+        document.documentElement.style.setProperty("--header-h", headerH + "px")
+        const isSticky = catalogToolbar && window.scrollY > 0 && catalogToolbar.getBoundingClientRect().top <= headerH + 1
+        if (catalogToolbar) catalogToolbar.classList.toggle("is-scrolled", Boolean(isSticky))
+      }
+      window.addEventListener("scroll", updateCatalogToolbar, { passive: true })
+      window.addEventListener("resize", updateCatalogToolbar)
+      updateCatalogToolbar()
       
       const cartDrawer = document.getElementById("cart-drawer")
       const cartOverlay = document.getElementById("cart-drawer-overlay")
@@ -486,6 +505,7 @@
       const pmTitle = document.getElementById("pm-title")
       const pmPrice = document.getElementById("pm-price")
       const pmDesc = document.getElementById("pm-desc")
+      const pmLogisticsNotice = document.getElementById("pm-logistics-notice")
       const pmSpecsContainer = document.getElementById("pm-specs-container")
       const pmSpecs = document.getElementById("pm-specs")
       const pmRelatedContainer = document.getElementById("pm-related-container")
@@ -650,8 +670,9 @@
           }
         }
         if (pmTitle) pmTitle.textContent = product.name || ""
-        if (pmPrice) pmPrice.textContent = formatPrice(product.price)
+        if (pmPrice) pmPrice.innerHTML = formatPrice(product.price) + bsRefHtml(product.price, "text-base font-semibold text-emerald-600 mt-1")
         if (pmDesc) pmDesc.textContent = product.desc || ""
+        if (pmLogisticsNotice) pmLogisticsNotice.classList.toggle("hidden", !(product.deliveryMode === "Solo Despacho" || product.available === "Solo Despacho"))
         if (pmSpecs) {
           const list = Array.isArray(product.specs) ? product.specs : []
           pmSpecs.innerHTML = ""
@@ -705,6 +726,7 @@
               btn.innerHTML = `
                 <div class="text-[12px] font-semibold text-slate-900 line-clamp-2">${p.name || ""}</div>
                 <div class="text-[11px] text-slate-600 mt-1">${formatPrice(p.price)}</div>
+                ${bsRefHtml(p.price, "text-[10px] font-semibold text-emerald-600")}
               `
               btn.onclick = () => openProductDetail(p, "related")
               pmRelated.appendChild(btn)
@@ -789,9 +811,29 @@
       }
 
       // --- 2. Formatting ---
+      let exchangeRates = { bcv: 0, binance: 0, marginPercent: 0, updatedAt: null }
+
       function formatPrice(p) {
         if (p == null) return "Consultar"
         return "$" + Number(p).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      }
+
+      function formatBs(v) {
+        return "Bs. " + Number(v).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      }
+
+      function bsRefHtml(usd, cls) {
+        if (usd == null || !exchangeRates.bcv) return ""
+        return `<div class="${cls || "text-[11px] font-semibold text-emerald-600 mt-0.5"}">${formatBs(Number(usd) * exchangeRates.bcv)} <span class="font-normal text-slate-400">(BCV)</span></div>`
+      }
+
+      async function loadExchangeRates() {
+        try {
+          const res = await fetch("/api/config")
+          if (!res.ok) return
+          const data = await res.json()
+          if (data && data.exchangeRates) exchangeRates = data.exchangeRates
+        } catch {}
       }
 
       // --- 3. Render Grid ---
@@ -805,6 +847,8 @@
           const img = document.createElement("img")
           img.src = p.img
           img.alt = p.name
+          img.loading = "lazy"
+          img.decoding = "async"
           img.className = "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           img.onerror = () => { img.style.display = 'none' }
           imgContainer.appendChild(img)
@@ -857,7 +901,8 @@
           if (p.deliveryMode === "Solo Despacho" || legacyDispatchOnly) {
             const deliveryBadge = document.createElement("div")
             deliveryBadge.className = "absolute top-10 right-2 text-white text-[10px] px-2 py-1 rounded font-bold backdrop-blur-sm shadow-sm bg-sky-600"
-            deliveryBadge.textContent = "SOLO DESPACHO"
+            deliveryBadge.textContent = "LOGÍSTICA A COORDINAR"
+            deliveryBadge.title = "Material para despacho; transporte y logística a consolidar según su pedido."
             imgContainer.appendChild(deliveryBadge)
           }
 
@@ -893,13 +938,20 @@
              codeLabel.textContent = "Cód: " + p.code
              body.appendChild(codeLabel)
           }
+
+          if (p.deliveryMode === "Solo Despacho" || legacyDispatchOnly) {
+            const logisticsNotice = document.createElement("p")
+            logisticsNotice.className = "mt-1 rounded-md border border-sky-200 bg-sky-50 px-2 py-1.5 text-[10px] md:text-xs leading-relaxed text-sky-800"
+            logisticsNotice.textContent = "Material para despacho; transporte y logística a consolidar según su pedido."
+            body.appendChild(logisticsNotice)
+          }
           
           const priceRow = document.createElement("div")
           priceRow.className = "mt-auto flex items-center justify-between pt-2"
           
           const price = document.createElement("div")
           price.className = "font-bold text-slate-900"
-          price.textContent = formatPrice(p.price)
+          price.innerHTML = formatPrice(p.price) + bsRefHtml(p.price)
           
           const addBtn = document.createElement("button")
           addBtn.className = "w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white flex items-center justify-center text-slate-600 transition-colors"
@@ -1257,7 +1309,7 @@
             const bottom = document.createElement("div")
             bottom.className = "flex justify-between items-end mt-2"
             bottom.innerHTML = `
-              <div class="text-sm font-bold text-slate-700">${formatPrice(item.price)}</div>
+              <div class="text-sm font-bold text-slate-700">${formatPrice(item.price)}${bsRefHtml(item.price, "text-[10px] font-semibold text-emerald-600")}</div>
               <div class="flex items-center border border-slate-200 rounded-lg">
                 <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50" onclick="updateQty(${item.id}, -1)">-</button>
                 <span class="px-2 text-xs font-medium text-slate-900">${item.qty}</span>
@@ -1274,6 +1326,8 @@
         }
         
           drawerTotal.textContent = formatPrice(total)
+          const drawerTotalBs = document.getElementById("drawer-total-bs")
+          if (drawerTotalBs) drawerTotalBs.textContent = exchangeRates.bcv && total ? formatBs(total * exchangeRates.bcv) + " (tasa BCV)" : ""
       }
 
       function openDrawer() {
@@ -1517,6 +1571,11 @@
           y += 7
           doc.setFontSize(11)
           doc.text("Total: " + formatPrice(total), 140, y)
+          if (exchangeRates.bcv && total) {
+            y += 6
+            doc.setFontSize(9)
+            doc.text("Referencia en Bs (tasa BCV " + Number(exchangeRates.bcv).toLocaleString("es-VE", { minimumFractionDigits: 2 }) + "): " + formatBs(total * exchangeRates.bcv), 140, y)
+          }
           const fileName = orderCode
             ? "nota-pedido-embair-" + orderCode + ".pdf"
             : "nota-pedido-embair-" + Date.now() + ".pdf"
@@ -1889,7 +1948,7 @@
         })
         msg += `\nTotal Estimado: ${formatPrice(total)}\n\n`
         if (hasDispatchOnlyItems) {
-          msg += `*Logística:* Este pedido incluye productos Solo Despacho. Coordinar entrega o flete al sitio y cotización previa.\n\n`
+          msg += `*Logística:* Material para despacho; transporte y logística a consolidar según su pedido.\n\n`
         }
         
         msg += `*Datos del Cliente:*\n`
@@ -2104,8 +2163,8 @@
         console.error("Error loading logo:", e)
       }
 
-      Promise.all([getProducts(), getPortalCatalogOrder()]).then(([p, portalOrder]) => {
-        PRODUCTS = p
+      Promise.all([getProducts(), getPortalCatalogOrder(), loadExchangeRates()]).then(([p, portalOrder]) => {
+        PRODUCTS = p.filter(product => product && product.catalogVisibility !== "wholesale")
         window.PRODUCTS = PRODUCTS
         window.__portalCatalogOrder = portalOrder || { categories: {}, subcategories: {} }
         syncCatalogCategories()

@@ -344,8 +344,9 @@
       segmentType: "",
       initialQuery: "",
       isRegistered: false,
-      stage: "check_phone",
-      quoteChannelPending: false
+      stage: "ready",
+      quoteChannelPending: false,
+      contactAsked: false
     }
 
     function getSessionId() {
@@ -482,8 +483,9 @@
       if (serverRes.type === "multiple_products" && Array.isArray(serverRes.products) && serverRes.products.length > 0) {
         window.Assistant.addMessage("bot", "Encontré las siguientes opciones disponibles:")
         serverRes.products.forEach(prod => renderCardWithBadge(prod))
-        window.Assistant.addMessage("bot", "¿Deseas sumar estos u otros materiales a tu carrito de cotización?")
+        window.Assistant.addMessage("bot", "¿Deseas sumar estos u otros materiales a tu pedido? Puedes seguir consultando o armar tu solicitud completa en el portal. 🛒")
         addPortalActionBtn()
+        maybeAskContact()
         return
       }
 
@@ -491,6 +493,7 @@
         window.Assistant.addMessage("bot", "Aquí tienes el detalle del producto:")
         renderCardWithBadge(serverRes.product)
         addPortalActionBtn()
+        maybeAskContact()
         return
       }
 
@@ -508,11 +511,18 @@
             nombre: leadState.name || "Cliente Portal",
             celular: leadState.phone,
             tipo: leadState.segmentType || "Particular",
-            source: "landing_gate_check",
+            source: "landing_assistant",
             sessionId: getSessionId()
           })
         })
       } catch {}
+    }
+
+    function maybeAskContact() {
+      if (leadState.contactAsked || leadState.isRegistered || leadState.stage !== "ready") return
+      leadState.contactAsked = true
+      leadState.stage = "ask_contact"
+      window.Assistant.addMessage("bot", "💬 Si quieres que un asesor te contacte para cerrar tu compra o darte una cotización formal, déjame tu número de WhatsApp. Si prefieres seguir viendo productos, ¡adelante!")
     }
 
     async function handleAssistantFlow(text) {
@@ -545,52 +555,44 @@
         return true
       }
 
-      if (leadState.stage === "check_phone") {
+      if (leadState.stage === "ask_contact") {
         const digits = cleanText.replace(/\D/g, "")
-        
-        if (digits.length < 7) {
-          leadState.initialQuery = cleanText
-          window.Assistant.addMessage("bot", "Para consultar inventario y precios en tiempo real, ingresa tu número de WhatsApp o celular:")
+
+        if (digits.length >= 7) {
+          leadState.phone = digits
+          try {
+            const res = await fetch("/api/auth/check", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ phone: digits, sessionId: getSessionId() })
+            })
+            const data = await res.json()
+            if (data.exists && data.data) {
+              leadState.isRegistered = true
+              leadState.name = data.data.nombre || "Cliente"
+              leadState.stage = "ready"
+              await saveLead()
+              window.Assistant.addMessage("bot", `¡Perfecto, ${leadState.name}! Ya tienes cuenta en el portal. Un asesor te contactará enseguida para cerrar tu pedido. 😊`)
+              return true
+            }
+          } catch (e) {}
+          leadState.stage = "ask_name"
+          window.Assistant.addMessage("bot", "¡Gracias! Para que un asesor te atenda de inmediato, ¿me das tu nombre y apellido?")
           return true
         }
 
-        leadState.phone = digits
-        window.Assistant.addMessage("bot", "Verificando acceso al portal...")
-
-        try {
-          const res = await fetch("/api/auth/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: digits, sessionId: getSessionId() })
-          })
-          const data = await res.json()
-
-          if (data.exists && data.data) {
-            leadState.isRegistered = true
-            leadState.name = data.data.nombre || "Cliente"
-            leadState.stage = "ready"
-
-            window.Assistant.addMessage("bot", `¡Hola de nuevo, ${leadState.name}! Acceso al portal verificado.`)
-            
-            if (leadState.initialQuery) {
-              await processProductQuery(leadState.initialQuery)
-              leadState.initialQuery = ""
-            } else {
-              window.Assistant.addMessage("bot", "¿Qué material o producto estás buscando hoy?")
-            }
-            return true
-          }
-        } catch (e) {}
-
-        leadState.stage = "ask_name"
-        window.Assistant.addMessage("bot", "Te damos la bienvenida a EMBAIR. Para darte de alta en el portal, ¿cuál es tu nombre y apellido?")
+        // No dio teléfono: guardar lo que escribió como nombre y seguir vendiendo
+        leadState.name = cleanText
+        leadState.stage = "ask_segment"
+        window.Assistant.addMessage("bot", `Un gusto, ${leadState.name}. Para atenderte mejor, ¿qué tipo de cliente eres?`)
+        addSegmentButtons()
         return true
       }
 
       if (leadState.stage === "ask_name") {
         leadState.name = cleanText
         leadState.stage = "ask_segment"
-        window.Assistant.addMessage("bot", `Gusto en saludarte, ${leadState.name}. ¿Qué tipo de cliente eres?`)
+        window.Assistant.addMessage("bot", `Un gusto, ${leadState.name}. Para atenderte mejor, ¿qué tipo de cliente eres?`)
         addSegmentButtons()
         return true
       }
@@ -598,17 +600,9 @@
       if (leadState.stage === "ask_segment") {
         leadState.segmentType = cleanText
         leadState.stage = "ready"
-
         await saveLead()
-
-        window.Assistant.addMessage("bot", "¡Registro completado exitosamente!")
-
-        if (leadState.initialQuery) {
-          await processProductQuery(leadState.initialQuery)
-          leadState.initialQuery = ""
-        } else {
-          window.Assistant.addMessage("bot", "¿En qué productos puedo ayudarte?")
-        }
+        window.Assistant.addMessage("bot", `¡Listo, ${leadState.name}! 🎉 Ya quedaste registrado. Un asesor te contactará en breve para cerrar tu pedido. Mientras tanto, puedes seguir consultando precios o sumar más productos.`)
+        addPortalActionBtn()
         return true
       }
 
@@ -629,13 +623,17 @@
         onInit: (assistant) => {
           const originalOpen = assistant.open.bind(assistant)
           assistant.open = function() {
-            originalOpen()
             if (assistant.elements.messages && !assistant.elements.messages.dataset.landingInit) {
-              window.Assistant.addMessage("bot", "Hola, bienvenido al asistente de EMBAIR. Para consultar precios y disponibilidad, ingresa tu número de WhatsApp:")
               assistant.elements.messages.dataset.landingInit = "1"
               assistant.elements.messages.dataset.init = "1"
+              if (assistant.elements.panel) assistant.elements.panel.classList.remove("hidden")
+              if (assistant.elements.toggle) assistant.elements.toggle.classList.add("hidden")
+              window.Assistant.addMessage("bot", "👋 ¡Hola! Bienvenido a la Tienda Online EMBAIR. Soy tu asesor de compras.\n\nPuedo ayudarte a:\n🔍 Encontrar productos del catálogo\n💲 Consultar precios y disponibilidad\n📋 Armar tu pedido o cotización\n\n¿Qué material estás buscando hoy?")
+              if (assistant.elements.input) assistant.elements.input.focus()
               trackEvent("assistant_open", { path: window.location.pathname })
+              return
             }
+            originalOpen()
           }
 
           // Atajo: el globo "Habla conmigo" también abre el chat

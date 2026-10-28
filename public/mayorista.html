@@ -121,7 +121,7 @@
     </div>
   </header>
   
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="max-w-7xl mx-auto px-4 py-8">
     <section id="login-panel" class="max-w-md mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
       <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">Acceso privado</p>
       <h2 class="text-2xl font-bold mb-2">Catálogo para distribuidores</h2>
@@ -152,19 +152,39 @@
           <div id="wholesale-logo-track" class="wholesale-logo-track"></div>
         </div>
       </section>
-      <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
-        <div id="products" class="grid grid-cols-2 gap-3 sm:gap-4"></div>
-        <aside class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 md:p-5 lg:sticky lg:top-5">
-          <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-lg">Solicitud</h3><span id="cart-count" class="text-xs bg-slate-100 rounded-full px-2 py-1">0</span></div>
-          <div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div>
-          <div class="border-t mt-4 pt-4 flex justify-between font-bold"><span>Total estimado</span><span id="total">$0</span></div>
-          <textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm" rows="3" placeholder="Notas para despacho o entrega"></textarea>
-          <button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button>
-          <p id="order-message" class="hidden text-sm mt-3"></p>
-        </aside>
+      <div>
+        <div id="products" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4"></div>
       </div>
     </section>
   </main>
+
+  <!-- Drawer de solicitud (panel deslizable) -->
+  <div id="cart-drawer-overlay" class="fixed inset-0 bg-black/50 z-40 hidden opacity-0 transition-opacity duration-300"></div>
+  <aside id="cart-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-white z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-[#10165c] text-white">
+      <div class="flex items-center gap-2">
+        <h3 class="font-bold text-lg">Solicitud</h3>
+        <span id="cart-count" class="text-xs bg-white/20 rounded-full px-2 py-1">0</span>
+      </div>
+      <button id="cart-drawer-close" type="button" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-xl" aria-label="Cerrar solicitud">×</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 md:p-5">
+      <div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div>
+    </div>
+    <div class="border-t border-slate-100 p-4 md:p-5 bg-slate-50">
+      <div class="flex justify-between font-bold"><span>Total estimado</span><span id="total" class="text-right">$0</span></div>
+      <textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm bg-white" rows="3" placeholder="Notas para despacho o entrega"></textarea>
+      <button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button>
+      <p id="order-message" class="hidden text-sm mt-3"></p>
+    </div>
+  </aside>
+
+  <!-- Botón flotante para abrir la solicitud (desktop) -->
+  <button id="cart-fab" type="button" class="hidden md:flex fixed bottom-6 right-6 z-40 items-center gap-2 rounded-full bg-[#10165c] hover:bg-[#20278c] text-white font-bold pl-4 pr-5 py-3 shadow-2xl transition-all">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z"/></svg>
+    <span>Solicitud</span>
+    <span id="cart-fab-badge" class="bg-amber-500 text-white text-xs min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full">0</span>
+  </button>
 
   <div id="mobile-cart-bar" class="hidden fixed bottom-0 inset-x-0 z-40 bg-[#10165c] text-white border-t border-white/20 shadow-2xl p-3 md:hidden">
     <div class="flex items-center gap-3 max-w-6xl mx-auto">
@@ -198,6 +218,7 @@
           <select id="product-detail-sale-unit" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"></select>
           <p id="product-detail-price-label" class="text-xs text-slate-500"></p>
           <p id="product-detail-price" class="text-2xl font-bold text-[#10165c]"></p>
+          <div id="product-detail-price-bs"></div>
           <p id="product-detail-minimum" class="mt-1 text-xs text-slate-500"></p>
         </div>
         <p id="product-detail-add-error" class="mt-2 text-sm text-red-600" role="alert"></p>
@@ -218,6 +239,27 @@
     const mobileCartBar = $("mobile-cart-bar")
     const mobileCartSummary = $("mobile-cart-summary")
     const mobileCartButton = $("mobile-cart-button")
+    const cartDrawer = $("cart-drawer")
+    const cartDrawerOverlay = $("cart-drawer-overlay")
+    const cartFab = $("cart-fab")
+    const cartFabBadge = $("cart-fab-badge")
+    let cartDrawerAutoOpened = false
+
+    function openCartDrawer() {
+      cartDrawerOverlay.classList.remove("hidden")
+      requestAnimationFrame(() => {
+        cartDrawerOverlay.classList.remove("opacity-0")
+        cartDrawer.classList.remove("translate-x-full")
+      })
+      document.body.style.overflow = "hidden"
+    }
+
+    function closeCartDrawer() {
+      cartDrawerOverlay.classList.add("opacity-0")
+      cartDrawer.classList.add("translate-x-full")
+      document.body.style.overflow = ""
+      setTimeout(() => cartDrawerOverlay.classList.add("hidden"), 300)
+    }
     
     function headers(json = false) { 
       const h = {}; 
@@ -227,6 +269,48 @@
     }
     
     function money(v) { return v == null ? "Consultar" : "$" + Number(v).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+
+    // --- Tasas de cambio (Bs / USD) ---
+    let exchangeRates = { bcv: 0, binance: 0, marginPercent: 0, updatedAt: null }
+
+    function moneyBs(v) { return v == null ? "" : "Bs. " + Number(v).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }
+
+    function bcvFactor() {
+      if (!exchangeRates.bcv || !exchangeRates.binance) return null
+      return (exchangeRates.binance / exchangeRates.bcv) * (1 + Number(exchangeRates.marginPercent || 0) / 100)
+    }
+
+    function paymentOptions(usd) {
+      if (usd == null) return null
+      const base = Number(usd)
+      const opts = { usd: base, bsBinance: null, bsBcv: null, refUsdBcv: null }
+      if (exchangeRates.binance) opts.bsBinance = base * exchangeRates.binance
+      const factor = bcvFactor()
+      if (factor) {
+        opts.refUsdBcv = base * factor
+        opts.bsBcv = opts.refUsdBcv * exchangeRates.bcv
+      }
+      return opts
+    }
+
+    function paymentOptionsHtml(usd, compact = false) {
+      const opts = paymentOptions(usd)
+      if (!opts || (!opts.bsBinance && !opts.bsBcv)) return ""
+      const rows = []
+      if (opts.bsBinance) rows.push(`<div class="flex justify-between gap-2"><span>Bs tasa Binance</span><strong>${moneyBs(opts.bsBinance)}</strong></div>`)
+      if (opts.bsBcv) rows.push(`<div class="flex justify-between gap-2"><span>Bs tasa BCV</span><strong>${moneyBs(opts.bsBcv)}</strong></div>`)
+      if (opts.refUsdBcv) rows.push(`<div class="flex justify-between gap-2 text-slate-400"><span>Ref. $ BCV</span><span>${money(opts.refUsdBcv)}</span></div>`)
+      return `<div class="${compact ? "mt-1 text-[11px] leading-4" : "mt-2 text-xs leading-5"} text-slate-500 border-t border-dashed border-slate-200 pt-1.5 space-y-0.5">${rows.join("")}</div>`
+    }
+
+    async function loadExchangeRates() {
+      try {
+        const res = await fetch("/api/config")
+        if (!res.ok) return
+        const data = await res.json()
+        if (data && data.exchangeRates) exchangeRates = data.exchangeRates
+      } catch {}
+    }
 
     function renderWholesaleLogoSlide() {
       const section = $("wholesale-logo-carousel")
@@ -309,6 +393,7 @@
     }
     
     async function loadProducts() { 
+      await loadExchangeRates();
       const res = await fetch("/api/wholesale/products", { headers: headers() }); 
       if (!res.ok) return; 
       const data = await res.json(); 
@@ -339,6 +424,10 @@
         cart = data.cart && data.cart.items ? data.cart.items : []; 
         track("cart_add", { productId, qty: nextQty, saleUnit });
         renderCart();
+        if (!cartDrawerAutoOpened) {
+          cartDrawerAutoOpened = true
+          openCartDrawer()
+        }
         const addButton = document.querySelector(`[data-add-product="${productId}"]`)
         if (addButton) {
           const originalText = addButton.textContent
@@ -407,8 +496,8 @@
           <div class="mt-auto px-4 pb-4">
             <p class="text-xs leading-5 text-slate-500">${w.packageName || "Paquete"} · ${w.unitsPerPackage || 1} unidades</p>
             <p class="mt-1 text-xs leading-5 text-slate-500">Mínimo: ${w.minimumQuantity || 1} ${w.packageName || "paquete"}(s)</p>
-            <div class="mt-2"><p class="text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-2xl font-bold text-[#10165c]">${money(unitPrice)}</strong></div>
-            <p class="mt-1 text-xs text-slate-500">Paquete: <strong class="text-slate-700">${money(w.wholesalePrice)}</strong></p>
+            <div class="mt-2"><p class="text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-2xl font-bold text-[#10165c]">${money(unitPrice)}</strong>${paymentOptionsHtml(unitPrice, true)}</div>
+            <p class="mt-1 text-xs text-slate-500">Paquete: <strong class="text-slate-700">${money(w.wholesalePrice)}</strong></p>${w.wholesalePrice != null && w.unitsPerPackage > 1 ? paymentOptionsHtml(w.wholesalePrice, true) : ""}
             ${w.unitWholesalePrice != null ? `<label class="mt-2 block text-xs font-semibold text-slate-600">Comprar por<select data-sale-unit="${p.id}" class="mt-1 w-full rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm"><option value="package">${w.packageName || "Empaque"}</option><option value="unit">Unidad</option></select></label>` : ""}
             <div class="product-actions mt-3"><button type="button" onclick="shareWholesaleProduct(${p.id})" class="min-w-0 break-words rounded-lg border border-slate-300 px-2 py-2 text-xs font-bold leading-4 text-slate-700 transition hover:bg-slate-50 sm:px-3" title="Compartir ficha"><span class="sm:hidden">Compartir</span><span class="hidden sm:inline">Compartir ficha</span></button><button type="button" data-add-product="${p.id}" onclick="addSelectedProduct(${p.id}, ${w.minimumQuantity || 1})" class="min-w-0 break-words rounded-lg bg-amber-500 px-2 py-2 text-xs font-bold leading-4 text-white transition hover:bg-amber-600 sm:px-3"><span class="sm:hidden">Agregar</span><span class="hidden sm:inline">Agregar solicitud</span></button></div>
             <div class="mt-3 flex flex-wrap gap-1"><span class="rounded-full bg-amber-50 px-2 py-1 text-[11px] text-amber-700">${w.availability || "Disponible"}</span><span class="rounded-full bg-sky-50 px-2 py-1 text-[11px] text-sky-700">Solo despacho</span></div>
@@ -499,8 +588,10 @@
       }
       const updateDetailPrice = () => {
         const byUnit = saleUnitSelect.value === "unit"
+        const currentPrice = byUnit ? wholesale.unitWholesalePrice : wholesale.wholesalePrice
         $("product-detail-price-label").textContent = `Precio por ${byUnit ? "unidad" : String(wholesale.packageName || "empaque").toLowerCase()}`
-        $("product-detail-price").textContent = money(byUnit ? wholesale.unitWholesalePrice : wholesale.wholesalePrice)
+        $("product-detail-price").textContent = money(currentPrice)
+        $("product-detail-price-bs").innerHTML = paymentOptionsHtml(currentPrice)
         $("product-detail-minimum").textContent = byUnit
           ? "Pedido mínimo: 1 unidad"
           : `Pedido mínimo: ${Number(wholesale.minimumQuantity || 1)} ${wholesale.packageName || "paquete"}(s)`
@@ -578,6 +669,13 @@
       context.fillStyle = "#64748b"; context.font = "28px sans-serif"; context.fillText(`${wholesale.packageName || "Empaque"} · ${units} unidades por empaque`, 90, y + 55);
       context.fillStyle = "#10165c"; context.font = "26px sans-serif"; context.fillText(`Precio por empaque: ${money(unitPrice)}`, 90, y + 115);
       context.fillStyle = "#10165c"; context.fillRect(70, y + 140, 940, 105); context.fillStyle = "#f97316"; context.font = "bold 22px sans-serif"; context.fillText("PRECIO POR EMPAQUE", 95, y + 180); context.fillStyle = "#ffffff"; context.font = "bold 50px sans-serif"; context.fillText(money(packagePrice), 95, y + 225);
+      const shareOpts = paymentOptions(packagePrice)
+      if (shareOpts && (shareOpts.bsBinance || shareOpts.bsBcv)) {
+        context.fillStyle = "#475569"; context.font = "22px sans-serif"
+        let bsLine = y + 270
+        if (shareOpts.bsBinance) { context.fillText(`Bs tasa Binance: ${moneyBs(shareOpts.bsBinance)}`, 90, bsLine); bsLine += 32 }
+        if (shareOpts.bsBcv) { context.fillText(`Bs tasa BCV: ${moneyBs(shareOpts.bsBcv)}`, 90, bsLine); bsLine += 32 }
+      }
       if (wholesale.unitWholesalePrice != null) { context.fillStyle = "#10165c"; context.font = "bold 24px sans-serif"; context.fillText(`Precio por unidad: ${money(wholesale.unitWholesalePrice)}`, 90, y + 260); }
       context.fillStyle = "#10165c"; context.font = "26px sans-serif"; context.fillText(`Minimo: ${Number(wholesale.minimumQuantity || 1)} empaques`, 90, y + 285);
       context.fillStyle = "#10165c"; context.fillRect(0, 1280, 1080, 70); context.fillStyle = "#ffffff"; context.font = "22px sans-serif"; context.fillText("EMBAIR · DISTRIBUCION MAYORISTA", 90, 1324);
@@ -595,7 +693,19 @@
       const units = cart.reduce((s, i) => s + Number(i.unitsTotal || Number(i.qty || 0) * (i.saleUnit === "unit" ? 1 : Number(i.unitsPerPackage || 1))), 0);
       const total = cart.reduce((s, i) => s + Number(i.subtotal || 0), 0); 
       $("cart-count").textContent = `${packageCount} paq. · ${unitCount} und.`;
-      $("total").textContent = money(total); 
+      if (cartFab && cartFabBadge) {
+        cartFabBadge.textContent = count
+        cartFab.classList.toggle("md:flex", count > 0)
+        cartFab.classList.toggle("md:hidden", count === 0)
+      }
+      $("total").innerHTML = money(total) + (() => {
+        const opts = paymentOptions(total)
+        if (!opts || (!opts.bsBinance && !opts.bsBcv)) return ""
+        const parts = []
+        if (opts.bsBinance) parts.push(`Bs Binance: <strong>${moneyBs(opts.bsBinance)}</strong>`)
+        if (opts.bsBcv) parts.push(`Bs BCV: <strong>${moneyBs(opts.bsBcv)}</strong>`)
+        return `<span class="block text-[11px] font-normal text-slate-400 mt-0.5">${parts.join(" · ")}</span>`
+      })()
       if (mobileCartBar && mobileCartSummary) {
         mobileCartBar.classList.toggle("hidden", count === 0)
         mobileCartSummary.textContent = `${packageCount} paquetes · ${unitCount} unidades sueltas · ${units} unidades de inventario · ${money(total)}`
@@ -607,7 +717,7 @@
         return `
         <div class="border-b pb-3">
           <div class="flex justify-between gap-3">
-          <div><strong>${i.name}</strong><p class="mt-1 text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-lg text-[#10165c]">${money(unitPrice)}</strong>${i.saleUnit === "unit" ? `<p class="text-xs text-slate-500">${i.qty} unidad(es) × ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>` : `<p class="text-xs text-slate-500">Paquete: ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>`}${i.discountPercent && i.regularUnitPrice != null ? `<p class="text-xs text-slate-400 line-through">Antes: ${money(i.regularUnitPrice)} por paquete</p>` : ""}<p class="text-xs text-slate-500">${i.saleUnit === "unit" ? `${i.qty} unidad(es) de inventario` : `${i.qty} paquete(s) × ${i.unitsPerPackage || 1} und. = ${i.unitsTotal || i.qty * (i.unitsPerPackage || 1)} unidades`}</p><p class="text-xs text-slate-400">Mínimo: ${i.minimumQuantity || 1} ${i.saleUnit === "unit" ? "unidad(es)" : "paquete(s)"}</p></div>
+          <div><strong>${i.name}</strong><p class="mt-1 text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-lg text-[#10165c]">${money(unitPrice)}</strong>${paymentOptionsHtml(unitPrice, true)}${i.saleUnit === "unit" ? `<p class="text-xs text-slate-500">${i.qty} unidad(es) × ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>` : `<p class="text-xs text-slate-500">Paquete: ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>`}${i.discountPercent && i.regularUnitPrice != null ? `<p class="text-xs text-slate-400 line-through">Antes: ${money(i.regularUnitPrice)} por paquete</p>` : ""}<p class="text-xs text-slate-500">${i.saleUnit === "unit" ? `${i.qty} unidad(es) de inventario` : `${i.qty} paquete(s) × ${i.unitsPerPackage || 1} und. = ${i.unitsTotal || i.qty * (i.unitsPerPackage || 1)} unidades`}</p><p class="text-xs text-slate-400">Mínimo: ${i.minimumQuantity || 1} ${i.saleUnit === "unit" ? "unidad(es)" : "paquete(s)"}</p></div>
             <button type="button" onclick="removeCartItem('${i.productId}', '${i.saleUnit === "unit" ? "unit" : "package"}')" class="text-red-500 text-xs hover:underline">Quitar</button>
           </div>
           <div class="flex items-center justify-between mt-2">
@@ -618,7 +728,7 @@
               <input type="number" min="${i.minimumQuantity || 1}" step="1" value="${i.qty}" onchange="updateCartQty('${i.productId}', this.value, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="w-16 border-x px-2 py-1 text-center text-sm font-bold" aria-label="Cantidad para ${i.name}">
               <button type="button" onclick="updateCartQty('${i.productId}', ${Number(i.qty) + 1}, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="px-2.5 py-1 text-xs hover:bg-slate-50" aria-label="Sumar una unidad">+</button>
             </div>
-            <strong class="text-sm">${money(i.subtotal)}</strong>
+            <strong class="text-sm">${money(i.subtotal)}${paymentOptionsHtml(i.subtotal, true)}</strong>
           </div>
         </div>
         </div>`
@@ -793,11 +903,50 @@
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
           doc.setTextColor(...muted);
-          doc.text("TOTAL ESTIMADO", 125, y);
+          doc.text("TOTAL ESTIMADO (USDT)", 125, y);
           doc.setFont("helvetica", "bold");
           doc.setFontSize(14);
           doc.setTextColor(...navy);
           doc.text(money(order.total), pageWidth - 15, y, { align: "right" });
+
+          const totalOpts = paymentOptions(order.total)
+          if (totalOpts && (totalOpts.bsBinance || totalOpts.bsBcv)) {
+            y += 8;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(9);
+            doc.setTextColor(...ink);
+            doc.text("OPCIONES DE PAGO EN BOLÍVARES", 125, y);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8.5);
+            if (totalOpts.bsBinance) {
+              y += 6;
+              doc.setTextColor(...muted);
+              doc.text("Bs a tasa Binance (" + Number(exchangeRates.binance).toLocaleString("es-VE") + "):", 125, y);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(...ink);
+              doc.text(moneyBs(totalOpts.bsBinance), pageWidth - 15, y, { align: "right" });
+              doc.setFont("helvetica", "normal");
+            }
+            if (totalOpts.bsBcv) {
+              y += 6;
+              doc.setTextColor(...muted);
+              doc.text("Bs a tasa BCV (" + Number(exchangeRates.bcv).toLocaleString("es-VE", { minimumFractionDigits: 2 }) + "):", 125, y);
+              doc.setFont("helvetica", "bold");
+              doc.setTextColor(...ink);
+              doc.text(moneyBs(totalOpts.bsBcv), pageWidth - 15, y, { align: "right" });
+              doc.setFont("helvetica", "normal");
+              y += 5;
+              doc.setFontSize(7.5);
+              doc.setTextColor(...muted);
+              doc.text("Ref. $ BCV: " + money(totalOpts.refUsdBcv), pageWidth - 15, y, { align: "right" });
+              doc.setFontSize(8.5);
+            }
+            y += 6;
+            doc.setFontSize(7.5);
+            doc.setTextColor(...muted);
+            const ratesDate = exchangeRates.updatedAt ? new Date(exchangeRates.updatedAt).toLocaleString("es-VE") : "del día"
+            doc.text("Tasas aplicadas: BCV " + Number(exchangeRates.bcv).toLocaleString("es-VE", { minimumFractionDigits: 2 }) + " · Binance " + Number(exchangeRates.binance).toLocaleString("es-VE") + " · Margen " + Number(exchangeRates.marginPercent || 0) + "% · Act. " + ratesDate, 15, y);
+          }
           y += 10;
           doc.setFont("helvetica", "normal");
           doc.setFontSize(8.5);
@@ -817,6 +966,7 @@
           doc.save(order.id + ".pdf"); 
           cart = []; 
           renderCart(); 
+          closeCartDrawer();
           msg.textContent = "Solicitud registrada y PDF generado. El equipo la gestionará internamente."; 
           msg.className = "text-sm mt-3 text-emerald-600"; 
         })
@@ -830,9 +980,13 @@
         }); 
     }
 
-    if (mobileCartButton) mobileCartButton.onclick = () => {
-      $("cart").scrollIntoView({ behavior: "smooth", block: "start" })
-    }
+    if (mobileCartButton) mobileCartButton.onclick = openCartDrawer
+    if (cartFab) cartFab.onclick = openCartDrawer
+    $("cart-drawer-close").onclick = closeCartDrawer
+    cartDrawerOverlay.onclick = closeCartDrawer
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !cartDrawer.classList.contains("translate-x-full")) closeCartDrawer()
+    })
     $("login").onclick = login; 
     $("search").oninput = renderProducts; 
     $("submit-order").onclick = submitOrder; 

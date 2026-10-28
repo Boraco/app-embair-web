@@ -338,8 +338,8 @@ window.Assistant = {
     const bubble = document.createElement("div")
     // Blue for user, White for bot (matching admin palette)
     bubble.className = (sender === "user"
-      ? "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-blue-600 text-white rounded-br-none"
-      : "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm")
+      ? "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-blue-600 text-white rounded-br-none whitespace-pre-line"
+      : "px-3 py-2 rounded-lg text-sm max-w-[85%] bg-white text-slate-800 border border-slate-200 rounded-bl-none shadow-sm whitespace-pre-line")
       
     bubble.textContent = text
     wrap.appendChild(bubble)

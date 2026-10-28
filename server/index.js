@@ -17,7 +17,16 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-app.set('trust proxy', 1) // Confía en el primer proxy (Nginx)
+app.set('trust proxy', 1) // ConfÃ­a en el primer proxy (Nginx)
+const blockedHosts = new Set(["smartcvai.net", "www.smartcvai.net"])
+app.use((req, res, next) => {
+  const host = String(req.headers.host || "")
+    .replace(/:\d+$/, "")
+    .replace(/\.$/, "")
+    .toLowerCase()
+  if (blockedHosts.has(host)) return res.sendStatus(421)
+  return next()
+})
 const portalTokenSecret = process.env.PORTAL_TOKEN_SECRET || crypto.randomBytes(32).toString("hex")
 const adminAuthLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: true, legacyHeaders: false, skipSuccessfulRequests: true })
 const wholesaleLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false })
@@ -154,7 +163,8 @@ const protectedAdminPages = new Set([
   "/reportes.html",
   "/campaigns.html"
   ,"/mayorista-admin.html",
-  "/distribucion-admin.html"
+  "/distribucion-admin.html",
+  "/compras-admin.html"
 ])
 
 app.use((req, res, next) => {
@@ -235,7 +245,6 @@ const wholesaleCartsFile = path.join(dataDir, "wholesale-carts.json")
 const quotesFile = path.join(dataDir, "quotes.json")
 const inventoryFile = path.join(dataDir, "inventory.json")
 const distributionOrdersFile = path.join(dataDir, "distribution-orders.json")
-
 const procurementFile = path.join(dataDir, "procurement.json")
 const dispatchCostsFile = path.join(dataDir, "dispatch-costs.json")
 
@@ -812,7 +821,7 @@ app.post("/api/admin/distribution/quotes/:id/convert", requireAdmin, (req, res) 
   }
   for (const item of quote.items || []) {
     const inventoryProduct = state.products[String(item.productId)]
-    state.movements.push({ id: `MOV-${Date.now()}-${item.productId}`, createdAt: now, productId: Number(item.productId), type: "out", packages: Number(item.qty || 1), units: -(Number(item.qty || 1) * inventoryProduct.unitsPerPackage), reason: "Pedido desde cotización", reference: order.id })
+    state.movements.push({ id: `MOV-${Date.now()}-${item.productId}`, createdAt: now, productId: Number(item.productId), type: "out", packages: Number(item.qty || 1), units: -(Number(item.qty || 1) * inventoryProduct.unitsPerPackage), reason: "Pedido desde cotizaciÃ³n", reference: order.id })
   }
   writeData(inventoryFile, state)
   const orders = readData(distributionOrdersFile)
@@ -864,7 +873,6 @@ function getWholesalePackageBasePrice(item) {
   return Number((unitWholesalePrice * unitsPerPackage).toFixed(2))
 }
 
-
 function enrichWholesaleProducts() {
   const products = readData(productsFile)
   const config = getWholesaleProducts()
@@ -872,7 +880,13 @@ function enrichWholesaleProducts() {
     .filter(item => item && item.enabled !== false)
     .map(item => {
       const product = products.find(p => Number(p.id) === Number(item.productId))
-      if (!product) return null
+      if (!product || product.catalogVisibility === "public") return null
+      const regularWholesalePrice = getWholesalePackageBasePrice(item)
+      const rawDiscountPercent = Number(item.discountPercent)
+      const discountPercent = Number.isFinite(rawDiscountPercent) ? Math.min(100, Math.max(0, rawDiscountPercent)) : 0
+      const wholesalePrice = regularWholesalePrice == null
+        ? null
+        : Number((regularWholesalePrice * (1 - discountPercent / 100)).toFixed(2))
       return {
         ...product,
         wholesale: {
@@ -889,7 +903,7 @@ function enrichWholesaleProducts() {
           catalogOrder: Number.isFinite(Number(item.catalogOrder)) ? Number(item.catalogOrder) : 999,
           featured: item.featured === true,
           offer: item.offer === true,
-          discountPercent: item.discountPercent == null ? null : Number(item.discountPercent)
+          discountPercent: discountPercent || null
         }
       }
     })
@@ -1505,6 +1519,31 @@ app.post("/api/products", requireAdmin, (req, res) => {
   res.json({ ok: true })
 })
 
+app.post("/api/products/import", requireAdmin, (req, res) => {
+  if (!Array.isArray(req.body)) return res.status(400).json({ error: "array_required" })
+
+  let products = []
+  try {
+    if (fs.existsSync(productsFile)) {
+      products = JSON.parse(fs.readFileSync(productsFile, "utf-8"))
+      if (!Array.isArray(products)) return res.status(500).json({ error: "products_not_array" })
+    }
+  } catch {
+    return res.status(500).json({ error: "products_unreadable" })
+  }
+
+  const additions = req.body.filter(product =>
+    product && typeof product === "object" && !Array.isArray(product) &&
+    typeof product.name === "string" && product.name.trim()
+  )
+  if (additions.length === 0) return res.status(400).json({ error: "no_valid_products" })
+
+  let nextId = products.reduce((maxId, product) => Math.max(maxId, Number(product && product.id) || 0), 0)
+  products.push(...additions.map(product => ({ ...product, id: ++nextId })))
+  writeData(productsFile, products)
+  res.json({ ok: true, products, added: additions.length })
+})
+
 const configFile = path.join(dataDir, "config.json")
 const iaConfigFile = path.join(dataDir, "ia-config.json")
 const botConfigFile = path.join(dataDir, "bot-config.json")
@@ -1513,6 +1552,13 @@ app.get("/api/config", (req, res) => {
   let data = readData(configFile)
   if (Array.isArray(data)) data = {}
   if (!data.logoUrl) data.logoUrl = ""
+  const rates = data.exchangeRates && typeof data.exchangeRates === "object" ? data.exchangeRates : {}
+  data.exchangeRates = {
+    bcv: Math.max(0, Number(rates.bcv || 0)),
+    binance: Math.max(0, Number(rates.binance || 0)),
+    marginPercent: Math.min(100, Math.max(0, Number(rates.marginPercent || 0))),
+    updatedAt: rates.updatedAt || null
+  }
   res.json(data)
 })
 
@@ -1520,6 +1566,15 @@ app.post("/api/config", requireAdmin, (req, res) => {
   const newConfig = req.body
   const current = readData(configFile)
   const updated = { ...current, ...newConfig }
+  if (newConfig && newConfig.exchangeRates && typeof newConfig.exchangeRates === "object") {
+    const rates = newConfig.exchangeRates
+    updated.exchangeRates = {
+      bcv: Math.max(0, Number(rates.bcv || 0)),
+      binance: Math.max(0, Number(rates.binance || 0)),
+      marginPercent: Math.min(100, Math.max(0, Number(rates.marginPercent || 0))),
+      updatedAt: new Date().toISOString()
+    }
+  }
   writeData(configFile, updated)
   res.json({ ok: true })
 })
@@ -1723,13 +1778,13 @@ app.post("/api/bot/chat", (req, res) => {
   
   // 2. Modo Forzar Portal
   if (botConfig.forcePortal) {
-    let msg = botConfig.training || "Hola, para brindarte la lista de precios y cotización personalizada, por favor ingresa al portal."
+    let msg = botConfig.training || "Hola, para brindarte la lista de precios y cotizaciÃ³n personalizada, por favor ingresa al portal."
     let linkParams = "?source=bot"
     
     if (clientName) {
        linkParams += `&name=${encodeURIComponent(clientName)}&phone=${encodeURIComponent(sender || "")}`
        if (clientType) linkParams += `&type=${encodeURIComponent(clientType)}`
-       msg = `Hola ${clientName}, puedes consultar el catálogo completo e inventario en tiempo real ingresando aquí:`
+       msg = `Hola ${clientName}, puedes consultar el catÃ¡logo completo e inventario en tiempo real ingresando aquÃ­:`
     }
     
     return res.json({
@@ -1739,7 +1794,7 @@ app.post("/api/bot/chat", (req, res) => {
     })
   }
 
-  // 3. Búsqueda de Productos con Stock y Precio
+  // 3. BÃºsqueda de Productos con Stock y Precio
   const matches = findMatches(text, products)
   const showPrice = botConfig.showPrices !== false
 
@@ -1748,12 +1803,12 @@ app.post("/api/bot/chat", (req, res) => {
         const p = matches[0].product
         const stockStatus = (p.available === "Disponible" || p.available === true) ? "Disponible en stock" : (p.available || "Consultar disponibilidad")
         const priceFormatted = Number(p.price || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-        const priceText = showPrice ? `\n• Precio: $${priceFormatted}` : ""
+        const priceText = showPrice ? `\nâ€¢ Precio: $${priceFormatted}` : ""
         
-        let responseText = `*${p.name}*${priceText}\n• Stock: ${stockStatus}`
+        let responseText = `*${p.name}*${priceText}\nâ€¢ Stock: ${stockStatus}`
         
-        if (clientName && (text.includes("hola") || text.includes("precio") || text.includes("cuanto") || text.includes("cuánto"))) {
-             responseText = `Hola ${clientName}, aquí tienes la información:\n\n${responseText}`
+        if (clientName && (text.includes("hola") || text.includes("precio") || text.includes("cuanto") || text.includes("cuÃ¡nto"))) {
+             responseText = `Hola ${clientName}, aquÃ­ tienes la informaciÃ³n:\n\n${responseText}`
         }
         
         return res.json({
@@ -1768,7 +1823,7 @@ app.post("/api/bot/chat", (req, res) => {
             }
         })
     } else {
-        let responseText = clientName ? `Hola ${clientName}, encontré estas opciones de materiales:\n\n` : "Encontré las siguientes opciones:\n\n"
+        let responseText = clientName ? `Hola ${clientName}, encontrÃ© estas opciones de materiales:\n\n` : "EncontrÃ© las siguientes opciones:\n\n"
         const items = []
         
         matches.forEach(m => {
@@ -1777,7 +1832,7 @@ app.post("/api/bot/chat", (req, res) => {
             const priceFormatted = Number(p.price || 0).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             const priceText = showPrice ? ` - *$${priceFormatted}*` : ""
             
-            responseText += `• *${p.name}*${priceText} (${stockStatus})\n`
+            responseText += `â€¢ *${p.name}*${priceText} (${stockStatus})\n`
             items.push({
                 id: p.id,
                 name: p.name,
@@ -1787,7 +1842,7 @@ app.post("/api/bot/chat", (req, res) => {
             })
         })
         
-        responseText += "\n¿Deseas agregar alguno de estos a tu lista o ver más detalles?"
+        responseText += "\nÂ¿Deseas agregar alguno de estos a tu lista o ver mÃ¡s detalles?"
         
         return res.json({
             type: "multiple_products",
@@ -1798,9 +1853,9 @@ app.post("/api/bot/chat", (req, res) => {
   }
 
   // 4. Mensajes por defecto / Saludos
-  let fallback = "Lo siento, no encontré ese material en el catálogo rápido. Indícame el código, medida o nombre exacto del producto (ej: Cable 12, Breaker 20A, Tubo PVC)."
+  let fallback = "Lo siento, no encontrÃ© ese material en el catÃ¡logo rÃ¡pido. IndÃ­came el cÃ³digo, medida o nombre exacto del producto (ej: Cable 12, Breaker 20A, Tubo PVC)."
   if (text === "hola" || text === "buenas" || text === "buenos dias" || text === "buenas noches" || text === "buenas tardes") {
-      fallback = clientName ? `Hola ${clientName}, ¿qué materiales o insumos estás buscando hoy?` : "Hola, bienvenido a EMBAIR. ¿Qué materiales o insumos estás buscando hoy?"
+      fallback = clientName ? `Hola ${clientName}, Â¿quÃ© materiales o insumos estÃ¡s buscando hoy?` : "Hola, bienvenido a EMBAIR. Â¿QuÃ© materiales o insumos estÃ¡s buscando hoy?"
   }
   
   return res.json({
@@ -1899,7 +1954,7 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
       <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
         <h2>${subject}</h2>
         <p>Hola,</p>
-        <p>Adjunto encontrarás nuestra lista de precios actualizada.</p>
+        <p>Adjunto encontrarÃ¡s nuestra lista de precios actualizada.</p>
         <div style="background-color: #f3f4f6; padding: 10px; border-radius: 6px; font-size: 11px; color: #555; margin: 15px 0;">
             <strong>Nota:</strong> Si ves una pantalla de seguridad de "ngrok", presiona <strong>"Visit Site"</strong>.
         </div>
@@ -1915,7 +1970,7 @@ app.post("/api/campaign/send", requireAdmin, async (req, res) => {
 
     try {
       await transporter.sendMail({
-        from: smtpConfig?.from || '"Catálogo" <no-reply@example.com>',
+        from: smtpConfig?.from || '"CatÃ¡logo" <no-reply@example.com>',
         to: email,
         subject: subject,
         html: html
@@ -2170,19 +2225,19 @@ app.post("/api/public/quote-request", publicQuoteLimiter, async (req, res) => {
   const details = [
     ["Nombre", name],
     ["Correo", email],
-    ["Teléfono", phone],
+    ["TelÃ©fono", phone],
     ["Empresa", company],
     ["Tipo de proyecto", projectType]
   ].filter(([, value]) => value)
   const text = [
-    "Nueva solicitud de cotización desde embair.es",
+    "Nueva solicitud de cotizaciÃ³n desde embair.es",
     "",
     ...details.map(([label, value]) => `${label}: ${value}`),
     "",
-    "Lista o descripción de materiales:",
+    "Lista o descripciÃ³n de materiales:",
     materials
   ].join("\n")
-  const html = `<h2>Nueva solicitud de cotización</h2><dl>${details.map(([label, value]) => `<dt><strong>${escapeHtml(label)}</strong></dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl><p><strong>Lista o descripción de materiales:</strong></p><p>${escapeHtml(materials).replace(/\n/g, "<br>")}</p>`
+  const html = `<h2>Nueva solicitud de cotizaciÃ³n</h2><dl>${details.map(([label, value]) => `<dt><strong>${escapeHtml(label)}</strong></dt><dd>${escapeHtml(value)}</dd>`).join("")}</dl><p><strong>Lista o descripciÃ³n de materiales:</strong></p><p>${escapeHtml(materials).replace(/\n/g, "<br>")}</p>`
   const port = Number(process.env.SMTP_PORT) || 587
   const transporter = nodemailer.createTransport({
     host: smtpHost,
@@ -2196,7 +2251,7 @@ app.post("/api/public/quote-request", publicQuoteLimiter, async (req, res) => {
       from: String(process.env.SMTP_FROM || smtpUser),
       to: recipient,
       replyTo: email,
-      subject: "Nueva solicitud de cotización - EMBAIR",
+      subject: "Nueva solicitud de cotizaciÃ³n - EMBAIR",
       text,
       html
     })
@@ -3200,8 +3255,8 @@ function recommendProductsForQueryText(query, products) {
     for (const w of words) {
       if (hay.includes(w)) score += 3
     }
-    if (/lámpara|lampara|iluminación|iluminacion|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
-    if (/tubo|agua|llave|grifo|grifería|griferia|sifón|sifon/.test(q) && p.category === "Plomería") score += 4
+    if (/lÃ¡mpara|lampara|iluminaciÃ³n|iluminacion|foco|bombillo/.test(q) && p.category === "Electricidad") score += 4
+    if (/tubo|agua|llave|grifo|griferÃ­a|griferia|sifÃ³n|sifon/.test(q) && p.category === "PlomerÃ­a") score += 4
     if (p.price != null) {
       const val = Number(p.price)
       if (!Number.isNaN(val)) score += Math.min(val / 1000, 5)
@@ -3217,15 +3272,15 @@ function recommendProductsForQueryText(query, products) {
 function buildAssistantReplyForWhatsApp(message, products) {
   const text = String(message || "").trim()
   if (!text) {
-    return "Hola, soy tu asistente de compras de EMBAIR. Cuéntame qué necesitas y buscaré productos en el catálogo mayorista para ayudarte."
+    return "Hola, soy tu asistente de compras de EMBAIR. CuÃ©ntame quÃ© necesitas y buscarÃ© productos en el catÃ¡logo mayorista para ayudarte."
   }
   const lower = text.toLowerCase()
-  if (/tablero/.test(lower) && !/empotrado|superficie|m[oó]dulo|modulo/.test(lower)) {
-    return "Para ayudarte mejor con tableros, indícame si lo necesitas empotrado o de superficie y para cuántos módulos aproximadamente."
+  if (/tablero/.test(lower) && !/empotrado|superficie|m[oÃ³]dulo|modulo/.test(lower)) {
+    return "Para ayudarte mejor con tableros, indÃ­came si lo necesitas empotrado o de superficie y para cuÃ¡ntos mÃ³dulos aproximadamente."
   }
   const productsList = Array.isArray(products) ? products : []
   if (!productsList.length) {
-    return "Por ahora no tengo productos cargados en el catálogo. Intenta de nuevo más tarde o contacta directamente con un asesor."
+    return "Por ahora no tengo productos cargados en el catÃ¡logo. Intenta de nuevo mÃ¡s tarde o contacta directamente con un asesor."
   }
   if (/disponible|tienes|tienen|hay|stock/.test(lower)) {
     const prod = findBestProductMatchForText(text, productsList)
@@ -3233,51 +3288,51 @@ function buildAssistantReplyForWhatsApp(message, products) {
       if (prod.available && prod.available !== "Disponible") {
         const altQuery = `${prod.category || ""} ${prod.subcategory || ""}`
         const recsAlt = recommendProductsForQueryText(altQuery, productsList)
-        let msg = `Ese producto figura como *agotado* en el catálogo: *${prod.name}*.\n`
+        let msg = `Ese producto figura como *agotado* en el catÃ¡logo: *${prod.name}*.\n`
         if (recsAlt.length) {
-          msg += "\n*Opciones alternativas que podrían servirte:*\n"
+          msg += "\n*Opciones alternativas que podrÃ­an servirte:*\n"
           for (const r of recsAlt) {
             const parts = []
             if (r.category) parts.push(r.category)
             if (r.subcategory) parts.push(r.subcategory)
             if (r.material) parts.push(r.material)
-            const desc = parts.length ? ` (${parts.join(" • ")})` : ""
+            const desc = parts.length ? ` (${parts.join(" â€¢ ")})` : ""
             let priceText = ""
             if (r.price != null && !Number.isNaN(Number(r.price))) {
               priceText = ` - Precio aprox: $${Number(r.price).toLocaleString("es-VE")}`
             } else {
-              priceText = " - Precio: solicitar cotización"
+              priceText = " - Precio: solicitar cotizaciÃ³n"
             }
-            msg += `• *${r.name}*${desc}${priceText}\n`
+            msg += `â€¢ *${r.name}*${desc}${priceText}\n`
           }
         } else {
-          msg += "\nSi quieres puedo buscarte alternativas similares si me das más detalles."
+          msg += "\nSi quieres puedo buscarte alternativas similares si me das mÃ¡s detalles."
         }
         return msg
       }
-      return `Sí, en el catálogo figura como *disponible*: *${prod.name}*.\n\nPuedes buscarlo por nombre o código en la app mayorista o indicarme si quieres que te sugiera complementos.`
+      return `SÃ­, en el catÃ¡logo figura como *disponible*: *${prod.name}*.\n\nPuedes buscarlo por nombre o cÃ³digo en la app mayorista o indicarme si quieres que te sugiera complementos.`
     }
   }
   const recs = recommendProductsForQueryText(text, productsList)
   if (!recs.length) {
-    return "Con lo que me cuentas no encontré algo claro en el catálogo. Prueba explicando qué ambiente o instalación quieres armar (por ejemplo: iluminación de sala, cambio de grifería de baño, tablero para apartamento)."
+    return "Con lo que me cuentas no encontrÃ© algo claro en el catÃ¡logo. Prueba explicando quÃ© ambiente o instalaciÃ³n quieres armar (por ejemplo: iluminaciÃ³n de sala, cambio de griferÃ­a de baÃ±o, tablero para apartamento)."
   }
-  let msg = "*Te sugiero estos productos según lo que comentas:*\n\n"
+  let msg = "*Te sugiero estos productos segÃºn lo que comentas:*\n\n"
   for (const p of recs) {
     const parts = []
     if (p.category) parts.push(p.category)
     if (p.subcategory) parts.push(p.subcategory)
     if (p.material) parts.push(p.material)
-    const desc = parts.length ? ` (${parts.join(" • ")})` : ""
+    const desc = parts.length ? ` (${parts.join(" â€¢ ")})` : ""
     let priceText = ""
     if (p.price != null && !Number.isNaN(Number(p.price))) {
       priceText = ` - Precio aprox: $${Number(p.price).toLocaleString("es-VE")}`
     } else {
-      priceText = " - Precio: solicitar cotización"
+      priceText = " - Precio: solicitar cotizaciÃ³n"
     }
-    msg += `• *${p.name}*${desc}${priceText}\n`
+    msg += `â€¢ *${p.name}*${desc}${priceText}\n`
   }
-  msg += "\nSi te interesa alguno, responde con el nombre o código y te ayudo a afinar la lista."
+  msg += "\nSi te interesa alguno, responde con el nombre o cÃ³digo y te ayudo a afinar la lista."
   return msg
 }
 

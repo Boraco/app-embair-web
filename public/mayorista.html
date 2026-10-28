@@ -172,7 +172,7 @@
       <div id="cart" class="space-y-3 text-sm"><p class="text-slate-400">Aún no agregas productos.</p></div>
     </div>
     <div class="border-t border-slate-100 p-4 md:p-5 bg-slate-50">
-      <div class="flex justify-between font-bold"><span>Total estimado</span><span id="total" class="text-right">$0</span></div>
+      <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Total estimado</div><div id="total">$0</div></div>
       <textarea id="notes" class="w-full border rounded-lg px-3 py-2 mt-4 text-sm bg-white" rows="3" placeholder="Notas para despacho o entrega"></textarea>
       <button id="submit-order" class="w-full mt-3 rounded-lg bg-[#10165c] hover:bg-[#20278c] text-white font-bold py-3">Cerrar solicitud y generar PDF</button>
       <p id="order-message" class="hidden text-sm mt-3"></p>
@@ -696,13 +696,17 @@
         cartFab.classList.toggle("md:flex", count > 0)
         cartFab.classList.toggle("md:hidden", count === 0)
       }
-      $("total").innerHTML = money(total) + (() => {
+      $("total").innerHTML = (() => {
         const opts = paymentOptions(total)
-        if (!opts || (!opts.bsBinance && !opts.bsBcv)) return ""
-        const parts = []
-        if (opts.bsBinance) parts.push(`Bs Binance: <strong>${moneyBs(opts.bsBinance)}</strong>`)
-        if (opts.bsBcv) parts.push(`Bs BCV: <strong>${moneyBs(opts.bsBcv)}</strong>`)
-        return `<span class="block text-[11px] font-normal text-slate-400 mt-0.5">${parts.join(" · ")}</span>`
+        let html = `<div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-500">Total USDT</span><span class="text-2xl font-extrabold text-[#10165c]">${money(total)}</span></div>`
+        if (opts && (opts.bsBinance || opts.bsBcv)) {
+          html += `<div class="mt-2 pt-2 border-t border-slate-200 space-y-1.5">`
+          if (opts.bsBcv) html += `<div class="flex items-center justify-between"><span class="text-xs text-slate-500">Pago en Bs · tasa BCV</span><strong class="text-sm text-slate-800">${moneyBs(opts.bsBcv)}</strong></div>`
+          if (opts.bsBinance) html += `<div class="flex items-center justify-between"><span class="text-xs text-slate-500">Pago en Bs · tasa Binance</span><strong class="text-sm text-slate-800">${moneyBs(opts.bsBinance)}</strong></div>`
+          if (opts.refUsdBcv) html += `<div class="flex items-center justify-between"><span class="text-[10px] text-slate-400">Ref. $ a tasa BCV</span><span class="text-[11px] text-slate-400">${money(opts.refUsdBcv)}</span></div>`
+          html += `</div>`
+        }
+        return html
       })()
       if (mobileCartBar && mobileCartSummary) {
         mobileCartBar.classList.toggle("hidden", count === 0)
@@ -712,23 +716,36 @@
       $("cart").innerHTML = cart.length ? cart.map(i => {
         const unitsPerPackage = Math.max(1, Number(i.unitsPerPackage || 1))
         const unitPrice = i.saleUnit === "unit" ? Number(i.unitPrice || 0) : Number((Number(i.unitPrice || 0) / unitsPerPackage).toFixed(2))
+        const prod = products.find(x => Number(x.id) === Number(i.productId)) || {}
+        const img = prod.img || ""
+        const itemOpts = paymentOptions(i.subtotal)
         return `
-        <div class="border-b pb-3">
-          <div class="flex justify-between gap-3">
-          <div><strong>${i.name}</strong><p class="mt-1 text-xs font-semibold text-slate-500">Precio por unidad</p><strong class="text-lg text-[#10165c]">${money(unitPrice)}</strong>${paymentOptionsHtml(unitPrice, true)}${i.saleUnit === "unit" ? `<p class="text-xs text-slate-500">${i.qty} unidad(es) × ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>` : `<p class="text-xs text-slate-500">Paquete: ${money(i.unitPrice)}${i.discountPercent ? ` · ${i.discountPercent}% descuento` : ""}</p>`}${i.discountPercent && i.regularUnitPrice != null ? `<p class="text-xs text-slate-400 line-through">Antes: ${money(i.regularUnitPrice)} por paquete</p>` : ""}<p class="text-xs text-slate-500">${i.saleUnit === "unit" ? `${i.qty} unidad(es) de inventario` : `${i.qty} paquete(s) × ${i.unitsPerPackage || 1} und. = ${i.unitsTotal || i.qty * (i.unitsPerPackage || 1)} unidades`}</p><p class="text-xs text-slate-400">Mínimo: ${i.minimumQuantity || 1} ${i.saleUnit === "unit" ? "unidad(es)" : "paquete(s)"}</p></div>
-            <button type="button" onclick="removeCartItem('${i.productId}', '${i.saleUnit === "unit" ? "unit" : "package"}')" class="text-red-500 text-xs hover:underline">Quitar</button>
-          </div>
-          <div class="flex items-center justify-between mt-2">
-          <span class="text-xs text-slate-500">Cantidad de ${i.saleUnit === "unit" ? "unidades" : "paquetes"}</span>
-          <div class="flex items-center gap-2">
-            <div class="flex items-center border rounded-lg">
-              <button type="button" ${Number(i.qty) <= Number(i.minimumQuantity || 1) ? "disabled" : ""} onclick="updateCartQty('${i.productId}', ${Number(i.qty) - 1}, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="px-2.5 py-1 text-xs hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Restar una unidad">-</button>
-              <input type="number" min="${i.minimumQuantity || 1}" step="1" value="${i.qty}" onchange="updateCartQty('${i.productId}', this.value, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="w-16 border-x px-2 py-1 text-center text-sm font-bold" aria-label="Cantidad para ${i.name}">
-              <button type="button" onclick="updateCartQty('${i.productId}', ${Number(i.qty) + 1}, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="px-2.5 py-1 text-xs hover:bg-slate-50" aria-label="Sumar una unidad">+</button>
+        <div class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div class="flex gap-3">
+            <div class="w-16 h-16 shrink-0 rounded-lg bg-slate-100 border border-slate-100 overflow-hidden flex items-center justify-center">
+              ${img ? `<img src="${img}" alt="" class="w-full h-full object-contain" onerror="this.style.display='none'">` : `<span class="text-slate-300 text-xl">📦</span>`}
             </div>
-            <strong class="text-sm">${money(i.subtotal)}${paymentOptionsHtml(i.subtotal, true)}</strong>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <strong class="text-[13px] leading-4 text-slate-800 line-clamp-2">${i.name}</strong>
+                <button type="button" onclick="removeCartItem('${i.productId}', '${i.saleUnit === "unit" ? "unit" : "package"}')" class="shrink-0 text-slate-300 hover:text-red-500 transition-colors" aria-label="Quitar">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <p class="mt-0.5 text-[11px] text-slate-400">${i.saleUnit === "unit" ? `${i.qty} unidad(es)` : `${i.qty} paquete(s) × ${i.unitsPerPackage || 1} und.`} · ${money(unitPrice)} c/u${i.discountPercent ? ` · <span class="text-emerald-600 font-semibold">-${i.discountPercent}%</span>` : ""}</p>
+            </div>
           </div>
-        </div>
+          <div class="flex items-center justify-between mt-2.5 pt-2.5 border-t border-slate-100">
+            <div class="flex items-center border border-slate-200 rounded-lg">
+              <button type="button" ${Number(i.qty) <= Number(i.minimumQuantity || 1) ? "disabled" : ""} onclick="updateCartQty('${i.productId}', ${Number(i.qty) - 1}, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="px-2.5 py-1 text-xs hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Restar">−</button>
+              <input type="number" min="${i.minimumQuantity || 1}" step="1" value="${i.qty}" onchange="updateCartQty('${i.productId}', this.value, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="w-14 border-x border-slate-200 px-1 py-1 text-center text-sm font-bold" aria-label="Cantidad para ${i.name}">
+              <button type="button" onclick="updateCartQty('${i.productId}', ${Number(i.qty) + 1}, '${i.saleUnit === "unit" ? "unit" : "package"}')" class="px-2.5 py-1 text-xs hover:bg-slate-50" aria-label="Sumar">+</button>
+            </div>
+            <div class="text-right">
+              <strong class="text-base text-[#10165c]">${money(i.subtotal)}</strong>
+              ${itemOpts && itemOpts.bsBcv ? `<div class="text-[10px] text-slate-400">${moneyBs(itemOpts.bsBcv)}</div>` : ""}
+            </div>
+          </div>
         </div>`
       }).join("") : `<p class="text-slate-400">Aún no agregas productos.</p>`;
     }

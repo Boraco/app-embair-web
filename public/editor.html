@@ -257,6 +257,38 @@
             </div>
         </section>
 
+        <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+                <h2 class="text-lg font-bold text-slate-800">Tarjetas de filtro del catálogo mayorista</h2>
+                <p class="mt-1 text-sm text-slate-500">Tarjetas con imagen que agrupan los productos del portal mayorista. Al hacer clic, el catálogo muestra solo los productos que coincidan con las categorías, subcategorías o palabras clave elegidas. Cada tarjeta puede tener sub-tarjetas (ejemplo: Materiales eléctricos → Cables, Línea EMT, Tableros…).</p>
+            </div>
+            <div class="space-y-5 p-6">
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <input type="checkbox" id="wholesale-cards-enabled" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500">
+                        Mostrar tarjetas en el catálogo mayorista
+                    </label>
+                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        Estilo
+                        <select id="wholesale-cards-theme" class="rounded border border-slate-300 px-2 py-1 text-sm">
+                            <option value="light">Claro (círculo blanco, texto azul)</option>
+                            <option value="blue">Azul (tarjeta azul, círculo blanco)</option>
+                        </select>
+                    </label>
+                    <label class="flex min-w-64 flex-1 items-center gap-2 text-sm font-medium text-slate-700">
+                        Título de la sección
+                        <input id="wholesale-cards-title" type="text" maxlength="100" class="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1 text-sm" placeholder="Explora por categoría">
+                    </label>
+                </div>
+                <div id="wholesale-category-cards" class="space-y-4"></div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" id="wholesale-cards-add" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">+ Agregar tarjeta</button>
+                    <button type="button" id="wholesale-cards-example" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">Cargar estructura de ejemplo</button>
+                    <p id="wholesale-category-status" class="text-xs text-slate-600" role="status" aria-live="polite">Guarda los cambios generales para publicar las tarjetas.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- 3. SECCIONES DE CONTENIDO -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
@@ -279,6 +311,37 @@
 
     <!-- TAB CONTENT: PORTAL -->
     <div id="tab-content-portal" class="space-y-8 hidden">
+        <section class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+                <h2 class="text-lg font-bold text-slate-800">Tarjetas de filtro del portal público</h2>
+                <p class="mt-1 text-sm text-slate-500">Tarjetas con imagen que agrupan los productos de la tienda pública. Al hacer clic, el catálogo muestra solo los productos que coincidan con las categorías, subcategorías o palabras clave elegidas. Cada tarjeta puede tener sub-tarjetas (ejemplo: Materiales eléctricos → Cables, Línea EMT, Tableros…).</p>
+            </div>
+            <div class="space-y-5 p-6">
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        <input type="checkbox" id="catalog-cards-enabled" class="h-4 w-4 rounded text-blue-600 focus:ring-blue-500">
+                        Mostrar tarjetas en el portal público
+                    </label>
+                    <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        Estilo
+                        <select id="catalog-cards-theme" class="rounded border border-slate-300 px-2 py-1 text-sm">
+                            <option value="light">Claro (círculo blanco, texto azul)</option>
+                            <option value="blue">Azul (tarjeta azul, círculo blanco)</option>
+                        </select>
+                    </label>
+                    <label class="flex min-w-64 flex-1 items-center gap-2 text-sm font-medium text-slate-700">
+                        Título de la sección
+                        <input id="catalog-cards-title" type="text" maxlength="100" class="min-w-0 flex-1 rounded border border-slate-300 px-2 py-1 text-sm" placeholder="Explora por categoría">
+                    </label>
+                </div>
+                <div id="catalog-category-cards" class="space-y-4"></div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" id="catalog-cards-add" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700">+ Agregar tarjeta</button>
+                    <button type="button" id="catalog-cards-example" class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100">Cargar estructura de ejemplo</button>
+                    <p id="catalog-category-status" class="text-xs text-slate-600" role="status" aria-live="polite">Guarda los cambios generales para publicar las tarjetas.</p>
+                </div>
+            </div>
+        </section>
         <!-- CINTILLO / MARQUEE -->
         <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
@@ -527,6 +590,62 @@
     </fieldset>
   </template>
 
+  <template id="wholesale-card-template">
+    <fieldset class="wholesale-filter-card min-w-0 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <legend class="px-2 text-sm font-bold text-slate-800"></legend>
+        <div class="grid gap-3 sm:grid-cols-2">
+            <div class="flex flex-wrap items-center gap-4 sm:col-span-2">
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#10165c]/15 bg-white p-2">
+                    <img data-image-img src="" alt="" class="hidden h-full w-full object-contain">
+                    <span data-image-placeholder aria-hidden="true" class="text-2xl font-extrabold text-[#10165c]/25"></span>
+                </div>
+                <div class="min-w-0 flex-1 space-y-2">
+                    <div class="flex flex-wrap gap-2">
+                        <button type="button" data-upload-trigger class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Subir imagen</button>
+                        <button type="button" data-image-remove class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-50">Quitar imagen</button>
+                        <input data-file-input type="file" accept="image/*" class="hidden">
+                    </div>
+                    <input data-field="alt" type="text" maxlength="180" class="w-full rounded border border-slate-300 px-2 py-1 text-sm" placeholder="Descripción de la imagen (texto alternativo)">
+                    <p data-upload-status class="text-xs text-slate-500" role="status" aria-live="polite"></p>
+                </div>
+            </div>
+            <label class="block text-sm font-medium text-slate-700">Título de la tarjeta
+                <input data-field="title" type="text" maxlength="80" class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="Ej: Cables">
+            </label>
+            <label class="block text-sm font-medium text-slate-700">Palabras clave (opcional, separadas por coma)
+                <input data-field="keywords" type="text" maxlength="200" class="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm" placeholder="Ej: galvanizado, termofusión">
+            </label>
+            <div class="sm:col-span-2">
+                <p class="text-sm font-medium text-slate-700">Categorías que muestra esta tarjeta</p>
+                <p class="mt-0.5 text-xs text-slate-500">Si no eliges ninguna, no se filtra por categoría.</p>
+                <div data-match-categories class="mt-2 flex flex-wrap gap-1.5"></div>
+            </div>
+            <div class="sm:col-span-2">
+                <p class="text-sm font-medium text-slate-700">Subcategorías que muestra esta tarjeta</p>
+                <p class="mt-0.5 text-xs text-slate-500">Si no eliges ninguna, no se filtra por subcategoría.</p>
+                <div data-match-subcategories class="mt-2 flex flex-wrap gap-1.5"></div>
+            </div>
+            <div data-children-wrap class="rounded-lg border border-slate-200 bg-white p-3 sm:col-span-2">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700">Sub-tarjetas (segundo nivel)</p>
+                        <p class="mt-0.5 text-xs text-slate-500">Ejemplo: dentro de “Materiales eléctricos” → Cables, Línea EMT, Tableros…</p>
+                    </div>
+                    <button type="button" data-child-add class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">+ Agregar sub-tarjeta</button>
+                </div>
+                <div data-children-list class="mt-3 space-y-3"></div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 sm:col-span-2">
+                <div class="flex gap-1">
+                    <button type="button" data-move="-1" class="rounded border border-slate-300 px-2 py-1 text-xs disabled:opacity-40">↑ Subir</button>
+                    <button type="button" data-move="1" class="rounded border border-slate-300 px-2 py-1 text-xs disabled:opacity-40">↓ Bajar</button>
+                </div>
+                <button type="button" data-remove class="rounded border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-100">Eliminar tarjeta</button>
+            </div>
+        </div>
+    </fieldset>
+  </template>
+
   <script>
     // --- UTILS ---
     function getAdminToken() {
@@ -598,6 +717,18 @@
         let landingBrandSlidesLoaded = false
         let landingCategoryCards = []
         let landingCategoryCardsLoaded = false
+        let wholesaleCategoryCards = []
+        let wholesaleCategoryCardsLoaded = false
+        let wholesaleCatalogOptions = { categories: [], subcategories: [] }
+        let wholesaleCountProducts = []
+        let wholesaleCountLabel = ""
+        const wholesaleCardList = document.getElementById("wholesale-category-cards")
+        const wholesaleCardStatus = document.getElementById("wholesale-category-status")
+        let catalogCategoryCards = []
+        let catalogCategoryCardsLoaded = false
+        let catalogCountProducts = []
+        const catalogCardList = document.getElementById("catalog-category-cards")
+        const catalogCardStatus = document.getElementById("catalog-category-status")
         const wholesaleLogoList = document.getElementById("wholesale-logo-list")
         const wholesaleLogoStatus = document.getElementById("wholesale-logo-status")
         const landingBrandList = document.getElementById("landing-brand-list")
@@ -862,7 +993,358 @@
                 landingCategoryCardList.appendChild(fragment)
             })
         }
-        
+
+        // --- TARJETAS DE FILTRO DEL CATÁLOGO MAYORISTA ---
+        const normalizeWholesaleCard = raw => {
+            const source = raw && typeof raw === "object" ? raw : {}
+            const match = source.match && typeof source.match === "object" ? source.match : {}
+            return {
+                title: String(source.title || "").trim(),
+                image: String(source.image || ""),
+                alt: String(source.alt || ""),
+                match: {
+                    categories: Array.isArray(match.categories) ? match.categories.map(String) : [],
+                    subcategories: Array.isArray(match.subcategories) ? match.subcategories.map(String) : [],
+                    keywords: Array.isArray(match.keywords) ? match.keywords.map(String) : []
+                },
+                children: Array.isArray(source.children) ? source.children.map(child => ({ ...normalizeWholesaleCard(child), children: [] })) : []
+            }
+        }
+
+        const wholesaleCardText = value => String(value || "").trim().toLowerCase()
+
+        function wholesaleCardMatches(product, match) {
+            if (!match) return true
+            const categories = (match.categories || []).map(wholesaleCardText).filter(Boolean)
+            const subcategories = (match.subcategories || []).map(wholesaleCardText).filter(Boolean)
+            const keywords = (match.keywords || []).map(wholesaleCardText).filter(Boolean)
+            if (!categories.length && !subcategories.length && !keywords.length) return true
+            const productCategory = wholesaleCardText(product.category || product.categoria || "General")
+            const productSubcategory = wholesaleCardText(product.subcategory)
+            const haystack = wholesaleCardText([product.name, product.desc, product.code, product.sku, product.brand, product.material].filter(Boolean).join(" "))
+            const categoryOk = !categories.length || categories.includes(productCategory)
+            const subcategoryOk = !subcategories.length || subcategories.includes(productSubcategory)
+            const keywordsOk = !keywords.length || keywords.some(keyword => haystack.includes(keyword))
+            return categoryOk && subcategoryOk && keywordsOk
+        }
+
+        function wholesaleCardCount(card) {
+            return wholesaleCountProducts.filter(product => wholesaleCardMatches(product, card.match)).length
+        }
+
+        function catalogCardCount(card) {
+            return catalogCountProducts.filter(product => wholesaleCardMatches(product, card.match)).length
+        }
+
+        async function loadWholesaleCardCatalog() {
+            try {
+                const res = await fetch("/api/products")
+                if (res.ok) {
+                    const catalog = await res.json()
+                    const list = Array.isArray(catalog) ? catalog : []
+                    wholesaleCatalogOptions = {
+                        categories: [...new Set(list.map(p => String(p.category || p.categoria || "General").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es")),
+                        subcategories: [...new Set(list.map(p => String(p.subcategory || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"))
+                    }
+                    wholesaleCountProducts = list
+                    wholesaleCountLabel = "en el catálogo general"
+                }
+            } catch (error) {
+                console.error("Error cargando catálogo para tarjetas mayoristas:", error)
+            }
+            try {
+                const token = getAdminToken()
+                const res = await fetch("/api/admin/wholesale/products", { headers: token ? { Authorization: "Basic " + token } : {} })
+                if (res.ok) {
+                    const data = await res.json()
+                    const catalog = Array.isArray(data.catalog) ? data.catalog : []
+                    const enabled = new Set((Array.isArray(data.products) ? data.products : []).filter(item => item && item.enabled !== false).map(item => Number(item.productId)))
+                    wholesaleCountProducts = catalog.filter(p => enabled.has(Number(p.id)) && p.catalogVisibility !== "public")
+                    wholesaleCountLabel = "en el catálogo mayorista"
+                }
+            } catch (error) {
+                console.error("Error cargando productos mayoristas para conteo:", error)
+            }
+        }
+
+        function createWholesaleCardEditor(card, options) {
+            const { onRemove, onMove, isChild, positionLabel, canMoveUp, canMoveDown, countFn, countLabel, statusEl } = options
+            const getCount = countFn || wholesaleCardCount
+            const resolvedCountLabel = countLabel !== undefined ? countLabel : wholesaleCountLabel
+            const resolvedStatusEl = statusEl || wholesaleCardStatus
+            const fragment = document.getElementById("wholesale-card-template").content.cloneNode(true)
+            const root = fragment.querySelector(".wholesale-filter-card")
+            const legend = root.querySelector("legend")
+            const updateLegend = () => {
+                const count = getCount(card)
+                legend.textContent = `${positionLabel}: ${card.title || "Sin título"} · ${count} producto${count === 1 ? "" : "s"}${resolvedCountLabel ? ` ${resolvedCountLabel}` : ""}`
+            }
+            updateLegend()
+
+            const imageImg = root.querySelector("[data-image-img]")
+            const imagePlaceholder = root.querySelector("[data-image-placeholder]")
+            const uploadStatus = root.querySelector("[data-upload-status]")
+            const renderImage = () => {
+                imageImg.classList.toggle("hidden", !card.image)
+                imagePlaceholder.classList.toggle("hidden", Boolean(card.image))
+                if (card.image) {
+                    imageImg.src = card.image
+                    imageImg.alt = card.alt || ""
+                }
+                imagePlaceholder.textContent = (card.title || "?").trim().charAt(0).toUpperCase() || "?"
+            }
+            renderImage()
+
+            const fileInput = root.querySelector("[data-file-input]")
+            root.querySelector("[data-upload-trigger]").addEventListener("click", () => fileInput.click())
+            fileInput.addEventListener("change", async () => {
+                const file = fileInput.files && fileInput.files[0]
+                if (!file) return
+                uploadStatus.className = "text-xs text-blue-700"
+                uploadStatus.textContent = `Subiendo ${file.name}...`
+                try {
+                    const url = await uploadFile(file)
+                    if (typeof url !== "string" || !url) throw new Error(`No se pudo subir ${file.name}.`)
+                    card.image = url
+                    if (!card.alt) {
+                        card.alt = file.name.replace(/\.[^.]+$/, "")
+                        altInput.value = card.alt
+                    }
+                    uploadStatus.className = "text-xs text-emerald-600"
+                    uploadStatus.textContent = "Imagen lista. Guarda los cambios generales para publicarla."
+                    resolvedStatusEl.textContent = "Imagen subida. Guarda los cambios generales para publicarla."
+                    renderImage()
+                } catch (error) {
+                    uploadStatus.className = "text-xs text-red-600"
+                    uploadStatus.textContent = error.message || "No se pudo subir la imagen."
+                } finally {
+                    fileInput.value = ""
+                }
+            })
+            root.querySelector("[data-image-remove]").addEventListener("click", () => {
+                card.image = ""
+                renderImage()
+            })
+
+            const titleInput = root.querySelector('[data-field="title"]')
+            titleInput.value = card.title
+            titleInput.addEventListener("input", () => {
+                card.title = titleInput.value
+                updateLegend()
+                renderImage()
+            })
+            const altInput = root.querySelector('[data-field="alt"]')
+            altInput.value = card.alt
+            altInput.addEventListener("input", () => { card.alt = altInput.value })
+            const keywordsInput = root.querySelector('[data-field="keywords"]')
+            keywordsInput.value = card.match.keywords.join(", ")
+            keywordsInput.addEventListener("input", () => {
+                card.match.keywords = keywordsInput.value.split(",").map(value => value.trim()).filter(Boolean)
+                updateLegend()
+            })
+
+            const renderChips = (container, values, selected) => {
+                container.replaceChildren()
+                const all = [...new Set([...values, ...selected])].sort((a, b) => a.localeCompare(b, "es"))
+                if (!all.length) {
+                    const empty = document.createElement("p")
+                    empty.className = "text-xs text-slate-400"
+                    empty.textContent = "No se pudo cargar el catálogo. Puedes usar palabras clave mientras tanto."
+                    container.appendChild(empty)
+                    return
+                }
+                all.forEach(value => {
+                    const active = selected.includes(value)
+                    const chip = document.createElement("button")
+                    chip.type = "button"
+                    chip.textContent = value
+                    chip.setAttribute("aria-pressed", active ? "true" : "false")
+                    chip.className = active
+                        ? "rounded-full border border-[#10165c] bg-[#10165c] px-2.5 py-1 text-[11px] font-semibold text-white"
+                        : "rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:border-slate-400"
+                    chip.addEventListener("click", () => {
+                        const at = selected.indexOf(value)
+                        if (at >= 0) selected.splice(at, 1)
+                        else selected.push(value)
+                        renderChips(container, values, selected)
+                        updateLegend()
+                    })
+                    container.appendChild(chip)
+                })
+            }
+            renderChips(root.querySelector("[data-match-categories]"), wholesaleCatalogOptions.categories, card.match.categories)
+            renderChips(root.querySelector("[data-match-subcategories]"), wholesaleCatalogOptions.subcategories, card.match.subcategories)
+
+            root.querySelectorAll("[data-move]").forEach(button => {
+                const offset = Number(button.dataset.move)
+                button.disabled = offset < 0 ? !canMoveUp : !canMoveDown
+                button.addEventListener("click", () => onMove && onMove(offset))
+            })
+            root.querySelector("[data-remove]").addEventListener("click", () => onRemove && onRemove())
+
+            const childrenWrap = root.querySelector("[data-children-wrap]")
+            if (isChild) {
+                childrenWrap.remove()
+            } else {
+                const childrenList = root.querySelector("[data-children-list]")
+                const renderChildren = () => {
+                    childrenList.replaceChildren()
+                    card.children.forEach((child, childIndex) => {
+                        childrenList.appendChild(createWholesaleCardEditor(child, {
+                            isChild: true,
+                            positionLabel: `Sub-tarjeta ${childIndex + 1}`,
+                            canMoveUp: childIndex > 0,
+                            canMoveDown: childIndex < card.children.length - 1,
+                            countFn: getCount,
+                            countLabel: resolvedCountLabel,
+                            statusEl: resolvedStatusEl,
+                            onRemove: () => {
+                                card.children.splice(childIndex, 1)
+                                renderChildren()
+                            },
+                            onMove: offset => {
+                                const target = childIndex + offset
+                                if (target < 0 || target >= card.children.length) return
+                                ;[card.children[childIndex], card.children[target]] = [card.children[target], card.children[childIndex]]
+                                renderChildren()
+                            }
+                        }))
+                    })
+                }
+                renderChildren()
+                root.querySelector("[data-child-add]").addEventListener("click", () => {
+                    card.children.push(normalizeWholesaleCard({}))
+                    renderChildren()
+                })
+            }
+
+            return root
+        }
+
+        function renderWholesaleCategoryCards() {
+            wholesaleCardList.replaceChildren()
+            if (!wholesaleCategoryCards.length) {
+                const empty = document.createElement("p")
+                empty.className = "rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-400"
+                empty.textContent = "Aún no hay tarjetas. Agrega una o carga la estructura de ejemplo."
+                wholesaleCardList.appendChild(empty)
+                return
+            }
+            wholesaleCategoryCards.forEach((card, index) => {
+                wholesaleCardList.appendChild(createWholesaleCardEditor(card, {
+                    isChild: false,
+                    positionLabel: `Tarjeta ${index + 1}`,
+                    canMoveUp: index > 0,
+                    canMoveDown: index < wholesaleCategoryCards.length - 1,
+                    onRemove: () => {
+                        wholesaleCategoryCards.splice(index, 1)
+                        renderWholesaleCategoryCards()
+                    },
+                    onMove: offset => {
+                        const target = index + offset
+                        if (target < 0 || target >= wholesaleCategoryCards.length) return
+                        ;[wholesaleCategoryCards[index], wholesaleCategoryCards[target]] = [wholesaleCategoryCards[target], wholesaleCategoryCards[index]]
+                        renderWholesaleCategoryCards()
+                    }
+                }))
+            })
+        }
+
+        document.getElementById("wholesale-cards-add").addEventListener("click", () => {
+            wholesaleCategoryCards.push(normalizeWholesaleCard({}))
+            renderWholesaleCategoryCards()
+        })
+
+        document.getElementById("wholesale-cards-example").addEventListener("click", () => {
+            if (wholesaleCategoryCards.length && !confirm("¿Reemplazar las tarjetas actuales con la estructura de ejemplo?")) return
+            wholesaleCategoryCards = [
+                normalizeWholesaleCard({ title: "Materiales eléctricos", match: { categories: ["Electricidad", "MAT. ELECTRICO", "ELECTRICIDAD"] }, children: [
+                    { title: "Cables", match: { subcategories: ["Cables", "THHN", "SPT"] } },
+                    { title: "Línea Conduit", match: { subcategories: ["CONDUIT"] } },
+                    { title: "Línea EMT", match: { subcategories: ["EMT"] } },
+                    { title: "Tableros y Breakers", match: { subcategories: ["TABLEROS", "BREAKERS", "CENTRO CARGA"] } },
+                    { title: "Autocontrol", match: { subcategories: ["CONTROL"] } },
+                    { title: "Protectores", match: { subcategories: ["PROTECTORES"] } },
+                    { title: "Iluminación", match: { categories: ["Iluminación"] } },
+                    { title: "Tomas e Interruptores", match: { subcategories: ["TOMAS E INTERRUPTORES", "TOMA E INTERRUPTORES"] } },
+                    { title: "Accesorios", match: { subcategories: ["ACCESORIOS"] } }
+                ]}),
+                normalizeWholesaleCard({ title: "Plomería", match: { categories: ["Plomería"] }, children: [
+                    { title: "PPR / Termofusión", match: { categories: ["Plomería"], keywords: ["ppr", "termofusión", "termofusion"] } },
+                    { title: "Sanitario", match: { categories: ["Plomería"], keywords: ["sanitario"] } },
+                    { title: "Agua fría PVC | Roscar", match: { categories: ["Plomería"], keywords: ["pvc", "roscar"] } },
+                    { title: "Galvanizado", match: { categories: ["Plomería"], keywords: ["galvanizado"] } }
+                ]}),
+                normalizeWholesaleCard({ title: "Construcción", match: { categories: ["Construcción"], keywords: ["construcción", "construccion"] } })
+            ]
+            renderWholesaleCategoryCards()
+            wholesaleCardStatus.textContent = "Estructura de ejemplo cargada. Agrega tus imágenes y guarda los cambios generales."
+        })
+
+        // --- TARJETAS DE FILTRO DEL PORTAL PÚBLICO ---
+        function renderCatalogCategoryCards() {
+            catalogCardList.replaceChildren()
+            if (!catalogCategoryCards.length) {
+                const empty = document.createElement("p")
+                empty.className = "rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-400"
+                empty.textContent = "Aún no hay tarjetas. Agrega una o carga la estructura de ejemplo."
+                catalogCardList.appendChild(empty)
+                return
+            }
+            catalogCategoryCards.forEach((card, index) => {
+                catalogCardList.appendChild(createWholesaleCardEditor(card, {
+                    isChild: false,
+                    positionLabel: `Tarjeta ${index + 1}`,
+                    canMoveUp: index > 0,
+                    canMoveDown: index < catalogCategoryCards.length - 1,
+                    countFn: catalogCardCount,
+                    countLabel: "en el catálogo público",
+                    statusEl: catalogCardStatus,
+                    onRemove: () => {
+                        catalogCategoryCards.splice(index, 1)
+                        renderCatalogCategoryCards()
+                    },
+                    onMove: offset => {
+                        const target = index + offset
+                        if (target < 0 || target >= catalogCategoryCards.length) return
+                        ;[catalogCategoryCards[index], catalogCategoryCards[target]] = [catalogCategoryCards[target], catalogCategoryCards[index]]
+                        renderCatalogCategoryCards()
+                    }
+                }))
+            })
+        }
+
+        document.getElementById("catalog-cards-add").addEventListener("click", () => {
+            catalogCategoryCards.push(normalizeWholesaleCard({}))
+            renderCatalogCategoryCards()
+        })
+
+        document.getElementById("catalog-cards-example").addEventListener("click", () => {
+            if (catalogCategoryCards.length && !confirm("¿Reemplazar las tarjetas actuales con la estructura de ejemplo?")) return
+            catalogCategoryCards = [
+                normalizeWholesaleCard({ title: "Materiales eléctricos", match: { categories: ["Electricidad", "MAT. ELECTRICO", "ELECTRICIDAD"] }, children: [
+                    { title: "Cables", match: { subcategories: ["Cables", "THHN", "SPT"] } },
+                    { title: "Línea Conduit", match: { subcategories: ["CONDUIT"] } },
+                    { title: "Línea EMT", match: { subcategories: ["EMT"] } },
+                    { title: "Tableros y Breakers", match: { subcategories: ["TABLEROS", "BREAKERS", "CENTRO CARGA"] } },
+                    { title: "Autocontrol", match: { subcategories: ["CONTROL"] } },
+                    { title: "Protectores", match: { subcategories: ["PROTECTORES"] } },
+                    { title: "Iluminación", match: { categories: ["Iluminación"] } },
+                    { title: "Tomas e Interruptores", match: { subcategories: ["TOMAS E INTERRUPTORES", "TOMA E INTERRUPTORES"] } },
+                    { title: "Accesorios", match: { subcategories: ["ACCESORIOS"] } }
+                ]}),
+                normalizeWholesaleCard({ title: "Plomería", match: { categories: ["Plomería"] }, children: [
+                    { title: "PPR / Termofusión", match: { categories: ["Plomería"], keywords: ["ppr", "termofusión", "termofusion"] } },
+                    { title: "Sanitario", match: { categories: ["Plomería"], keywords: ["sanitario"] } },
+                    { title: "Agua fría PVC | Roscar", match: { categories: ["Plomería"], keywords: ["pvc", "roscar"] } },
+                    { title: "Galvanizado", match: { categories: ["Plomería"], keywords: ["galvanizado"] } }
+                ]}),
+                normalizeWholesaleCard({ title: "Construcción", match: { categories: ["Construcción"], keywords: ["construcción", "construccion"] } })
+            ]
+            renderCatalogCategoryCards()
+            catalogCardStatus.textContent = "Estructura de ejemplo cargada. Agrega tus imágenes y guarda los cambios generales."
+        })
+
         // Initialize Sortable
         new Sortable(slidesContainer, { animation: 150, handle: '.slide-drag-handle', ghostClass: 'ghost', onEnd: () => updateSlidePositions(slidesContainer) })
         new Sortable(portalSlidesContainer, { animation: 150, handle: '.slide-drag-handle', ghostClass: 'ghost', onEnd: () => updateSlidePositions(portalSlidesContainer) })
@@ -910,6 +1392,21 @@
             document.getElementById("landing-categories-eyebrow").value = config.landingCategoriesEyebrow || "Soluciones para cada proyecto"
             document.getElementById("landing-categories-title").value = config.landingCategoriesTitle || "Suministros para instalaciones y proyectos"
             document.getElementById("landing-categories-description").value = config.landingCategoriesDescription || "Explora nuestras principales familias de productos. Encuentra materiales eléctricos, tuberías, artículos ferreteros y opciones para tu obra; consulta disponibilidad y cotiza los requerimientos especiales con nuestro equipo."
+
+            await loadWholesaleCardCatalog()
+            document.getElementById("wholesale-cards-enabled").checked = config.wholesaleCategoryCardsEnabled === true
+            document.getElementById("wholesale-cards-theme").value = config.wholesaleCategoryCardsTheme === "blue" ? "blue" : "light"
+            document.getElementById("wholesale-cards-title").value = config.wholesaleCategoryCardsTitle || ""
+            wholesaleCategoryCards = Array.isArray(config.wholesaleCategoryCards) ? config.wholesaleCategoryCards.map(normalizeWholesaleCard) : []
+            wholesaleCategoryCardsLoaded = true
+            renderWholesaleCategoryCards()
+            catalogCountProducts = wholesaleCountProducts.filter(p => p.catalogVisibility !== "wholesale")
+            document.getElementById("catalog-cards-enabled").checked = config.catalogCategoryCardsEnabled === true
+            document.getElementById("catalog-cards-theme").value = config.catalogCategoryCardsTheme === "blue" ? "blue" : "light"
+            document.getElementById("catalog-cards-title").value = config.catalogCategoryCardsTitle || ""
+            catalogCategoryCards = Array.isArray(config.catalogCategoryCards) ? config.catalogCategoryCards.map(normalizeWholesaleCard) : []
+            catalogCategoryCardsLoaded = true
+            renderCatalogCategoryCards()
             
             // 1. Identity
             document.getElementById("config-storeName").value = config.storeName || ""
@@ -989,6 +1486,8 @@
             wholesaleLogoStatus.textContent = "No se pudo cargar la configuración. Recarga antes de gestionar los logos."
             landingBrandStatus.textContent = "No se pudo cargar la configuración. Recarga antes de gestionar las marcas."
             landingCategoryStatus.textContent = "No se pudo cargar la configuración. Recarga antes de editar las tarjetas."
+            wholesaleCardStatus.textContent = "No se pudo cargar la configuración. Recarga antes de editar las tarjetas mayoristas."
+            catalogCardStatus.textContent = "No se pudo cargar la configuración. Recarga antes de editar las tarjetas del portal público."
         }
 
         // --- Event Listeners ---
@@ -1126,6 +1625,18 @@
                     landingCategoriesTitle: document.getElementById("landing-categories-title").value,
                     landingCategoriesDescription: document.getElementById("landing-categories-description").value
                 } : {}),
+                ...(wholesaleCategoryCardsLoaded ? {
+                    wholesaleCategoryCardsEnabled: document.getElementById("wholesale-cards-enabled").checked,
+                    wholesaleCategoryCardsTheme: document.getElementById("wholesale-cards-theme").value,
+                    wholesaleCategoryCardsTitle: document.getElementById("wholesale-cards-title").value,
+                    wholesaleCategoryCards
+                } : {}),
+                ...(catalogCategoryCardsLoaded ? {
+                    catalogCategoryCardsEnabled: document.getElementById("catalog-cards-enabled").checked,
+                    catalogCategoryCardsTheme: document.getElementById("catalog-cards-theme").value,
+                    catalogCategoryCardsTitle: document.getElementById("catalog-cards-title").value,
+                    catalogCategoryCards
+                } : {}),
                 useLandingSlidesOnPortal: document.getElementById("config-useLandingSlidesOnPortal").checked,
 
                 // Services
@@ -1186,6 +1697,8 @@
                     wholesaleLogoStatus.textContent = "Cambios guardados. Los logos ya están actualizados en el catálogo mayorista."
                     landingBrandStatus.textContent = "Cambios guardados. Las marcas ya están actualizadas en la página principal."
                     landingCategoryStatus.textContent = "Cambios guardados. Las tarjetas ya están actualizadas en la página principal."
+                    wholesaleCardStatus.textContent = "Cambios guardados. Las tarjetas ya están actualizadas en el catálogo mayorista."
+                    catalogCardStatus.textContent = "Cambios guardados. Las tarjetas ya están actualizadas en el portal público."
                     alert("✅ Sitio actualizado correctamente")
                 } else {
                     alert("Error al guardar")

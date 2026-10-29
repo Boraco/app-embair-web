@@ -50,6 +50,12 @@ window.Assistant = {
     if (this.elements.close) {
       this.elements.close.addEventListener("click", () => this.close())
     }
+    const backBtn = document.getElementById("assistant-back")
+    if (backBtn) {
+      backBtn.classList.remove("hidden")
+      backBtn.classList.add("md:hidden", "inline-flex")
+      backBtn.addEventListener("click", () => this.close())
+    }
     if (this.elements.send) {
       this.elements.send.addEventListener("click", () => this.handleInput())
     }
@@ -67,8 +73,13 @@ window.Assistant = {
   },
 
   open: function() {
-    if (this.elements.panel) this.elements.panel.classList.remove("hidden")
+    if (this.elements.panel) {
+      this.elements.panel.classList.remove("hidden")
+      this.elements.panel.removeAttribute("hidden")
+    }
     if (this.elements.toggle) this.elements.toggle.classList.add("hidden")
+    if (this.elements.root) this.elements.root.classList.add("assistant-open")
+    document.body.classList.add("assistant-open")
     
     // Welcome message
     if (this.elements.messages && !this.elements.messages.dataset.init) {
@@ -80,8 +91,13 @@ window.Assistant = {
   },
 
   close: function() {
-    if (this.elements.panel) this.elements.panel.classList.add("hidden")
+    if (this.elements.panel) {
+      this.elements.panel.classList.add("hidden")
+      this.elements.panel.setAttribute("hidden", "")
+    }
     if (this.elements.toggle) this.elements.toggle.classList.remove("hidden")
+    if (this.elements.root) this.elements.root.classList.remove("assistant-open")
+    document.body.classList.remove("assistant-open")
   },
 
   loadConfig: async function() {

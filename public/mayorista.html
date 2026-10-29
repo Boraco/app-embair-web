@@ -235,6 +235,11 @@
     let currentClient = {}
     let wholesaleLogoSlides = []
     let selectedWholesaleCategory = ""
+    let wholesaleCategoryCards = []
+    let wholesaleCategoryCardsEnabled = false
+    let wholesaleCategoryCardsTheme = "light"
+    let wholesaleCategoryCardsTitle = ""
+    let wholesaleCardPath = []
     const $ = id => document.getElementById(id)
     const mobileCartBar = $("mobile-cart-bar")
     const mobileCartSummary = $("mobile-cart-summary")
@@ -353,6 +358,105 @@
         console.error("Error cargando logos mayoristas:", error)
       }
     }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]))
+    }
+
+    const normalizeCardText = value => String(value || "").trim().toLowerCase()
+
+    function normalizeWholesaleCard(raw) {
+      const source = raw && typeof raw === "object" ? raw : {}
+      const match = source.match && typeof source.match === "object" ? source.match : {}
+      return {
+        title: String(source.title || "").trim(),
+        image: String(source.image || ""),
+        alt: String(source.alt || ""),
+        match: {
+          categories: Array.isArray(match.categories) ? match.categories.map(String) : [],
+          subcategories: Array.isArray(match.subcategories) ? match.subcategories.map(String) : [],
+          keywords: Array.isArray(match.keywords) ? match.keywords.map(String) : []
+        },
+        children: Array.isArray(source.children) ? source.children.map(child => ({ ...normalizeWholesaleCard(child), children: [] })) : []
+      }
+    }
+
+    function productMatchesWholesaleCard(product, match) {
+      if (!match) return true
+      const categories = (match.categories || []).map(normalizeCardText).filter(Boolean)
+      const subcategories = (match.subcategories || []).map(normalizeCardText).filter(Boolean)
+      const keywords = (match.keywords || []).map(normalizeCardText).filter(Boolean)
+      if (!categories.length && !subcategories.length && !keywords.length) return true
+      const productCategory = normalizeCardText(product.category || product.categoria || "General")
+      const productSubcategory = normalizeCardText(product.subcategory)
+      const haystack = normalizeCardText([product.name, product.desc, product.code, product.sku, product.brand, product.material].filter(Boolean).join(" "))
+      const categoryOk = !categories.length || categories.includes(productCategory)
+      const subcategoryOk = !subcategories.length || subcategories.includes(productSubcategory)
+      const keywordsOk = !keywords.length || keywords.some(keyword => haystack.includes(keyword))
+      return categoryOk && subcategoryOk && keywordsOk
+    }
+
+    function getActiveWholesaleCard() {
+      return wholesaleCardPath.length ? wholesaleCardPath[wholesaleCardPath.length - 1] : null
+    }
+
+    function getCurrentWholesaleCards() {
+      if (!wholesaleCategoryCardsEnabled || !wholesaleCategoryCards.length) return []
+      const active = getActiveWholesaleCard()
+      if (!active) return wholesaleCategoryCards
+      return Array.isArray(active.children) ? active.children : []
+    }
+
+    function buildWholesaleCardsNav(currentCards) {
+      const blue = wholesaleCategoryCardsTheme === "blue"
+      const crumbs = []
+      if (wholesaleCardPath.length) {
+        crumbs.push(`<button type="button" data-card-back class="inline-flex items-center gap-1.5 rounded-full border border-[#10165c] bg-white px-3 py-1.5 text-xs font-bold text-[#10165c] transition hover:bg-[#10165c] hover:text-white" aria-label="Volver al nivel anterior"><span aria-hidden="true">←</span> Volver</button>`)
+        crumbs.push(`<button type="button" data-card-crumb="-1" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400">Todas las categorías</button>`)
+        wholesaleCardPath.forEach((card, index) => {
+          const isLast = index === wholesaleCardPath.length - 1
+          crumbs.push(`<span aria-hidden="true" class="text-slate-300">›</span>`)
+          crumbs.push(isLast
+            ? `<span class="rounded-full border border-[#10165c] bg-[#10165c] px-3 py-1.5 text-xs font-semibold text-white">${escapeHtml(card.title)}</span>`
+            : `<button type="button" data-card-crumb="${index}" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400">${escapeHtml(card.title)}</button>`)
+        })
+      }
+      const cardsHtml = currentCards.map((card, index) => {
+        const count = products.filter(product => productMatchesWholesaleCard(product, card.match)).length
+        const hasChildren = Array.isArray(card.children) && card.children.length > 0
+        return `<button type="button" data-card-index="${index}" class="group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-2 text-center transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c] ${blue ? "bg-[#10165c] shadow-sm hover:shadow-lg" : ""}" aria-label="Filtrar por ${escapeHtml(card.title)}">
+          <span class="flex aspect-square w-full max-w-[6.5rem] items-center justify-center rounded-full border-2 ${blue ? "border-white/20 bg-white" : "border-[#10165c]/15 bg-white shadow-sm"} p-3 transition group-hover:border-[#10165c] group-hover:shadow-md">
+            ${card.image
+              ? `<img src="${escapeHtml(card.image)}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain" onerror="this.style.display='none'">`
+              : `<span aria-hidden="true" class="text-3xl font-extrabold ${blue ? "text-[#10165c]/40" : "text-[#10165c]/25"}">${escapeHtml((card.title || "?").trim().charAt(0).toUpperCase())}</span>`}
+          </span>
+          <span class="line-clamp-2 text-[11px] font-bold leading-tight ${blue ? "text-white" : "text-[#10165c]"} sm:text-xs">${escapeHtml(card.title)}</span>
+          <span class="text-[10px] leading-tight ${blue ? "text-white/60" : "text-slate-400"}">${count} producto${count === 1 ? "" : "s"}${hasChildren ? ` · ${card.children.length} grupos` : ""}</span>
+        </button>`
+      }).join("")
+      return `<div class="col-span-full space-y-3">
+        ${crumbs.length ? `<nav class="flex flex-wrap items-center gap-1.5" aria-label="Ruta de filtros">${crumbs.join("")}</nav>` : ""}
+        ${wholesaleCategoryCardsTitle && !wholesaleCardPath.length ? `<h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">${escapeHtml(wholesaleCategoryCardsTitle)}</h3>` : ""}
+        ${currentCards.length ? `<div class="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 xl:grid-cols-6">${cardsHtml}</div>` : ""}
+      </div>`
+    }
+
+    async function loadWholesaleCategoryCards() {
+      try {
+        const response = await fetch("/api/config")
+        if (!response.ok) return
+        const settings = await response.json()
+        wholesaleCategoryCardsEnabled = settings.wholesaleCategoryCardsEnabled === true
+        wholesaleCategoryCardsTheme = settings.wholesaleCategoryCardsTheme === "blue" ? "blue" : "light"
+        wholesaleCategoryCardsTitle = String(settings.wholesaleCategoryCardsTitle || "")
+        wholesaleCategoryCards = Array.isArray(settings.wholesaleCategoryCards)
+          ? settings.wholesaleCategoryCards.map(normalizeWholesaleCard).filter(card => card.title)
+          : []
+        if (products.length) renderProducts()
+      } catch (error) {
+        console.error("Error cargando tarjetas de filtro mayoristas:", error)
+      }
+    }
     
     function showApp(client) { 
       currentClient = client || {}; 
@@ -361,10 +465,11 @@
       $("client-name").textContent = client && client.name ? client.name : "Cliente mayorista"; 
       $("client-name").classList.remove("hidden"); 
       $("logout").classList.remove("hidden"); 
-      track("login"); 
-      loadProducts(); 
-      loadCart(); 
+      track("login");
+      loadProducts();
+      loadCart();
       loadWholesaleLogoSlides();
+      loadWholesaleCategoryCards();
     }
     
     async function track(type, meta = {}) { 
@@ -457,12 +562,17 @@
       const categoryOf = product => product.category || product.categoria || "General"
       const allCategories = [...new Set(products.map(categoryOf))]
         .sort((a, b) => String(a).localeCompare(String(b), "es"))
-      
+      const cardsEnabled = wholesaleCategoryCardsEnabled && wholesaleCategoryCards.length > 0
+      const activeCard = cardsEnabled ? getActiveWholesaleCard() : null
+      const activeMatch = activeCard ? activeCard.match : null
+      const currentCards = cardsEnabled ? getCurrentWholesaleCards() : []
+
       const visible = products.filter(p => {
         const nameMatch = (p.name || "").toLowerCase().includes(q);
+        if (cardsEnabled) return nameMatch && (!activeMatch || productMatchesWholesaleCard(p, activeMatch));
         const catMatch = !selectedWholesaleCategory || categoryOf(p) === selectedWholesaleCategory;
         return nameMatch && catMatch;
-      }).sort((a, b) => Number(a.wholesale.catalogOrder || 999) - Number(b.wholesale.catalogOrder || 999)); 
+      }).sort((a, b) => Number(a.wholesale.catalogOrder || 999) - Number(b.wholesale.catalogOrder || 999));
       
       const categories = [...new Set(visible.map(categoryOf))]
         .sort((a, b) => String(a).localeCompare(String(b), "es"))
@@ -484,7 +594,7 @@
         const summary = description || (Array.isArray(p.specs) ? p.specs.filter(Boolean).join(" · ") : "")
         return `<article data-product-card="${p.id}" class="flex min-w-0 cursor-pointer flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
           <button type="button" data-product-detail="${p.id}" class="block w-full min-w-0 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-[#10165c]" aria-label="Ver detalles de ${p.name}">
-            <span class="block aspect-[5/3] bg-slate-100"><img src="${p.img || ""}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain p-2" onerror="this.style.display='none'"></span>
+            <span class="block aspect-[5/3] bg-white"><img src="${p.img || ""}" alt="" loading="lazy" decoding="async" class="h-full w-full object-contain p-2" onerror="this.style.display='none'"></span>
             <span class="block p-2.5 pb-1.5">
               <span class="mb-1 flex flex-wrap gap-1">${tags.map(tag => `<span class="rounded-full bg-orange-50 px-1.5 py-0.5 text-[10px] text-orange-700">${tag}</span>`).join("")}</span>
               <span role="heading" aria-level="3" class="product-title block text-[13px] font-bold leading-4 line-clamp-2">${p.name}</span>
@@ -512,7 +622,10 @@
         }).join("")}
       </nav>`
 
-      $("products").innerHTML = `${categoryFilters}${selectedWholesaleCategory
+      const cardsNav = cardsEnabled ? buildWholesaleCardsNav(currentCards) : ""
+      const filterActive = cardsEnabled ? Boolean(activeMatch) : Boolean(selectedWholesaleCategory)
+
+      $("products").innerHTML = `${cardsNav}${cardsEnabled ? "" : categoryFilters}${filterActive
         ? (visible.length
           ? `<div class="col-span-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">${productCards(visible)}</div>`
           : `<p class="col-span-full rounded-xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">No encontramos productos en esta categoría con esa búsqueda.</p>`)
@@ -620,6 +733,29 @@
     }
 
     $("products").addEventListener("click", event => {
+      const cardBack = event.target.closest("[data-card-back]")
+      if (cardBack) {
+        wholesaleCardPath.pop()
+        renderProducts()
+        return
+      }
+      const cardCrumb = event.target.closest("[data-card-crumb]")
+      if (cardCrumb) {
+        const crumbIndex = Number(cardCrumb.dataset.cardCrumb)
+        wholesaleCardPath = crumbIndex < 0 ? [] : wholesaleCardPath.slice(0, crumbIndex + 1)
+        renderProducts()
+        return
+      }
+      const cardButton = event.target.closest("[data-card-index]")
+      if (cardButton) {
+        const card = getCurrentWholesaleCards()[Number(cardButton.dataset.cardIndex)]
+        if (card) {
+          wholesaleCardPath.push(card)
+          track("category_card", { title: card.title })
+          renderProducts()
+        }
+        return
+      }
       const categoryFilter = event.target.closest("[data-category-filter]")
       if (categoryFilter) {
         selectedWholesaleCategory = categoryFilter.dataset.categoryFilter

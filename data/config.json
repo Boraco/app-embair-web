@@ -96,5 +96,241 @@
     "binance": 1010,
     "marginPercent": 10,
     "updatedAt": "2026-10-28T17:28:26.884Z"
-  }
+  },
+  "wholesaleCategoryCardsEnabled": false,
+  "wholesaleCategoryCardsTheme": "light",
+  "wholesaleCategoryCardsTitle": "Explora por categoría",
+  "wholesaleCategoryCards": [
+    {
+      "title": "Materiales eléctricos",
+      "image": "",
+      "alt": "",
+      "match": {
+        "categories": [
+          "Electricidad",
+          "MAT. ELECTRICO",
+          "ELECTRICIDAD"
+        ],
+        "subcategories": [],
+        "keywords": []
+      },
+      "children": [
+        {
+          "title": "Cables",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "Cables",
+              "THHN",
+              "SPT"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Línea Conduit",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "CONDUIT"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Línea EMT",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "EMT"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Tableros y Breakers",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "TABLEROS",
+              "BREAKERS",
+              "CENTRO CARGA"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Autocontrol",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "CONTROL"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Protectores",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "PROTECTORES"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Iluminación",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [
+              "Iluminación"
+            ],
+            "subcategories": [],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Tomas e Interruptores",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "TOMAS E INTERRUPTORES",
+              "TOMA E INTERRUPTORES"
+            ],
+            "keywords": []
+          },
+          "children": []
+        },
+        {
+          "title": "Accesorios",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [],
+            "subcategories": [
+              "ACCESORIOS"
+            ],
+            "keywords": []
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "title": "Plomería",
+      "image": "",
+      "alt": "",
+      "match": {
+        "categories": [
+          "Plomería"
+        ],
+        "subcategories": [],
+        "keywords": []
+      },
+      "children": [
+        {
+          "title": "PPR / Termofusión",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [
+              "Plomería"
+            ],
+            "subcategories": [],
+            "keywords": [
+              "ppr",
+              "termofusión",
+              "termofusion"
+            ]
+          },
+          "children": []
+        },
+        {
+          "title": "Sanitario",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [
+              "Plomería"
+            ],
+            "subcategories": [],
+            "keywords": [
+              "sanitario"
+            ]
+          },
+          "children": []
+        },
+        {
+          "title": "Agua fría PVC | Roscar",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [
+              "Plomería"
+            ],
+            "subcategories": [],
+            "keywords": [
+              "pvc",
+              "roscar"
+            ]
+          },
+          "children": []
+        },
+        {
+          "title": "Galvanizado",
+          "image": "",
+          "alt": "",
+          "match": {
+            "categories": [
+              "Plomería"
+            ],
+            "subcategories": [],
+            "keywords": [
+              "galvanizado"
+            ]
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "title": "Construcción",
+      "image": "",
+      "alt": "",
+      "match": {
+        "categories": [
+          "Construcción"
+        ],
+        "subcategories": [],
+        "keywords": [
+          "construcción",
+          "construccion"
+        ]
+      },
+      "children": []
+    }
+  ]
 }

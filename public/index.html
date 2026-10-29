@@ -63,7 +63,13 @@
       #assistant-panel { width: min(100%, calc(100vw - 1.25rem)); max-height: calc(100dvh - 7rem); border-radius: 1rem; }
       #assistant-root > .flex { align-items: flex-end; }
       #assistant-root > .flex > div { padding-left: .75rem; padding-right: .75rem; }
+      /* Chat a pantalla completa en móvil */
+      #assistant-root.assistant-open { inset: 0; z-index: 60; }
+      #assistant-root.assistant-open #assistant-panel { position: absolute; inset: 0; width: 100%; height: 100dvh; max-height: none; border-radius: 0; border: 0; }
+      #assistant-root.assistant-open > .flex { display: none; }
     }
+    body.assistant-open { overflow: hidden; }
+    #assistant-root #assistant-panel:not(.hidden) { display: flex !important; }
     .portal-hero {
       background: linear-gradient(112deg, #0d145b 0%, #43204d 48%, #ff4b24 100%);
       box-shadow: 0 18px 45px rgba(16, 22, 92, 0.16);
@@ -209,6 +215,7 @@
         </div>
       </div>
 
+      <div id="catalog-cards" class="hidden mb-5"></div>
       <div id="prod-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-6">
       <div class="col-span-full flex flex-col items-center justify-center py-20 text-slate-400">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
@@ -276,12 +283,15 @@
 
     <div id="assistant-root" class="fixed bottom-32 right-4 md:right-6 z-40">
       <div id="assistant-panel" class="hidden w-80 md:w-96 max-h-[70vh] bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col overflow-hidden">
-        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-          <div>
+        <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between gap-2">
+          <div class="min-w-0">
             <div class="text-sm font-semibold text-slate-900">Asistente de compras</div>
             <div class="text-[11px] text-slate-500">Describe lo que necesitas y te sugerimos productos.</div>
           </div>
-          <button id="assistant-close" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+          <div class="flex items-center gap-2 shrink-0">
+            <button id="assistant-back" class="hidden items-center gap-1 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">← Volver a la tienda</button>
+            <button id="assistant-close" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+          </div>
         </div>
         <div id="assistant-messages" class="flex-1 px-3 py-3 space-y-2 overflow-y-auto text-sm bg-slate-50"></div>
         <div class="border-t border-slate-200 p-3 bg-white">
@@ -391,8 +401,8 @@
             <div class="bg-white px-6 pb-6 pt-8 sm:p-8">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 <div class="flex flex-col items-start">
-                  <div class="aspect-square w-full overflow-hidden rounded-xl bg-slate-100 relative group">
-                    <img id="pm-img" src="" alt="" class="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                  <div class="aspect-square w-full overflow-hidden rounded-xl bg-white relative group">
+                    <img id="pm-img" src="" alt="" class="h-full w-full object-contain object-center p-2 group-hover:scale-105 transition-transform duration-500">
                   </div>
                   <!-- Miniaturas: foto principal + empaque -->
                   <div id="pm-gallery" class="hidden flex-wrap gap-2 mt-3"></div>
@@ -481,6 +491,172 @@
       // --- State ---
       let PRODUCTS = []
       let CART = []
+      let catalogCards = []
+      let catalogCardsEnabled = false
+      let catalogCardsTheme = "light"
+      let catalogCardsTitle = ""
+      let catalogCardPath = []
+      const catalogCardsEl = document.getElementById("catalog-cards")
+
+      function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]))
+      }
+
+      const normalizeCatalogCardText = value => String(value || "").trim().toLowerCase()
+
+      function normalizeCatalogCard(raw) {
+        const source = raw && typeof raw === "object" ? raw : {}
+        const match = source.match && typeof source.match === "object" ? source.match : {}
+        return {
+          title: String(source.title || "").trim(),
+          image: String(source.image || ""),
+          alt: String(source.alt || ""),
+          match: {
+            categories: Array.isArray(match.categories) ? match.categories.map(String) : [],
+            subcategories: Array.isArray(match.subcategories) ? match.subcategories.map(String) : [],
+            keywords: Array.isArray(match.keywords) ? match.keywords.map(String) : []
+          },
+          children: Array.isArray(source.children) ? source.children.map(child => ({ ...normalizeCatalogCard(child), children: [] })) : []
+        }
+      }
+
+      function productMatchesCatalogCard(product, match) {
+        if (!match) return true
+        const categories = (match.categories || []).map(normalizeCatalogCardText).filter(Boolean)
+        const subcategories = (match.subcategories || []).map(normalizeCatalogCardText).filter(Boolean)
+        const keywords = (match.keywords || []).map(normalizeCatalogCardText).filter(Boolean)
+        if (!categories.length && !subcategories.length && !keywords.length) return true
+        const productCategory = normalizeCatalogCardText(product.category || product.categoria || "General")
+        const productSubcategory = normalizeCatalogCardText(product.subcategory)
+        const haystack = normalizeCatalogCardText([product.name, product.desc, product.code, product.sku, product.brand, product.material].filter(Boolean).join(" "))
+        const categoryOk = !categories.length || categories.includes(productCategory)
+        const subcategoryOk = !subcategories.length || subcategories.includes(productSubcategory)
+        const keywordsOk = !keywords.length || keywords.some(keyword => haystack.includes(keyword))
+        return categoryOk && subcategoryOk && keywordsOk
+      }
+
+      function getActiveCatalogCard() {
+        return catalogCardPath.length ? catalogCardPath[catalogCardPath.length - 1] : null
+      }
+
+      function getCurrentCatalogCards() {
+        if (!catalogCardsEnabled || !catalogCards.length) return []
+        const active = getActiveCatalogCard()
+        if (!active) return catalogCards
+        return Array.isArray(active.children) ? active.children : []
+      }
+
+      function renderCatalogCards() {
+        if (!catalogCardsEl) return
+        const enabled = catalogCardsEnabled && catalogCards.length > 0
+        catalogCardsEl.classList.toggle("hidden", !enabled)
+        catalogCardsEl.replaceChildren()
+        if (!enabled) return
+        const blue = catalogCardsTheme === "blue"
+        const currentCards = getCurrentCatalogCards()
+        const wrapper = document.createElement("div")
+        wrapper.className = "space-y-3"
+        if (catalogCardPath.length) {
+          const nav = document.createElement("nav")
+          nav.className = "flex flex-wrap items-center gap-1.5"
+          nav.setAttribute("aria-label", "Ruta de filtros")
+          const back = document.createElement("button")
+          back.type = "button"
+          back.dataset.cardBack = "1"
+          back.className = "inline-flex items-center gap-1.5 rounded-full border border-[#10165c] bg-white px-3 py-1.5 text-xs font-bold text-[#10165c] transition hover:bg-[#10165c] hover:text-white"
+          back.setAttribute("aria-label", "Volver al nivel anterior")
+          back.innerHTML = `<span aria-hidden="true">←</span> Volver`
+          nav.appendChild(back)
+          const rootBtn = document.createElement("button")
+          rootBtn.type = "button"
+          rootBtn.dataset.cardCrumb = "-1"
+          rootBtn.className = "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400"
+          rootBtn.textContent = "Todas las categorías"
+          nav.appendChild(rootBtn)
+          catalogCardPath.forEach((card, index) => {
+            const sep = document.createElement("span")
+            sep.setAttribute("aria-hidden", "true")
+            sep.className = "text-slate-300"
+            sep.textContent = "›"
+            nav.appendChild(sep)
+            const isLast = index === catalogCardPath.length - 1
+            const crumb = document.createElement(isLast ? "span" : "button")
+            if (!isLast) {
+              crumb.type = "button"
+              crumb.dataset.cardCrumb = String(index)
+            }
+            crumb.className = isLast
+              ? "rounded-full border border-[#10165c] bg-[#10165c] px-3 py-1.5 text-xs font-semibold text-white"
+              : "rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-400"
+            crumb.textContent = card.title
+            nav.appendChild(crumb)
+          })
+          wrapper.appendChild(nav)
+        }
+        if (catalogCardsTitle && !catalogCardPath.length) {
+          const heading = document.createElement("h3")
+          heading.className = "text-sm font-bold uppercase tracking-wider text-slate-500"
+          heading.textContent = catalogCardsTitle
+          wrapper.appendChild(heading)
+        }
+        if (currentCards.length) {
+          const gridCards = document.createElement("div")
+          gridCards.className = "grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 md:grid-cols-5 xl:grid-cols-6"
+          currentCards.forEach((card, index) => {
+            const count = PRODUCTS.filter(product => productMatchesCatalogCard(product, card.match)).length
+            const hasChildren = Array.isArray(card.children) && card.children.length > 0
+            const button = document.createElement("button")
+            button.type = "button"
+            button.dataset.cardIndex = String(index)
+            button.setAttribute("aria-label", `Filtrar por ${card.title}`)
+            button.className = `group flex min-w-0 flex-col items-center gap-1.5 rounded-2xl p-2 text-center transition hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#10165c] ${blue ? "bg-[#10165c] shadow-sm hover:shadow-lg" : ""}`
+            const circle = document.createElement("span")
+            circle.className = `flex aspect-square w-full max-w-[6.5rem] items-center justify-center rounded-full border-2 ${blue ? "border-white/20 bg-white" : "border-[#10165c]/15 bg-white shadow-sm"} p-3 transition group-hover:border-[#10165c] group-hover:shadow-md`
+            if (card.image) {
+              const img = document.createElement("img")
+              img.src = card.image
+              img.alt = ""
+              img.loading = "lazy"
+              img.decoding = "async"
+              img.className = "h-full w-full object-contain"
+              img.onerror = () => { img.style.display = "none" }
+              circle.appendChild(img)
+            } else {
+              const letter = document.createElement("span")
+              letter.setAttribute("aria-hidden", "true")
+              letter.className = `text-3xl font-extrabold ${blue ? "text-[#10165c]/40" : "text-[#10165c]/25"}`
+              letter.textContent = (card.title || "?").trim().charAt(0).toUpperCase()
+              circle.appendChild(letter)
+            }
+            const title = document.createElement("span")
+            title.className = `line-clamp-2 text-[11px] font-bold leading-tight ${blue ? "text-white" : "text-[#10165c]"} sm:text-xs`
+            title.textContent = card.title
+            const meta = document.createElement("span")
+            meta.className = `text-[10px] leading-tight ${blue ? "text-white/60" : "text-slate-400"}`
+            meta.textContent = `${count} producto${count === 1 ? "" : "s"}${hasChildren ? ` · ${card.children.length} grupos` : ""}`
+            button.append(circle, title, meta)
+            gridCards.appendChild(button)
+          })
+          wrapper.appendChild(gridCards)
+        }
+        catalogCardsEl.appendChild(wrapper)
+      }
+
+      async function loadCatalogCards() {
+        try {
+          const res = await fetch("/api/config")
+          if (!res.ok) return
+          const settings = await res.json()
+          catalogCardsEnabled = settings.catalogCategoryCardsEnabled === true
+          catalogCardsTheme = settings.catalogCategoryCardsTheme === "blue" ? "blue" : "light"
+          catalogCardsTitle = String(settings.catalogCategoryCardsTitle || "")
+          catalogCards = Array.isArray(settings.catalogCategoryCards)
+            ? settings.catalogCategoryCards.map(normalizeCatalogCard).filter(card => card.title)
+            : []
+        } catch (error) {
+          console.error("Error cargando tarjetas de filtro del catálogo:", error)
+        }
+      }
 
       function syncCatalogCategories() {
         if (!categorySelect) return
@@ -842,14 +1018,14 @@
           card.className = "bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow relative"
           
           const imgContainer = document.createElement("div")
-          imgContainer.className = "relative aspect-square overflow-hidden bg-slate-100"
-          
+          imgContainer.className = "relative aspect-square overflow-hidden bg-white"
+
           const img = document.createElement("img")
           img.src = p.img
           img.alt = p.name
           img.loading = "lazy"
           img.decoding = "async"
-          img.className = "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          img.className = "w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
           img.onerror = () => { img.style.display = 'none' }
           imgContainer.appendChild(img)
           
@@ -1017,6 +1193,9 @@
         }
         const q = normalizeSearch(rawQuery)
         const cat = categorySelect.value
+        const cardsEnabled = catalogCardsEnabled && catalogCards.length > 0
+        const activeCard = cardsEnabled ? getActiveCatalogCard() : null
+        const activeCardMatch = activeCard ? activeCard.match : null
         const favIds = cat === "__FAV__" ? getFavoriteProductIdsFromHistory() : []
         const portalOrder = window.__portalCatalogOrder || { categories: {}, subcategories: {} }
         
@@ -1039,7 +1218,7 @@
           const okC = cat === "__FAV__"
             ? favIds.includes(p.id)
             : (cat ? p.category === cat : true)
-          return okC && primaryMatch(p)
+          return okC && primaryMatch(p) && (!activeCardMatch || productMatchesCatalogCard(p, activeCardMatch))
         })
 
         const norm = (v) => String(v || "").trim().toLowerCase()
@@ -1116,6 +1295,7 @@
                 : (cat ? p.category === cat : true)
               if (!okC) return false
               if (primaryMatch(p)) return false
+              if (activeCardMatch && !productMatchesCatalogCard(p, activeCardMatch)) return false
               return tagMatch(p)
             }).sort(sortByOrder).slice(0, 8)
           : []
@@ -2041,6 +2221,35 @@
       })
 
       // --- 6. Event Listeners ---
+      if (catalogCardsEl) {
+        catalogCardsEl.addEventListener("click", event => {
+          const back = event.target.closest("[data-card-back]")
+          if (back) {
+            catalogCardPath.pop()
+            renderCatalogCards()
+            renderGrid()
+            return
+          }
+          const crumb = event.target.closest("[data-card-crumb]")
+          if (crumb) {
+            const crumbIndex = Number(crumb.dataset.cardCrumb)
+            catalogCardPath = crumbIndex < 0 ? [] : catalogCardPath.slice(0, crumbIndex + 1)
+            renderCatalogCards()
+            renderGrid()
+            return
+          }
+          const cardButton = event.target.closest("[data-card-index]")
+          if (cardButton) {
+            const card = getCurrentCatalogCards()[Number(cardButton.dataset.cardIndex)]
+            if (card) {
+              catalogCardPath.push(card)
+              renderCatalogCards()
+              renderGrid()
+              trackEvent("catalog_card", { title: card.title })
+            }
+          }
+        })
+      }
       closeDrawerBtn.addEventListener("click", closeDrawer)
       cartOverlay.addEventListener("click", closeDrawer)
       
@@ -2055,6 +2264,8 @@
       if (categorySelect) {
         categorySelect.addEventListener("change", () => {
           if (searchInput) searchInput.value = ""
+          catalogCardPath = []
+          renderCatalogCards()
           renderGrid()
           syncCategoryChips()
           if (window.__searchTrackTimer) clearTimeout(window.__searchTrackTimer)
@@ -2101,6 +2312,8 @@
             const cat = btn.getAttribute("data-cat-chip")
             categorySelect.value = String(cat || "")
             if (searchInput) searchInput.value = ""
+            catalogCardPath = []
+            renderCatalogCards()
             renderGrid()
             syncCategoryChips()
             try { document.getElementById("prod-grid").scrollIntoView({ behavior: "smooth", block: "start" }) } catch {}
@@ -2163,12 +2376,13 @@
         console.error("Error loading logo:", e)
       }
 
-      Promise.all([getProducts(), getPortalCatalogOrder(), loadExchangeRates()]).then(([p, portalOrder]) => {
+      Promise.all([getProducts(), getPortalCatalogOrder(), loadExchangeRates(), loadCatalogCards()]).then(([p, portalOrder]) => {
         PRODUCTS = p.filter(product => product && product.catalogVisibility !== "wholesale")
         window.PRODUCTS = PRODUCTS
         window.__portalCatalogOrder = portalOrder || { categories: {}, subcategories: {} }
         syncCatalogCategories()
         renderFeatured()
+        renderCatalogCards()
 
         // --- Check URL Params for Filtering ---
         const params = new URLSearchParams(window.location.search)

@@ -246,13 +246,27 @@
         <div id="cart-logistics-notice" class="hidden mb-3 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs leading-relaxed text-sky-800">
           Material para despacho; transporte y logística a consolidar según su pedido.
         </div>
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-slate-600">Total estimado</span>
-          <div class="text-right">
-            <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
-            <div id="drawer-total-bs" class="text-[11px] font-normal text-slate-400"></div>
+        <div class="space-y-1 mb-4">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">Subtotal</span>
+            <span id="drawer-subtotal" class="font-medium text-slate-700">$0</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">IVA (16%)</span>
+            <span id="drawer-iva" class="font-medium text-slate-700">$0</span>
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-200 pt-2">
+            <span class="text-slate-600 font-semibold">Total estimado</span>
+            <div class="text-right">
+              <span id="drawer-total" class="text-xl font-bold text-blue-700">$0</span>
+              <div id="drawer-total-bs" class="text-[11px] font-normal text-slate-400"></div>
+            </div>
           </div>
         </div>
+        <button id="download-pdf-drawer" class="w-full mb-2 bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-xl py-2.5 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span>Descargar PDF del pedido</span>
+        </button>
         <button id="send-wa-drawer" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3.5 font-semibold shadow-lg shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2">
           <span>Enviar pedido por WhatsApp</span>
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -481,6 +495,7 @@
       const cartLogisticsNotice = document.getElementById("cart-logistics-notice")
       const drawerTotal = document.getElementById("drawer-total")
       const sendWaDrawer = document.getElementById("send-wa-drawer")
+      const downloadPdfDrawer = document.getElementById("download-pdf-drawer")
       const openCartMobile = document.getElementById("open-cart-mobile")
       const openCartHeader = document.getElementById("open-cart-header")
       const shareWebBtn = document.getElementById("share-web")
@@ -1434,6 +1449,19 @@
       }
       window.updateQty = updateQty
 
+      function setQty(id, value) {
+        const item = CART.find(i => i.id === id)
+        if (!item) return
+        const qty = Math.floor(Number(value))
+        if (!Number.isFinite(qty) || qty <= 0) {
+          updateCartUI()
+          return
+        }
+        item.qty = qty
+        saveCart()
+      }
+      window.setQty = setQty
+
       function updateCartUI() {
         // Update Badge
         const totalCount = CART.reduce((acc, item) => acc + item.qty, 0)
@@ -1492,7 +1520,7 @@
               <div class="text-sm font-bold text-slate-700">${formatPrice(item.price)}${bsRefHtml(item.price, "text-[10px] font-semibold text-emerald-600")}</div>
               <div class="flex items-center border border-slate-200 rounded-lg">
                 <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50" onclick="updateQty(${item.id}, -1)">-</button>
-                <span class="px-2 text-xs font-medium text-slate-900">${item.qty}</span>
+                <input type="number" min="1" step="1" value="${item.qty}" onchange="setQty(${item.id}, this.value)" class="w-14 border-x border-slate-200 px-1 py-0.5 text-center text-xs font-medium text-slate-900" aria-label="Cantidad">
                 <button class="px-2 py-0.5 text-slate-500 hover:bg-slate-50" onclick="updateQty(${item.id}, 1)">+</button>
               </div>
             `
@@ -1505,9 +1533,16 @@
           })
         }
         
-          drawerTotal.textContent = formatPrice(total)
+          const IVA_RATE = 0.16
+          const ivaAmount = total * IVA_RATE
+          const totalWithIva = total + ivaAmount
+          const drawerSubtotal = document.getElementById("drawer-subtotal")
+          const drawerIva = document.getElementById("drawer-iva")
+          if (drawerSubtotal) drawerSubtotal.textContent = formatPrice(total)
+          if (drawerIva) drawerIva.textContent = formatPrice(ivaAmount)
+          drawerTotal.textContent = formatPrice(totalWithIva)
           const drawerTotalBs = document.getElementById("drawer-total-bs")
-          if (drawerTotalBs) drawerTotalBs.textContent = exchangeRates.bcv && total ? formatBs(total * exchangeRates.bcv) + " (tasa BCV)" : ""
+          if (drawerTotalBs) drawerTotalBs.textContent = exchangeRates.bcv && totalWithIva ? formatBs(totalWithIva * exchangeRates.bcv) + " (tasa BCV)" : ""
       }
 
       function openDrawer() {
@@ -1749,12 +1784,19 @@
           y += 4
           doc.line(120, y, 200, y)
           y += 7
+          const ivaAmount = total * 0.16
+          const totalWithIva = total + ivaAmount
+          doc.setFontSize(10)
+          doc.text("Subtotal: " + formatPrice(total), 140, y)
+          y += 5
+          doc.text("IVA (16%): " + formatPrice(ivaAmount), 140, y)
+          y += 6
           doc.setFontSize(11)
-          doc.text("Total: " + formatPrice(total), 140, y)
-          if (exchangeRates.bcv && total) {
+          doc.text("Total: " + formatPrice(totalWithIva), 140, y)
+          if (exchangeRates.bcv && totalWithIva) {
             y += 6
             doc.setFontSize(9)
-            doc.text("Referencia en Bs (tasa BCV " + Number(exchangeRates.bcv).toLocaleString("es-VE", { minimumFractionDigits: 2 }) + "): " + formatBs(total * exchangeRates.bcv), 140, y)
+            doc.text("Referencia en Bs (tasa BCV " + Number(exchangeRates.bcv).toLocaleString("es-VE", { minimumFractionDigits: 2 }) + "): " + formatBs(totalWithIva * exchangeRates.bcv), 140, y)
           }
           const fileName = orderCode
             ? "nota-pedido-embair-" + orderCode + ".pdf"
@@ -2126,7 +2168,9 @@
           msg += `▪ ${item.qty}x ${item.name} `
             msg += item.price ? `(${formatPrice(sub)})\n` : "(Consultar)\n"
         })
-        msg += `\nTotal Estimado: ${formatPrice(total)}\n\n`
+        msg += `\nSubtotal: ${formatPrice(total)}\n`
+        msg += `IVA (16%): ${formatPrice(total * 0.16)}\n`
+        msg += `Total Estimado: ${formatPrice(total * 1.16)}\n\n`
         if (hasDispatchOnlyItems) {
           msg += `*Logística:* Material para despacho; transporte y logística a consolidar según su pedido.\n\n`
         }
@@ -2218,6 +2262,11 @@
         openCustomerModal((customer) => {
           openOrderConfirmModal(customer, isPortal ? "portal" : "public")
         })
+      })
+
+      if (downloadPdfDrawer) downloadPdfDrawer.addEventListener("click", () => {
+        if (CART.length === 0) return
+        generateOrderPdf(getCustomerData() || {}, CART, null)
       })
 
       // --- 6. Event Listeners ---

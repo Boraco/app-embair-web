@@ -833,8 +833,14 @@
         cartFab.classList.toggle("md:hidden", count === 0)
       }
       $("total").innerHTML = (() => {
-        const opts = paymentOptions(total)
-        let html = `<div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-500">Total USDT</span><span class="text-2xl font-extrabold text-[#10165c]">${money(total)}</span></div>`
+        const ivaAmount = total * 0.16
+        const totalWithIva = total + ivaAmount
+        const opts = paymentOptions(totalWithIva)
+        let html = `<div class="space-y-1">
+          <div class="flex items-center justify-between"><span class="text-xs text-slate-500">Subtotal</span><span class="text-sm font-semibold text-slate-700">${money(total)}</span></div>
+          <div class="flex items-center justify-between"><span class="text-xs text-slate-500">IVA (16%)</span><span class="text-sm font-semibold text-slate-700">${money(ivaAmount)}</span></div>
+          <div class="flex items-baseline justify-between border-t border-slate-200 pt-1.5"><span class="text-sm font-semibold text-slate-500">Total USDT</span><span class="text-2xl font-extrabold text-[#10165c]">${money(totalWithIva)}</span></div>
+        </div>`
         if (opts && (opts.bsBinance || opts.bsBcv)) {
           html += `<div class="mt-2 pt-2 border-t border-slate-200 space-y-1.5">`
           if (opts.bsBcv) html += `<div class="flex items-center justify-between"><span class="text-xs text-slate-500">Pago en Bs · tasa BCV</span><strong class="text-sm text-slate-800">${moneyBs(opts.bsBcv)}</strong></div>`
@@ -1045,22 +1051,34 @@
             y += rowHeight;
           });
 
-          if (y + 40 > pageHeight - 25) newPage();
+          if (y + 55 > pageHeight - 25) newPage();
           y += 5;
           doc.setDrawColor(...amber);
           doc.setLineWidth(0.8);
           doc.line(125, y, pageWidth - 15, y);
           y += 8;
+          const ivaAmount = Number(order.total || 0) * 0.16;
+          const totalWithIva = Number(order.total || 0) + ivaAmount;
           doc.setFont("helvetica", "normal");
           doc.setFontSize(9);
+          doc.setTextColor(...muted);
+          doc.text("SUBTOTAL", 125, y);
+          doc.setTextColor(...ink);
+          doc.text(money(order.total), pageWidth - 15, y, { align: "right" });
+          y += 6;
+          doc.setTextColor(...muted);
+          doc.text("IVA (16%)", 125, y);
+          doc.setTextColor(...ink);
+          doc.text(money(ivaAmount), pageWidth - 15, y, { align: "right" });
+          y += 8;
           doc.setTextColor(...muted);
           doc.text("TOTAL ESTIMADO (USDT)", 125, y);
           doc.setFont("helvetica", "bold");
           doc.setFontSize(14);
           doc.setTextColor(...navy);
-          doc.text(money(order.total), pageWidth - 15, y, { align: "right" });
+          doc.text(money(totalWithIva), pageWidth - 15, y, { align: "right" });
 
-          const totalOpts = paymentOptions(order.total)
+          const totalOpts = paymentOptions(totalWithIva)
           if (totalOpts && (totalOpts.bsBinance || totalOpts.bsBcv)) {
             y += 8;
             doc.setFont("helvetica", "bold");

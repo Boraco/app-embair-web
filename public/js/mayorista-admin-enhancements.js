@@ -255,9 +255,12 @@
       doc.setFontSize(5.5)
       doc.text(`Mínimo: ${config.minimumQuantity || 1} paquetes`, contentX, y + 43)
 
-      const price = config.wholesalePrice == null
+      const basePrice = config.wholesalePrice == null
+        ? (config.unitWholesalePrice == null ? null : Number((Number(config.unitWholesalePrice) * Number(config.unitsPerPackage || 1)).toFixed(2)))
+        : Number(config.wholesalePrice)
+      const price = basePrice == null
         ? "Consultar"
-        : `$${(Number(config.wholesalePrice) * (1 - Number(config.discountPercent || 0) / 100)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : `$${(basePrice * (1 - Number(config.discountPercent || 0) / 100)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
       doc.setFillColor(255, 247, 237)
       doc.roundedRect(contentX, y + 45, contentWidth, 7, 1, 1, "F")
       doc.setFont("helvetica", "bold")

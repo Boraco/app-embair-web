@@ -747,6 +747,9 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
   const subtotal = normalizedItems.reduce((sum, item) => sum + item.subtotal, 0)
   const discountPercent = Math.min(100, Math.max(0, Number(input.discountPercent || 0)))
   const discount = subtotal * discountPercent / 100
+  const taxable = subtotal - discount
+  const ivaPercent = 16
+  const iva = taxable * ivaPercent / 100
   const currency = input.currency === "VES" ? "VES" : "USD"
   const exchangeRate = currency === "VES" ? Math.max(0, Number(input.exchangeRate || 0)) : null
   if (currency === "VES" && (!Number.isFinite(exchangeRate) || exchangeRate <= 0)) return res.status(400).json({ error: "valid_exchange_rate_required" })
@@ -759,12 +762,15 @@ app.post("/api/admin/distribution/quotes", requireAdmin, (req, res) => {
     subtotal,
     discountPercent,
     discount,
-    total: subtotal - discount,
+    ivaPercent,
+    iva,
+    total: taxable + iva,
     currency,
     exchangeRate,
     subtotalBs: currency === "VES" ? subtotal * exchangeRate : null,
     discountBs: currency === "VES" ? discount * exchangeRate : null,
-    totalBs: currency === "VES" ? (subtotal - discount) * exchangeRate : null,
+    ivaBs: currency === "VES" ? iva * exchangeRate : null,
+    totalBs: currency === "VES" ? (taxable + iva) * exchangeRate : null,
     priceSource: input.priceSource === "wholesale" ? "wholesale" : "public",
     notes: String(input.notes || "")
   }
@@ -865,10 +871,9 @@ function getWholesaleProducts() {
 }
 
 function getWholesalePackageBasePrice(item) {
+  if (item.wholesalePrice != null) return Number(item.wholesalePrice)
   const unitWholesalePrice = item.unitWholesalePrice == null ? null : Number(item.unitWholesalePrice)
-  if (unitWholesalePrice == null) {
-    return item.wholesalePrice == null ? null : Number(item.wholesalePrice)
-  }
+  if (unitWholesalePrice == null) return null
   const unitsPerPackage = Math.max(1, Number(item.unitsPerPackage) || 1)
   return Number((unitWholesalePrice * unitsPerPackage).toFixed(2))
 }
@@ -915,11 +920,7 @@ app.get("/api/wholesale/products", requireClient, (req, res) => {
 })
 
 app.get("/api/admin/wholesale/products", requireAdmin, (req, res) => {
-  const products = getWholesaleProducts().map(item => ({
-    ...item,
-    wholesalePrice: item.unitWholesalePrice == null ? getWholesalePackageBasePrice(item) : null
-  }))
-  res.json({ ok: true, products, catalog: readData(productsFile) })
+  res.json({ ok: true, products: getWholesaleProducts(), catalog: readData(productsFile) })
 })
 
 app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
@@ -933,6 +934,11 @@ app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
     const price = Number(item.unitWholesalePrice)
     return !Number.isFinite(price) || price < 0
   })) return res.status(400).json({ error: "invalid_unit_wholesale_price" })
+  if (input.some(item => {
+    if (item.wholesalePrice === undefined || item.wholesalePrice === "" || item.wholesalePrice == null) return false
+    const price = Number(item.wholesalePrice)
+    return !Number.isFinite(price) || price < 0
+  })) return res.status(400).json({ error: "invalid_wholesale_price" })
   const catalogIds = new Set(readData(productsFile).map(p => Number(p.id)))
   const savedById = new Map(getWholesaleProducts().map(item => [Number(item.productId), item]))
   const normalized = input
@@ -947,7 +953,9 @@ app.post("/api/admin/wholesale/products", requireAdmin, (req, res) => {
       packageName: String(item.packageName || "Paquete").trim(),
       unitsPerPackage: Math.max(1, Number(item.unitsPerPackage || 1)),
       minimumQuantity: Math.max(1, Number(item.minimumQuantity || 1)),
-      wholesalePrice: unitWholesalePrice == null && item.wholesalePrice !== "" && item.wholesalePrice != null ? Number(item.wholesalePrice) : null,
+      wholesalePrice: item.wholesalePrice === undefined
+        ? saved && saved.wholesalePrice != null ? Number(saved.wholesalePrice) : null
+        : item.wholesalePrice === "" || item.wholesalePrice == null ? null : Number(item.wholesalePrice),
       unitWholesalePrice,
       packagePrice: item.packagePrice === "" || item.packagePrice == null ? null : Number(item.packagePrice),
       availability: ["Disponible", "Bajo Pedido", "Agotado"].includes(item.availability) ? item.availability : "Disponible",

@@ -9,7 +9,7 @@
 </head>
 <body class="min-h-screen bg-slate-100 text-slate-900">
   <header class="bg-[#10165c] text-white">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+    <div class="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-4 xl:px-8">
       <div>
         <p class="text-xs uppercase tracking-[.18em] text-indigo-200">EMBAIR ADMIN · USO INTERNO</p>
         <h1 class="text-xl font-bold">Gestión de compras</h1>
@@ -21,68 +21,51 @@
     </div>
   </header>
 
-  <main class="mx-auto max-w-7xl space-y-6 px-4 py-8">
+  <main class="mx-auto w-full max-w-none space-y-5 px-4 py-8 xl:px-8">
     <section class="rounded-2xl border border-indigo-200 bg-indigo-50 p-5">
-      <h2 class="font-bold text-indigo-950">Costos internos y abastecimiento</h2>
-      <p class="mt-1 text-sm text-indigo-900">Los costos y proveedores se guardan por separado y solo son accesibles desde administración. La previsión usa pedidos mayoristas recibidos o en preparación; es una sugerencia que no reserva ni modifica el inventario.</p>
+      <h2 class="font-bold text-indigo-950">Flujo de abastecimiento</h2>
+      <p class="mt-1 text-sm text-indigo-900">Sigue este orden: registra el proveedor, revisa la previsión y prepara la orden. Los inventarios y costos se consultan por separado; confirmar una recepción suma las unidades a Gestión de productos y al inventario operativo.</p>
+    </section>
+    <div id="page-status" role="status" class="hidden rounded-lg border px-4 py-3 text-sm"></div>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-4">
+        <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Paso 1 · Directorio</p>
+        <h2 class="text-xl font-bold">Crear proveedor</h2>
+        <p class="text-sm text-slate-500">Registra el proveedor y el monto mínimo de mercancía por orden. Los costos y presentaciones se asignan desde los productos mayoristas.</p>
+      </div>
+      <form id="supplier-form" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <input id="supplier-id" type="hidden">
+        <label class="text-sm font-medium sm:col-span-2">Nombre del proveedor<input id="supplier-name" required maxlength="160" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="organization"></label>
+        <label class="text-sm font-medium">Contacto<input id="supplier-contact" maxlength="120" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
+        <label class="text-sm font-medium">Teléfono<input id="supplier-phone" maxlength="80" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="tel"></label>
+        <label class="text-sm font-medium">Correo<input id="supplier-email" type="email" maxlength="160" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="email"></label>
+        <label class="text-sm font-medium">Mínimo por orden (USD)<input id="supplier-minimum" type="number" min="0" step="0.01" value="0" required class="mt-1 w-full rounded-lg border px-3 py-2"><span class="mt-1 block text-xs font-normal text-slate-500">El flete no cuenta para alcanzar este mínimo.</span></label>
+        <label class="flex items-center gap-2 text-sm"><input id="supplier-active" type="checkbox" checked class="h-4 w-4">Proveedor activo</label>
+        <div class="flex gap-2 sm:col-span-2 xl:col-span-4">
+          <button class="rounded-lg bg-[#10165c] px-4 py-2 font-bold text-white" type="submit">Guardar proveedor</button>
+          <button class="rounded-lg border px-4 py-2" id="supplier-clear" type="button">Limpiar</button>
+        </div>
+      </form>
+      <details class="mt-4 rounded-lg border px-4">
+        <summary class="cursor-pointer py-3 text-sm font-semibold">Ver o editar proveedores registrados</summary>
+        <div id="suppliers-list" class="divide-y border-t"></div>
+      </details>
     </section>
 
-    <div id="page-status" role="status" class="hidden rounded-lg border px-4 py-3 text-sm"></div>
-    <section id="summary" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Resumen de compras y logística"></section>
     <section class="rounded-2xl border border-sky-200 bg-white p-5 shadow-sm" aria-labelledby="forecast-title">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div><p class="text-xs font-bold uppercase tracking-wider text-sky-700">Demanda mayorista</p><h2 id="forecast-title" class="text-xl font-bold">Previsión de compra por proveedor</h2><p class="mt-1 text-sm text-slate-500">Agrupa pedidos recibidos/en preparación, descuenta stock y compras solicitadas. Revisa las cantidades y el flete antes de crear borradores.</p></div>
+        <div><p class="text-xs font-bold uppercase tracking-wider text-sky-700">Paso 2 · Demanda mayorista</p><h2 id="forecast-title" class="text-xl font-bold">Previsión de compra</h2><p class="mt-1 text-sm text-slate-500">Agrupa pedidos recibidos/en preparación, descuenta el inventario y las compras solicitadas. Revisa cantidades y flete antes de crear borradores.</p></div>
         <button id="refresh-forecast" type="button" class="rounded-lg border px-4 py-2 text-sm font-semibold">Actualizar previsión</button>
       </div>
       <div id="forecast-list" class="space-y-4" aria-live="polite"><p class="text-sm text-slate-500">Cargando previsión…</p></div>
     </section>
 
-    <section class="space-y-6">
-      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-4">
-          <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Paso 1 · Directorio</p>
-          <h2 class="text-xl font-bold">Proveedores</h2>
-          <p class="text-sm text-slate-500">Registra aquí los proveedores y el monto mínimo que exigen por orden. Los costos y presentaciones se asignan desde los productos mayoristas.</p>
-        </div>
-        <form id="supplier-form" class="grid gap-3 sm:grid-cols-2">
-          <input id="supplier-id" type="hidden">
-          <label class="text-sm font-medium sm:col-span-2">Nombre del proveedor<input id="supplier-name" required maxlength="160" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="organization"></label>
-          <label class="text-sm font-medium">Contacto<input id="supplier-contact" maxlength="120" class="mt-1 w-full rounded-lg border px-3 py-2"></label>
-          <label class="text-sm font-medium">Teléfono<input id="supplier-phone" maxlength="80" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="tel"></label>
-          <label class="text-sm font-medium">Correo<input id="supplier-email" type="email" maxlength="160" class="mt-1 w-full rounded-lg border px-3 py-2" autocomplete="email"></label>
-          <label class="text-sm font-medium">Monto mínimo de mercancía por orden (USD)<input id="supplier-minimum" type="number" min="0" step="0.01" value="0" required class="mt-1 w-full rounded-lg border px-3 py-2"><span class="mt-1 block text-xs font-normal text-slate-500">Se configura aquí por proveedor; el flete no cuenta para alcanzar este mínimo.</span></label>
-          <label class="flex items-center gap-2 text-sm sm:col-span-2"><input id="supplier-active" type="checkbox" checked class="h-4 w-4">Proveedor activo</label>
-          <div class="flex gap-2 sm:col-span-2">
-            <button class="rounded-lg bg-[#10165c] px-4 py-2 font-bold text-white" type="submit">Guardar proveedor</button>
-            <button class="rounded-lg border px-4 py-2" id="supplier-clear" type="button">Limpiar</button>
-          </div>
-        </form>
-        <div id="suppliers-list" class="mt-5 divide-y border-t"></div>
-      </article>
-
-      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-          <p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Paso 2 · Costos privados</p>
-          <div class="ml-auto">
-            <a href="/mayorista-admin.html" class="inline-flex rounded-lg bg-indigo-700 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-800">Configurar desde productos</a>
-          </div>
-        </div>
-        <h2 class="mb-2 text-xl font-bold">Condiciones de compra por producto</h2>
-        <p class="mb-4 text-sm text-slate-500">Este resumen es de solo lectura. Para agregar o editar proveedores, costos, presentaciones y mínimos, abre el producto en Mayorista y selecciona “Configurar compra”.</p>
-        <div class="mt-5 overflow-x-auto border-t">
-          <table class="w-full min-w-[760px] text-left text-sm">
-            <thead><tr class="border-b text-xs uppercase text-slate-500"><th class="py-2">Producto / proveedor</th><th>Costo compra</th><th>Costo unitario base</th><th>Costo con flete recibido</th><th>Mínimo</th><th>Principal</th></tr></thead>
-            <tbody id="terms-list"></tbody>
-          </table>
-        </div>
-      </article>
-    </section>
-
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section class="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
       <div class="mb-4">
-        <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Abastecimiento manual</p>
-        <h2 class="text-xl font-bold">Nueva orden de compra</h2>
-        <p class="text-sm text-slate-500">Agrupa productos del mismo proveedor. El sistema valida los mínimos de producto y el monto mínimo del proveedor.</p>
+        <p class="text-xs font-bold uppercase tracking-wider text-emerald-700">Paso 3 · Orden de compra</p>
+        <h2 class="text-xl font-bold">Preparar orden</h2>
+        <p class="text-sm text-slate-500">Agrupa productos de un proveedor. El sistema valida los mínimos por producto y proveedor. Guardar crea un borrador; solo marcar una orden recibida suma existencias.</p>
       </div>
       <form id="purchase-form" class="space-y-4">
         <div class="grid gap-3 md:grid-cols-2">
@@ -93,7 +76,7 @@
         <div id="order-items" class="space-y-2"></div>
         <div class="grid gap-3 rounded-xl border border-sky-200 bg-sky-50 p-4 sm:grid-cols-[minmax(0,1fr)_2fr] sm:items-end">
           <label class="text-sm font-semibold">Gasto de flete (USD)<input id="order-freight" type="number" min="0" step="0.01" value="0" class="mt-1 w-full rounded-lg border bg-white px-3 py-2"></label>
-          <p class="text-xs text-sky-900">Se registra como partida separada y se prorratea entre los productos según el valor de mercancía para estimar el costo unitario puesto en almacén.</p>
+          <p class="text-xs text-sky-900">Se registra aparte y se prorratea por valor de mercancía para estimar el costo unitario puesto en almacén.</p>
         </div>
         <div class="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
           <button type="button" id="add-order-item" class="rounded-lg border border-indigo-300 px-4 py-2 text-sm font-bold text-indigo-800">Añadir producto</button>
@@ -104,13 +87,40 @@
       </form>
     </section>
 
-    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div><p class="text-xs font-bold uppercase tracking-wider text-violet-700">Seguimiento</p><h2 class="text-xl font-bold">Órdenes de compra</h2></div>
-        <button id="refresh" type="button" class="rounded-lg border px-4 py-2 text-sm font-semibold">Actualizar</button>
+    <details class="rounded-2xl border border-indigo-200 bg-white p-5 shadow-sm">
+      <summary class="cursor-pointer text-lg font-bold">Costos privados · Buscar condiciones de compra por producto</summary>
+      <div class="mb-4 mt-4">
+        <p class="mb-3 text-sm text-slate-500">Costos internos y proveedores solo visibles en administración. Para editarlos, abre el producto en Mayorista y selecciona “Compra / proveedor”.</p>
+        <div class="grid gap-3 md:grid-cols-3">
+          <input id="terms-search" type="search" class="rounded-lg border px-3 py-2 text-sm" placeholder="Buscar producto, código o proveedor...">
+          <select id="terms-category" class="rounded-lg border bg-white px-3 py-2 text-sm"><option value="">Todas las categorías</option></select>
+          <select id="terms-supplier" class="rounded-lg border bg-white px-3 py-2 text-sm"><option value="">Todos los proveedores</option></select>
+        </div>
+        <p id="terms-count" class="mt-2 text-xs text-slate-500"></p>
+      </div>
+      <div class="overflow-x-auto border-t">
+        <table class="w-full min-w-[900px] text-left text-sm">
+          <thead><tr class="border-b text-xs uppercase text-slate-500"><th class="py-2">Producto / proveedor</th><th>Costo compra</th><th>Costo unitario base</th><th>Costo con flete recibido</th><th>Mínimo</th><th>Principal</th></tr></thead>
+          <tbody id="terms-list"></tbody>
+        </table>
+      </div>
+      <a href="/mayorista-admin.html" class="mt-4 inline-flex rounded-lg bg-indigo-700 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-800">Configurar desde productos mayoristas</a>
+    </details>
+
+    <details class="rounded-2xl border border-violet-200 bg-white p-5 shadow-sm">
+      <summary class="cursor-pointer text-lg font-bold">Órdenes de compra · Seguimiento y recepción</summary>
+      <div class="mb-4 mt-4 flex flex-wrap gap-3">
+        <input id="orders-search" type="search" class="min-w-[220px] flex-1 rounded-lg border px-3 py-2 text-sm" placeholder="Buscar orden, producto o proveedor...">
+        <select id="orders-status-filter" class="rounded-lg border bg-white px-3 py-2 text-sm"><option value="">Todos los estados</option><option value="draft">Borrador</option><option value="ordered">Solicitada</option><option value="received">Recibida</option><option value="cancelled">Cancelada</option></select>
+        <button id="refresh" type="button" class="rounded-lg border px-4 py-2 text-sm font-semibold">Actualizar órdenes</button>
       </div>
       <div id="orders-list" class="space-y-3"></div>
-    </section>
+    </details>
+
+    <details class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <summary class="cursor-pointer text-lg font-bold">Otros indicadores de compras y logística</summary>
+      <section id="summary" class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Resumen de compras y logística"></section>
+    </details>
   </main>
 </body>
 </html>

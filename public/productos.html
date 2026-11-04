@@ -256,6 +256,12 @@
         <option value="Bajo Pedido">Bajo Pedido</option>
         <option value="Agotado">Agotado</option>
       </select>
+      <select id="prod-filter-stock" class="border rounded px-3 py-2 text-sm" aria-label="Filtrar por stock de Gestión de productos">
+        <option value="">Todo el stock</option>
+        <option value="in-stock">Con stock</option>
+        <option value="out-of-stock">Sin stock</option>
+        <option value="unknown">Sin dato de stock</option>
+      </select>
       <select id="prod-filter-delivery" class="border rounded px-3 py-2 text-sm">
         <option value="">Todas las modalidades</option>
         <option value="Tienda">Retiro en tienda</option>
@@ -271,6 +277,7 @@
             <th class="px-3 py-2">Nombre</th>
             <th class="px-3 py-2">Categoría</th>
             <th class="px-3 py-2">Precio</th>
+            <th class="px-3 py-2">Stock (unid.)</th>
             <th class="px-3 py-2">Disponibilidad</th>
             <th class="px-3 py-2">Acciones</th>
           </tr>
@@ -388,6 +395,7 @@
     const prodFilterSubcategoryEl = document.getElementById("prod-filter-subcategory")
     const prodFilterTagEl = document.getElementById("prod-filter-tag")
     const prodFilterStatusEl = document.getElementById("prod-filter-status")
+    const prodFilterStockEl = document.getElementById("prod-filter-stock")
     const prodFilterDeliveryEl = document.getElementById("prod-filter-delivery")
     const prodFilterSearchEl = document.getElementById("prod-filter-search")
     const portalOrderToggle = document.getElementById("portal-order-toggle")
@@ -952,6 +960,7 @@
       const subFilter = prodFilterSubcategoryEl ? String(prodFilterSubcategoryEl.value || "").trim() : ""
       const tagFilter = prodFilterTagEl ? String(prodFilterTagEl.value || "").trim().toLowerCase() : ""
       const statusFilter = prodFilterStatusEl ? prodFilterStatusEl.value : ""
+      const stockFilter = prodFilterStockEl ? prodFilterStockEl.value : ""
       const deliveryFilter = prodFilterDeliveryEl ? prodFilterDeliveryEl.value : ""
       const q = (prodFilterSearchEl && prodFilterSearchEl.value ? prodFilterSearchEl.value : "").toLowerCase()
       const qWords = q ? q.split(/\s+/).filter(Boolean) : []
@@ -966,6 +975,11 @@
         const okSub = subFilter ? String(p.subcategory || "").trim() === subFilter : true
         const st = stockStatus(p).label
         const okStatus = statusFilter ? st === statusFilter : true
+        const stockKnown = p.stock != null && p.stock !== "" && Number.isFinite(Number(p.stock))
+        const okStock = !stockFilter ||
+          (stockFilter === "in-stock" && stockKnown && Number(p.stock) > 0) ||
+          (stockFilter === "out-of-stock" && stockKnown && Number(p.stock) <= 0) ||
+          (stockFilter === "unknown" && !stockKnown)
         const deliveryMode = isSoloDespacho(p) ? "Solo Despacho" : "Tienda"
         const okDelivery = deliveryFilter ? deliveryMode === deliveryFilter : true
         const okTag = tagFilter
@@ -975,7 +989,7 @@
           : true
         const text = normalizeText(p)
         const okSearch = q ? (text.includes(q) || qWords.some(w => text.includes(w))) : true
-        return okCat && okSub && okStatus && okDelivery && okTag && okSearch
+        return okCat && okSub && okStatus && okStock && okDelivery && okTag && okSearch
       })
 
       const norm = (v) => String(v || "").trim().toLowerCase()
@@ -1014,7 +1028,9 @@
         const price = p.price == null ? "Cotizar" : "$" + Number(p.price).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         const st = stockStatus(p)
         const dispatchBadge = isSoloDespacho(p) ? `<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-sky-100 text-sky-700 ml-1">Solo Despacho</span>` : ""
-        const stockText = p.stock == null ? "" : ` (${p.stock})`
+        const stockText = p.stock == null || p.stock === "" || !Number.isFinite(Number(p.stock))
+          ? "Sin dato"
+          : Number(p.stock).toLocaleString("es")
         const tagsLine = Array.isArray(p.tags) && p.tags.length ? `<div class="text-[11px] text-gray-500 mt-1">Etiquetas: ${p.tags.slice(0, 8).map(t => String(t)).join(", ")}${p.tags.length > 8 ? "…" : ""}</div>` : ""
         tr.innerHTML = `
           <td class="px-3 py-2">
@@ -1029,9 +1045,10 @@
           </td>
           <td class="px-3 py-2">${p.category}</td>
           <td class="px-3 py-2">${price}</td>
+          <td class="px-3 py-2 font-semibold">${stockText}</td>
           <td class="px-3 py-2">
             <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium ${st.color}">
-              ${st.label}${stockText}
+              ${st.label}
             </span>
             ${dispatchBadge}
             ${p.packInfo?` <span class="text-[11px] text-gray-500 ml-1">${p.packInfo}</span>`:""}
@@ -1715,6 +1732,9 @@
     }
     if (prodFilterStatusEl) {
       prodFilterStatusEl.addEventListener("change", renderProducts)
+    }
+    if (prodFilterStockEl) {
+      prodFilterStockEl.addEventListener("change", renderProducts)
     }
     if (prodFilterDeliveryEl) {
       prodFilterDeliveryEl.addEventListener("change", renderProducts)

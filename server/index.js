@@ -280,17 +280,7 @@ app.get("/api/admin/procurement", requireAdmin, (req, res) => {
 app.get("/api/admin/procurement/forecast", requireAdmin, (req, res) => {
   const state = getProcurementState()
   const catalog = readData(productsFile)
-  const savedInventory = readData(inventoryFile)
-  const inventoryState = savedInventory && !Array.isArray(savedInventory) && savedInventory.products && savedInventory.movements
-    ? savedInventory
-    : {
-      products: Object.fromEntries(catalog.map(product => [String(product.id), {
-        productId: Number(product.id),
-        baseUnits: Math.max(0, Number(product.stock || 0)),
-        unitsPerPackage: Math.max(1, Number(product.unitsBundle || product["Units/Bundle"] || product.units_bundle || 1))
-      }])),
-      movements: []
-    }
+  const inventoryState = getInventoryState()
   const inventory = Object.values(inventoryState.products).map(item => ({ ...item, units: Number(item.baseUnits || 0) }))
   const inventoryBalancesById = new Map(inventory.map(item => [Number(item.productId), item]))
   for (const movement of inventoryState.movements) {
@@ -626,37 +616,69 @@ app.patch("/api/admin/procurement/orders/:id", requireAdmin, (req, res) => {
     const inventory = getInventoryState()
     if (!Array.isArray(inventory.movements)) inventory.movements = []
     const catalog = readData(productsFile)
+    const stockUpdates = new Map()
+    let inventoryChanged = false
     for (const item of order.items) {
+      const catalogProduct = catalog.find(product => Number(product.id) === Number(item.productId))
+      if (!catalogProduct) return res.status(400).json({ error: "purchase_order_product_not_found", productId: item.productId })
       let inventoryProduct = inventory.products[String(item.productId)]
       if (!inventoryProduct) {
-        const catalogProduct = catalog.find(product => Number(product.id) === Number(item.productId))
-        if (!catalogProduct) return res.status(400).json({ error: "purchase_order_product_not_found", productId: item.productId })
         inventoryProduct = inventory.products[String(item.productId)] = {
           productId: Number(item.productId),
           name: String(catalogProduct.name || "Producto"),
           code: String(catalogProduct.code || ""),
-          baseUnits: 0,
+          baseUnits: Math.max(0, Number(catalogProduct.stock || 0)),
           unitsPerPackage: Math.max(1, Number(catalogProduct.unitsBundle || catalogProduct["Units/Bundle"] || catalogProduct.units_bundle || 1))
         }
       }
       const movementId = `MOV-${order.id}-${item.productId}`
-      if (!inventory.movements.some(movement => movement.id === movementId)) {
-        const units = Number(item.quantity) * Number(item.unitsPerPurchase)
-        if (!Number.isSafeInteger(units) || units <= 0) return res.status(400).json({ error: "invalid_received_quantity", productId: item.productId })
-        inventory.movements.push({
-          id: movementId,
-          createdAt: new Date().toISOString(),
-          productId: Number(item.productId),
-          type: "in",
-          packages: Number(item.quantity),
-          units,
-          reason: `Compra recibida de ${order.supplierName}`,
-          reference: order.id,
-          purchaseOrderId: order.id
-        })
+      const units = Number(item.quantity) * Number(item.unitsPerPurchase)
+      if (!Number.isSafeInteger(units) || units <= 0) return res.status(400).json({ error: "invalid_received_quantity", productId: item.productId })
+      const currentStock = catalogProduct.stock == null || catalogProduct.stock === "" ? 0 : Number(catalogProduct.stock)
+      if (!Number.isFinite(currentStock) || currentStock < 0) {
+        return res.status(400).json({ error: "invalid_catalog_stock", productId: item.productId })
+      }
+      const movement = inventory.movements.find(entry => entry.id === movementId)
+      if (movement && Number.isFinite(movement.catalogStockBefore) && Number.isFinite(movement.catalogStockAfter)) {
+        if (currentStock === movement.catalogStockBefore) {
+          stockUpdates.set(Number(item.productId), movement.catalogStockAfter)
+        } else if (currentStock < movement.catalogStockAfter) {
+          return res.status(409).json({ error: "catalog_stock_changed_during_receipt", productId: item.productId })
+        }
+      } else {
+        const stockAfter = currentStock + units
+        if (!Number.isFinite(stockAfter) || stockAfter > Number.MAX_SAFE_INTEGER) {
+          return res.status(400).json({ error: "invalid_catalog_stock", productId: item.productId })
+        }
+        stockUpdates.set(Number(item.productId), stockAfter)
+        if (movement) {
+          movement.catalogStockBefore = currentStock
+          movement.catalogStockAfter = stockAfter
+          inventoryChanged = true
+        } else {
+          inventory.movements.push({
+            id: movementId,
+            createdAt: new Date().toISOString(),
+            productId: Number(item.productId),
+            type: "in",
+            packages: Number(item.quantity),
+            units,
+            reason: `Compra recibida de ${order.supplierName}`,
+            reference: order.id,
+            purchaseOrderId: order.id,
+            catalogStockBefore: currentStock,
+            catalogStockAfter: stockAfter
+          })
+          inventoryChanged = true
+        }
       }
     }
-    writeData(inventoryFile, inventory)
+    for (const [productId, stock] of stockUpdates) {
+      const product = catalog.find(item => Number(item.id) === productId)
+      product.stock = stock
+    }
+    if (inventoryChanged) writeData(inventoryFile, inventory)
+    if (stockUpdates.size) writeData(productsFile, catalog)
     order.status = "received"
     order.receivedAt = new Date().toISOString()
   } else {
@@ -669,6 +691,7 @@ app.patch("/api/admin/procurement/orders/:id", requireAdmin, (req, res) => {
 
 function getInventoryState() {
   let state = readData(inventoryFile)
+  let changed = false
   if (!state || Array.isArray(state) || typeof state !== "object" || !state.products || !state.movements) {
     const products = readData(productsFile)
     state = {
@@ -682,6 +705,22 @@ function getInventoryState() {
       }])),
       movements: []
     }
+    changed = true
+  }
+  const catalog = readData(productsFile)
+  for (const product of catalog) {
+    const key = String(product.id)
+    if (Object.prototype.hasOwnProperty.call(state.products, key)) continue
+    state.products[key] = {
+      productId: Number(product.id),
+      name: String(product.name || "Producto"),
+      code: String(product.code || ""),
+      baseUnits: Math.max(0, Number(product.stock || 0)),
+      unitsPerPackage: Math.max(1, Number(product.unitsBundle || product["Units/Bundle"] || product.units_bundle || 1))
+    }
+    changed = true
+  }
+  if (changed) {
     writeData(inventoryFile, state)
   }
   return state

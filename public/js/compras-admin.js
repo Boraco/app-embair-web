@@ -118,10 +118,33 @@
       </div>`).join("") : '<p class="py-4 text-sm text-slate-500">Todavía no hay proveedores registrados.</p>'
   }
 
+  function renderTermFilters() {
+    const categorySelect = $("terms-category")
+    const supplierSelect = $("terms-supplier")
+    const category = categorySelect.value
+    const supplierId = supplierSelect.value
+    const categories = [...new Set(state.catalog.map(product => String(product.category || "").trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "es"))
+    categorySelect.innerHTML = `<option value="">Todas las categorías</option>${categories.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`
+    supplierSelect.innerHTML = `<option value="">Todos los proveedores</option>${state.suppliers.map(supplier => `<option value="${escapeHtml(supplier.id)}">${escapeHtml(supplier.name)}</option>`).join("")}`
+    if (categories.includes(category)) categorySelect.value = category
+    if (state.suppliers.some(supplier => supplier.id === supplierId)) supplierSelect.value = supplierId
+  }
+
   function renderTerms() {
-    $("terms-list").innerHTML = state.productTerms.length ? state.productTerms.map(term => {
-      const product = productById(term.productId) || {}
-      const supplier = supplierById(term.supplierId) || {}
+    const query = $("terms-search").value.trim().toLocaleLowerCase("es")
+    const category = $("terms-category").value
+    const supplierId = $("terms-supplier").value
+    const terms = state.productTerms.filter(term => {
+        const product = productById(term.productId) || {}
+        const supplier = supplierById(term.supplierId) || {}
+        const haystack = `${product.name || ""} ${product.code || ""} ${product.brand || ""} ${supplier.name || ""} ${term.supplierSku || ""}`.toLocaleLowerCase("es")
+        return (!query || haystack.includes(query)) && (!category || product.category === category) && (!supplierId || term.supplierId === supplierId)
+    })
+    $("terms-count").textContent = `Mostrando ${terms.length} de ${state.productTerms.length} condiciones`
+    $("terms-list").innerHTML = terms.length ? terms.map(term => {
+        const product = productById(term.productId) || {}
+        const supplier = supplierById(term.supplierId) || {}
       const baseUnitCost = Number(term.unitCost) / Math.max(1, Number(term.unitsPerPurchase))
       const receivedUnitCost = getReceivedLandedCost(term.productId, term.supplierId)
       const salePrice = Number(product.price)
@@ -135,7 +158,7 @@
         <td>${Number(term.minimumQuantity)} ${escapeHtml(term.purchaseUnit)}${Number(term.unitsPerPurchase) > 1 ? `<span class="block text-xs text-slate-500">× ${Number(term.unitsPerPurchase)} unidades</span>` : ""}</td>
         <td>${term.preferredSupplier ? "Sí" : "—"}</td>
       </tr>`
-    }).join("") : '<tr><td colspan="6" class="py-4 text-sm text-slate-500">Aún no hay condiciones de compra. Configúralas desde los productos mayoristas.</td></tr>'
+    }).join("") : `<tr><td colspan="6" class="py-4 text-sm text-slate-500">${state.productTerms.length ? "No hay costos que coincidan con los filtros." : "Aún no hay condiciones de compra. Configúralas desde los productos mayoristas."}</td></tr>`
   }
 
   async function saveSettings() {
@@ -148,7 +171,13 @@
 
   function renderOrders() {
     const labels = { draft: "Borrador", ordered: "Solicitada", received: "Recibida", cancelled: "Cancelada" }
-    $("orders-list").innerHTML = state.purchaseOrders.length ? state.purchaseOrders.map(order => {
+    const query = $("orders-search").value.trim().toLocaleLowerCase("es")
+    const status = $("orders-status-filter").value
+    const orders = state.purchaseOrders.filter(order => {
+      const haystack = `${order.id} ${order.supplierName} ${(order.items || []).map(item => item.productName).join(" ")}`.toLocaleLowerCase("es")
+      return (!status || order.status === status) && (!query || haystack.includes(query))
+    })
+    $("orders-list").innerHTML = orders.length ? orders.map(order => {
       const canOrder = order.status === "draft"
       const canReceive = order.status === "ordered"
       const canCancel = ["draft", "ordered"].includes(order.status)
@@ -170,13 +199,14 @@
           ${order.status === "received" ? `<span class="self-center text-xs text-emerald-700">Entrada registrada en inventario el ${escapeHtml(new Date(order.receivedAt).toLocaleString("es"))}.</span>` : ""}
         </div>
       </article>`
-    }).join("") : '<p class="rounded-lg border border-dashed p-6 text-center text-sm text-slate-500">Todavía no hay órdenes de compra.</p>'
+    }).join("") : `<p class="rounded-lg border border-dashed p-6 text-center text-sm text-slate-500">${state.purchaseOrders.length ? "No hay órdenes que coincidan con los filtros." : "Todavía no hay órdenes de compra."}</p>`
   }
 
   function renderAll() {
     renderSummary()
     renderSelects()
     renderSuppliers()
+    renderTermFilters()
     renderTerms()
     renderOrders()
     renderOrderItems()
@@ -501,7 +531,7 @@
     if (!button) return
     const action = button.dataset.orderAction
     const promptText = action === "received"
-      ? "Al confirmar, las cantidades de esta orden se sumarán al inventario. ¿Ya recibiste toda la orden?"
+      ? "Al confirmar, las cantidades se sumarán al inventario operativo y al stock de Gestión de productos. ¿Ya recibiste toda la orden?"
       : action === "cancelled" ? "¿Cancelar esta orden de compra?" : "¿Marcar esta orden como solicitada al proveedor?"
     if (!confirm(promptText)) return
     button.disabled = true
@@ -512,7 +542,7 @@
         body: JSON.stringify({ status: action })
       })
       await load()
-      showStatus(action === "received" ? "Recepción registrada y sumada al inventario." : "Estado de la orden actualizado.")
+      showStatus(action === "received" ? "Recepción registrada en el inventario operativo y en el stock de Gestión de productos." : "Estado de la orden actualizado.")
     } catch (error) {
       showStatus(error.message, true)
       button.disabled = false
@@ -523,6 +553,11 @@
     const group = event.target.closest("[data-forecast-group]")
     if (group) updateForecastGroup(group)
   })
+  $("terms-search").addEventListener("input", renderTerms)
+  $("terms-category").addEventListener("change", renderTerms)
+  $("terms-supplier").addEventListener("change", renderTerms)
+  $("orders-search").addEventListener("input", renderOrders)
+  $("orders-status-filter").addEventListener("change", renderOrders)
   $("forecast-list").addEventListener("click", async event => {
     const button = event.target.closest("[data-create-forecast]")
     if (!button) return

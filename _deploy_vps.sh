@@ -15,36 +15,77 @@ cd /var/www/app-embair-web 2>/dev/null || {
   cd app-embair-web
 }
 pwd
-BACKUP_ROOT="/var/backups/app-embair-web/$(date +%Y%m%d_%H%M%S)"
-mkdir -p "$BACKUP_ROOT"
-echo "===(0) BACKUP DATOS Y UPLOADS ==="
+umask 077
+mkdir -p /var/backups/app-embair-web
+BACKUP_ROOT="$(mktemp -d "/var/backups/app-embair-web/$(date +%Y%m%d_%H%M%S)_XXXXXX")"
+echo "===(0) BACKUP DATOS, IMAGENES Y UPLOADS ==="
 test -d data
 test -d public/uploads
-mkdir -p "$BACKUP_ROOT/data" "$BACKUP_ROOT/uploads"
+test -d public/img
+mkdir -p "$BACKUP_ROOT/data" "$BACKUP_ROOT/uploads" "$BACKUP_ROOT/public-img"
 cp -a data/. "$BACKUP_ROOT/data/"
 cp -a public/uploads/. "$BACKUP_ROOT/uploads/"
+cp -a public/img/. "$BACKUP_ROOT/public-img/"
 python3 - "$BACKUP_ROOT" <<'PY'
+import hashlib
 import json
+import os
 import sys
 from pathlib import Path
+from datetime import datetime, timezone
+
 backup = Path(sys.argv[1])
-p = Path("data/products.json")
-backup_products = backup / "data" / "products.json"
-try:
-  data = json.loads(p.read_text())
-  saved = json.loads(backup_products.read_text())
-  if not isinstance(data, list) or not isinstance(saved, list) or len(data) != len(saved):
-    raise RuntimeError("products.json backup verification failed")
-  source_uploads = sum(1 for item in Path("public/uploads").rglob("*") if item.is_file())
-  backup_uploads = sum(1 for item in (backup / "uploads").rglob("*") if item.is_file())
-  if source_uploads != backup_uploads:
-    raise RuntimeError(f"uploads backup verification failed: source={source_uploads}, backup={backup_uploads}")
-  print(f"products.json items before deploy: {len(data)}")
-  print(f"uploads files before deploy: {source_uploads}")
-except Exception as e:
-  raise SystemExit(f"ERROR verificando backup antes del deploy: {e}")
+locations = {
+  "data": (Path("data"), backup / "data"),
+  "uploads": (Path("public/uploads"), backup / "uploads"),
+  "public-img": (Path("public/img"), backup / "public-img"),
+}
+
+def snapshot(root):
+  entries = {}
+  def visit(folder, relative=""):
+    for entry in sorted(os.scandir(folder), key=lambda item: item.name):
+      path = Path(entry.path)
+      name = f"{relative}/{entry.name}" if relative else entry.name
+      if entry.is_symlink():
+        entries[name] = {"type": "symlink", "target": os.readlink(entry.path)}
+      elif entry.is_dir(follow_symlinks=False):
+        entries[name] = {"type": "directory"}
+        visit(path, name)
+      elif entry.is_file(follow_symlinks=False):
+        digest = hashlib.sha256()
+        with open(entry.path, "rb") as stream:
+          for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+        entries[name] = {"type": "file", "size": entry.stat(follow_symlinks=False).st_size, "sha256": digest.hexdigest()}
+      else:
+        raise RuntimeError(f"unsupported filesystem entry: {path}")
+  visit(root)
+  return entries
+
+manifest = {"createdAt": datetime.now(timezone.utc).isoformat(), "locations": {}}
+for name, (source, saved) in locations.items():
+  original = snapshot(source)
+  copied = snapshot(saved)
+  if original != copied:
+    missing = sorted(set(original) - set(copied))[:5]
+    extra = sorted(set(copied) - set(original))[:5]
+    changed = sorted(key for key in original.keys() & copied.keys() if original[key] != copied[key])[:5]
+    raise SystemExit(f"ERROR verificando respaldo {name}: missing={missing}, extra={extra}, changed={changed}")
+  manifest["locations"][name] = {
+    "entries": len(original),
+    "files": sum(item["type"] == "file" for item in original.values()),
+    "sha256": hashlib.sha256(json.dumps(original, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+  }
+  print(f"VERIFIED BACKUP {name}: {manifest['locations'][name]['files']} files; names and contents match")
+(backup / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+os.chmod(backup / "manifest.json", 0o600)
 PY
 echo "Backup remoto creado en: $BACKUP_ROOT"
+if [[ "${BACKUP_ONLY:-0}" == "1" ]]; then
+  echo "BACKUP_ONLY_COMPLETED; no se actualizo el codigo ni se reiniciaron servicios."
+  exit 0
+fi
 git status 2>&1 | head -30 || true
 echo "Local last commit:"
 git log -1 --oneline 2>&1
@@ -56,17 +97,55 @@ echo "===(3) GIT PULL==="
 cp .env /tmp/.env.bak 2>/dev/null || true
 git stash 2>&1 | tail -5
 git pull origin main 2>&1 | tail -15
-cp -a "$BACKUP_ROOT/data/." data/
-cp -a "$BACKUP_ROOT/uploads/." public/uploads/
 python3 - "$BACKUP_ROOT" <<'PY'
+import hashlib
+import json
+import os
+import shutil
 import sys
 from pathlib import Path
+
 backup = Path(sys.argv[1])
-saved_uploads = sum(1 for item in (backup / "uploads").rglob("*") if item.is_file())
-active_uploads = sum(1 for item in Path("public/uploads").rglob("*") if item.is_file())
-if saved_uploads != active_uploads:
-  raise SystemExit(f"ERROR restaurando uploads: backup={saved_uploads}, active={active_uploads}")
-print(f"Datos y uploads restaurados desde backup: {active_uploads} archivos de uploads.")
+locations = {
+  "data": (backup / "data", Path("data")),
+  "uploads": (backup / "uploads", Path("public/uploads")),
+  "public-img": (backup / "public-img", Path("public/img")),
+}
+
+def snapshot(root):
+  entries = {}
+  def visit(folder, relative=""):
+    for entry in sorted(os.scandir(folder), key=lambda item: item.name):
+      path = Path(entry.path)
+      name = f"{relative}/{entry.name}" if relative else entry.name
+      if entry.is_symlink():
+        entries[name] = {"type": "symlink", "target": os.readlink(entry.path)}
+      elif entry.is_dir(follow_symlinks=False):
+        entries[name] = {"type": "directory"}
+        visit(path, name)
+      elif entry.is_file(follow_symlinks=False):
+        digest = hashlib.sha256()
+        with open(entry.path, "rb") as stream:
+          for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+        entries[name] = {"type": "file", "size": entry.stat(follow_symlinks=False).st_size, "sha256": digest.hexdigest()}
+      else:
+        raise RuntimeError(f"unsupported filesystem entry: {path}")
+  visit(root)
+  return entries
+
+manifest = json.loads((backup / "manifest.json").read_text())
+for name, (saved, active) in locations.items():
+  expected = snapshot(saved)
+  digest = hashlib.sha256(json.dumps(expected, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+  if digest != manifest["locations"][name]["sha256"]:
+    raise SystemExit(f"ERROR: respaldo alterado o ilegible: {name}")
+  shutil.copytree(saved, active, dirs_exist_ok=True, symlinks=True)
+  restored = snapshot(active)
+  mismatched = [key for key, value in expected.items() if restored.get(key) != value]
+  if mismatched:
+    raise SystemExit(f"ERROR restaurando {name}; diferencias: {mismatched[:5]}")
+  print(f"VERIFIED RESTORE {name}: {manifest['locations'][name]['files']} backup files preserved")
 PY
 [ -f /tmp/.env.bak ] && cp /tmp/.env.bak .env
 if grep -q '^PUBLIC_URL=' .env 2>/dev/null; then sed -i 's#^PUBLIC_URL=.*#PUBLIC_URL=https://embair.es#' .env; else echo 'PUBLIC_URL=https://embair.es' >> .env; fi

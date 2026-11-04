@@ -530,7 +530,10 @@
         }
         if (data.email) {
             const emailEl = document.getElementById("footer-email")
-            if (emailEl) emailEl.textContent = data.email
+            if (emailEl) {
+                emailEl.textContent = data.email
+                if (emailEl.tagName === "A") emailEl.href = `mailto:${data.email}`
+            }
             const quoteEmailEl = document.getElementById("quote-sales-email")
             if (quoteEmailEl) {
                 quoteEmailEl.textContent = data.email

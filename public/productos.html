@@ -134,7 +134,8 @@
         </div>
         <div>
           <label class="block text-sm mb-1">Subcategoría</label>
-          <input id="prod-subcategory" class="w-full border rounded px-3 py-2" placeholder="Ej: iluminación, grifería" />
+          <input id="prod-subcategory" list="product-subcategory-options" class="w-full border rounded px-3 py-2" placeholder="Escribe o selecciona una subcategoría" />
+          <datalist id="product-subcategory-options"></datalist>
         </div>
         <div>
           <label class="block text-sm mb-1">Material</label>
@@ -1004,6 +1005,7 @@
 
     function renderProducts() {
       prodRows.innerHTML = ""
+      updateProductSubcategoryOptions()
       updateSubcategoryAndTagFilters()
       const items = getFilteredProductsSorted()
       for (const p of items) {
@@ -1057,6 +1059,7 @@
             idEl.value = String(p.id)
             nameEl.value = p.name
             catEl.value = p.category
+            updateProductSubcategoryOptions()
             priceEl.value = p.price ?? ""
             quoteEl.checked = p.price == null
             availEl.value = p.available === "Solo Despacho" ? "Disponible" : (p.available || "Disponible")
@@ -1090,6 +1093,28 @@
         })
       })
     }
+
+    function updateProductSubcategoryOptions() {
+      const options = document.getElementById("product-subcategory-options")
+      if (!options) return
+
+      const category = String(catEl.value || "").trim().toLowerCase()
+      const subcategories = new Map()
+      for (const product of PRODUCTS) {
+        if (category && String(product.category || "").trim().toLowerCase() !== category) continue
+        const subcategory = String(product.subcategory || "").trim()
+        if (subcategory) subcategories.set(subcategory.toLocaleLowerCase("es"), subcategory)
+      }
+
+      options.replaceChildren()
+      for (const subcategory of Array.from(subcategories.values()).sort((a, b) => a.localeCompare(b, "es"))) {
+        const option = document.createElement("option")
+        option.value = subcategory
+        options.appendChild(option)
+      }
+    }
+
+    catEl.addEventListener("input", updateProductSubcategoryOptions)
 
     async function uploadFile(file) {
       const fd = new FormData()
@@ -1146,6 +1171,7 @@
           return
         }
       }
+
       if (packFileEl.files && packFileEl.files[0]) {
         try {
           pack = await uploadFile(packFileEl.files[0])

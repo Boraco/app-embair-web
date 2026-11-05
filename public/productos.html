@@ -7,6 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- SheetJS for Excel Import/Export -->
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <!-- ExcelJS supports embedded product thumbnails in the price list -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
   <!-- jsPDF for PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- html2canvas for Image Generation -->
@@ -1307,67 +1309,249 @@
       }
     })
 
-    exportPricelistBtn.addEventListener("click", () => {
-      if (typeof XLSX === 'undefined') {
-        alert("Librería Excel no cargada. Recarga la página.")
+    function getPricelistStatus(product) {
+      const stock = product.stock == null || product.stock === "" ? null : Number(product.stock)
+      if (product.available === "Solo Despacho") return "Solo Despacho"
+      if (product.available === "Bajo Pedido") return "Bajo Pedido"
+      if (product.available === "Agotado" || (stock !== null && stock <= 0)) return "Agotado"
+      if (stock !== null && stock <= 25) return "Pocas unidades"
+      return "Disponible"
+    }
+
+    async function getSalesPackageConfigs() {
+      const response = await fetchAdmin("/api/admin/wholesale/products")
+      if (!response.ok) throw new Error("No se pudo cargar la configuración de empaques de venta.")
+      const data = await response.json()
+      if (!Array.isArray(data.products)) throw new Error("La respuesta de empaques de venta no es válida.")
+      return new Map(data.products.map(item => [Number(item.productId), item]))
+    }
+
+    function getSalesPackage(product, configs) {
+      const config = configs.get(Number(product.id))
+      if (!config || config.enabled === false) return null
+      const units = Math.max(1, Number(config.unitsPerPackage) || 1)
+      const unitPrice = config.unitWholesalePrice == null || config.unitWholesalePrice === ""
+        ? null
+        : Number(config.unitWholesalePrice)
+      const configuredPackagePrice = config.wholesalePrice == null || config.wholesalePrice === ""
+        ? null
+        : Number(config.wholesalePrice)
+      const basePrice = configuredPackagePrice != null
+        ? configuredPackagePrice
+        : unitPrice != null
+          ? unitPrice * units
+          : null
+      const discount = Math.min(100, Math.max(0, Number(config.discountPercent) || 0))
+      const price = basePrice == null ? null : Number((basePrice * (1 - discount / 100)).toFixed(2))
+      return {
+        name: String(config.packageName || "Empaque"),
+        units,
+        price
+      }
+    }
+
+    function formatPricelistMoney(value) {
+      return "$" + Number(value).toLocaleString("es", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
+
+    function getConsecutivePricelistImageGroups(items) {
+      const groups = []
+      items.forEach((product, index) => {
+        const url = String(product.img || "")
+        if (!url || url.includes("via.placeholder.com")) return
+        const previous = groups[groups.length - 1]
+        if (previous && previous.url === url && previous.end === index - 1) {
+          previous.end = index
+        } else {
+          groups.push({ url, start: index, end: index })
+        }
+      })
+      return groups
+    }
+
+    function getPricelistImageData(url) {
+      if (!url || String(url).includes("via.placeholder.com")) return Promise.resolve(null)
+      return new Promise((resolve) => {
+        const image = new Image()
+        image.crossOrigin = "Anonymous"
+        const timer = setTimeout(() => resolve(null), 4000)
+        image.onload = () => {
+          clearTimeout(timer)
+          const maxWidth = 240
+          const maxHeight = 180
+          const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1)
+          const canvas = document.createElement("canvas")
+          canvas.width = Math.max(1, Math.round(image.width * scale))
+          canvas.height = Math.max(1, Math.round(image.height * scale))
+          const context = canvas.getContext("2d")
+          if (!context) return resolve(null)
+          context.fillStyle = "#ffffff"
+          context.fillRect(0, 0, canvas.width, canvas.height)
+          context.drawImage(image, 0, 0, canvas.width, canvas.height)
+          try {
+            resolve(canvas.toDataURL("image/jpeg", 0.82))
+          } catch {
+            resolve(null)
+          }
+        }
+        image.onerror = () => {
+          clearTimeout(timer)
+          resolve(null)
+        }
+        image.src = new URL(String(url), window.location.href).href
+      })
+    }
+
+    function downloadPricelistWorkbook(buffer, filename) {
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = filename
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    }
+
+    exportPricelistBtn.addEventListener("click", async () => {
+      if (!window.ExcelJS || !window.ExcelJS.Workbook) {
+        alert("No se pudo cargar el generador de Excel con imágenes. Recarga la página e inténtalo nuevamente.")
         return
       }
 
-      // Preparar datos para Lista de Precios
-      const headers = ["Imagen Referencia", "Producto", "Código", "Marca", "Precio Unitario", "Und/Bulto", "Precio Bulto", "Estado"]
-      
+      const originalHtml = exportPricelistBtn.innerHTML
+      exportPricelistBtn.disabled = true
       const items = getFilteredProductsSorted()
-      const data = items.map(p => {
-        // Lógica de Estado
-        let estado = "Disponible"
-        const stock = p.stock == null ? null : Number(p.stock)
-        
-        if (p.available === "Solo Despacho") {
-          estado = "Solo Despacho"
-        } else if (p.available === "Bajo Pedido") {
-          estado = "Bajo Pedido"
-        } else if (p.available === "Agotado") {
-          estado = "Agotado"
-        } else if (stock !== null) {
-          if (stock <= 0) estado = "Agotado"
-          else if (stock <= 25) estado = "Pocas unidades"
-          else estado = "Disponible"
+      const imageUrls = Array.from(new Set(items.map(product => String(product.img || "")).filter(url => url && !url.includes("via.placeholder.com"))))
+      const imageDataByUrl = new Map()
+      const imageIdsByUrl = new Map()
+      const imageGroupsByStartIndex = new Map(getConsecutivePricelistImageGroups(items).map(group => [group.start, group]))
+      let failedImages = 0
+
+      try {
+        const salesPackageConfigs = await getSalesPackageConfigs()
+        for (let i = 0; i < imageUrls.length; i += 8) {
+          const batch = imageUrls.slice(i, i + 8)
+          const results = await Promise.all(batch.map(async url => [url, await getPricelistImageData(url)]))
+          results.forEach(([url, data]) => {
+            imageDataByUrl.set(url, data)
+            if (!data) failedImages++
+          })
+          exportPricelistBtn.textContent = `Imágenes ${Math.min(i + batch.length, imageUrls.length)}/${imageUrls.length}`
         }
 
-        const price = p.price == null ? 0 : Number(p.price)
-        const units = p.unitsBundle ? Number(p.unitsBundle) : 0
-        const bundlePrice = (price && units) ? price * units : 0
-
-        return [
-          p.img || "", // URL de la imagen
-          p.name || "Sin Nombre",
-          p.code || "",
-          p.brand || "",
-          p.price == null ? "Cotizar" : price,
-          units || "-",
-          bundlePrice || "-",
-          estado
+        const workbook = new ExcelJS.Workbook()
+        workbook.creator = "EMBAIR"
+        workbook.created = new Date()
+        const sheet = workbook.addWorksheet("Lista de Precios", {
+          views: [{ state: "frozen", ySplit: 3, showGridLines: false }]
+        })
+        sheet.columns = [
+          { key: "image", width: 10 },
+          { key: "code", width: 14 },
+          { key: "name", width: 34 },
+          { key: "category", width: 18 },
+          { key: "price", width: 14 },
+          { key: "packageName", width: 17 },
+          { key: "units", width: 11 },
+          { key: "status", width: 15 },
+          { key: "packagePrice", width: 16 }
         ]
-      })
+        sheet.mergeCells(1, 1, 1, 9)
+        sheet.getCell("A1").value = "LISTA DE PRECIOS"
+        sheet.getCell("A1").font = { name: "Arial", size: 16, bold: true, color: { argb: "FFFFFFFF" } }
+        sheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } }
+        sheet.getCell("A1").alignment = { vertical: "middle", horizontal: "left" }
+        sheet.getRow(1).height = 30
+        sheet.mergeCells(2, 1, 2, 9)
+        sheet.getCell("A2").value = `EMBAIR  ·  ${new Date().toLocaleDateString("es")}  ·  ${items.length} productos`
+        sheet.getCell("A2").font = { name: "Arial", size: 10, color: { argb: "FF475569" } }
+        sheet.getCell("A2").alignment = { vertical: "middle" }
+        sheet.getRow(2).height = 22
 
-      const ws = XLSX.utils.aoa_to_sheet([headers, ...data])
+        const headerRow = sheet.getRow(3)
+        headerRow.values = ["Imagen", "Código", "Descripción del producto", "Categoría", "Precio unitario", "Empaque de venta", "Unid./paq.", "Estado", "Precio por empaque"]
+        headerRow.height = 24
+        headerRow.eachCell(cell => {
+          cell.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFFFFFFF" } }
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E78" } }
+          cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true }
+          cell.border = { bottom: { style: "thin", color: { argb: "FF17365D" } } }
+        })
+        sheet.autoFilter = { from: "A3", to: `I${items.length + 3}` }
 
-      // Ajustar ancho de columnas
-      const wscols = [
-        { wch: 50 }, // Imagen URL
-        { wch: 40 }, // Producto
-        { wch: 15 }, // Código
-        { wch: 15 }, // Marca
-        { wch: 15 }, // Precio
-        { wch: 10 }, // Und/Bulto
-        { wch: 15 }, // Precio Bulto
-        { wch: 20 }  // Estado
-      ]
-      ws['!cols'] = wscols
+        items.forEach((product, index) => {
+          const price = product.price == null || product.price === "" ? null : Number(product.price)
+          const packageInfo = getSalesPackage(product, salesPackageConfigs)
+          const row = sheet.addRow([
+            "",
+            product.code || "",
+            product.name || "Sin Nombre",
+            product.category || "",
+            price == null ? "Cotizar" : price,
+            packageInfo ? packageInfo.name : "-",
+            packageInfo ? packageInfo.units : "-",
+            getPricelistStatus(product),
+            packageInfo && packageInfo.price != null ? packageInfo.price : "-"
+          ])
+          row.height = 32
+          row.eachCell({ includeEmpty: true }, (cell, columnNumber) => {
+            cell.font = { name: "Arial", size: 10, color: { argb: "FF1F2937" } }
+            cell.alignment = {
+              vertical: "middle",
+              horizontal: columnNumber === 5 || columnNumber === 9 ? "right" : "left",
+              wrapText: columnNumber === 3 || columnNumber === 4
+            }
+            cell.border = { bottom: { style: "thin", color: { argb: "FFDCE3EA" } } }
+            if (row.number % 2 === 0) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F6F9" } }
+          })
+          row.getCell(5).numFmt = '"$" #,##0.00'
+          row.getCell(9).numFmt = '"$" #,##0.00'
+          const statusCell = row.getCell(8)
+          statusCell.alignment = { vertical: "middle", horizontal: "center" }
+          if (statusCell.value === "Agotado") statusCell.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFDC2626" } }
+          else if (statusCell.value === "Pocas unidades") statusCell.font = { name: "Arial", size: 10, bold: true, color: { argb: "FFEA580C" } }
 
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, "Lista de Precios")
-      XLSX.writeFile(wb, "lista_de_precios.xlsx")
+          const imageData = imageDataByUrl.get(String(product.img || ""))
+          const imageGroup = imageGroupsByStartIndex.get(index)
+          if (imageData && imageGroup) {
+            let imageId = imageIdsByUrl.get(String(product.img || ""))
+            if (imageId == null) {
+              imageId = workbook.addImage({ base64: imageData, extension: "jpeg" })
+              imageIdsByUrl.set(String(product.img || ""), imageId)
+            }
+            const imageHeight = 38
+            const rowHeightPixels = 32 * 4 / 3
+            const groupHeightPixels = (imageGroup.end - imageGroup.start + 1) * rowHeightPixels
+            sheet.addImage(imageId, {
+              tl: {
+                col: 0.18,
+                row: row.number - 1 + (groupHeightPixels - imageHeight) / (2 * rowHeightPixels)
+              },
+              ext: { width: 54, height: imageHeight },
+              editAs: "oneCell"
+            })
+          }
+        })
+
+        sheet.pageSetup = {
+          orientation: "portrait",
+          fitToPage: true,
+          fitToWidth: 1,
+          fitToHeight: 0,
+          paperSize: 9,
+          margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 }
+        }
+        sheet.headerFooter.oddFooter = "Página &P de &N"
+        const buffer = await workbook.xlsx.writeBuffer()
+        downloadPricelistWorkbook(buffer, "lista_de_precios.xlsx")
+        if (failedImages) alert(`La lista se exportó, pero ${failedImages} imagen(es) no pudieron cargarse y quedaron sin miniatura.`)
+      } catch (error) {
+        console.error("Excel price list export error:", error)
+        alert("No se pudo generar la lista de precios en Excel. Revisa la consola e inténtalo nuevamente.")
+      } finally {
+        exportPricelistBtn.innerHTML = originalHtml
+        exportPricelistBtn.disabled = false
+      }
     })
 
     exportPricelistPdfBtn.addEventListener("click", async () => {
@@ -1381,7 +1565,7 @@
       // Ensure global jsPDF is set for autotable
       if (!window.jsPDF) window.jsPDF = jsPDF
 
-      const doc = new jsPDF()
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
       
       // 2. Check AutoTable
       if (typeof doc.autoTable !== 'function') {
@@ -1394,112 +1578,81 @@
 
       try {
         // --- HEADER ---
+        const salesPackageConfigs = await getSalesPackageConfigs()
         // Intentar cargar logo
         const logoUrl = localStorage.getItem("company_logo") || "/uploads/logo.png"
         const logoData = await getImageData(logoUrl)
         
         if (logoData) {
-            doc.addImage(logoData, 'PNG', 14, 10, 25, 25) // Logo a la izquierda
-            doc.setFontSize(22)
+            doc.addImage(logoData, 'PNG', 10, 8, 18, 18)
+            doc.setFontSize(17)
             doc.setTextColor(44, 62, 80)
-            doc.text("Lista de Precios", 45, 20)
+            doc.text("Lista de Precios", 34, 15)
             doc.setFontSize(10)
             doc.setTextColor(100)
-            doc.text("COMERCIALIZADORA EMBAIR", 45, 26)
-            doc.text("Fecha: " + new Date().toLocaleDateString(), 45, 32)
+            doc.text("COMERCIALIZADORA EMBAIR", 34, 21)
+            doc.text("Fecha: " + new Date().toLocaleDateString(), 34, 26)
         } else {
-            doc.setFontSize(22)
+            doc.setFontSize(17)
             doc.setTextColor(44, 62, 80)
-            doc.text("Lista de Precios", 14, 20)
-            doc.setFontSize(12)
-            doc.setTextColor(100)
-            doc.text("COMERCIALIZADORA EMBAIR", 14, 28)
+            doc.text("Lista de Precios", 10, 15)
             doc.setFontSize(10)
-            doc.text("Fecha: " + new Date().toLocaleDateString(), 14, 34)
-        }
-
-        // Helper to load image with shorter timeout
-        function getImageData(url) {
-          return new Promise((resolve) => {
-            if (!url) return resolve(null)
-            const img = new Image()
-            img.crossOrigin = "Anonymous"
-            // 2s timeout
-            const timer = setTimeout(() => resolve(null), 2000)
-            img.onload = () => {
-              clearTimeout(timer)
-              const canvas = document.createElement("canvas")
-              canvas.width = img.width
-              canvas.height = img.height
-              const ctx = canvas.getContext("2d")
-              ctx.drawImage(img, 0, 0)
-              try {
-                resolve(canvas.toDataURL("image/jpeg"))
-              } catch (e) { resolve(null) }
-            }
-            img.onerror = () => {
-              clearTimeout(timer)
-              resolve(null)
-            }
-            img.src = url
-          })
+            doc.setTextColor(100)
+            doc.text("COMERCIALIZADORA EMBAIR", 10, 21)
+            doc.text("Fecha: " + new Date().toLocaleDateString(), 10, 26)
         }
 
         const tableBody = []
-        let processedCount = 0
         const items = getFilteredProductsSorted()
-        const total = items.length
-
-        // Process items sequentially to update UI
-        for (const p of items) {
-          processedCount++
-          // Update button text to show progress
-          exportPricelistPdfBtn.innerHTML = `Generando ${processedCount}/${total}...`
-          
-          // Stock Logic for PDF
-          let statusText = "DISPONIBLE"
-          const stock = p.stock == null ? null : Number(p.stock)
-          if (p.available === "Solo Despacho") {
-            statusText = "SOLO DESPACHO"
-          } else if (p.available === "Bajo Pedido") {
-            statusText = "BAJO PEDIDO"
-          } else if (p.available === "Agotado" || (stock !== null && stock <= 0)) {
-            statusText = "AGOTADO"
-          } else if (stock !== null && stock <= 25) {
-             statusText = "POCAS UNIDADES"
-          }
-
-          // Calculations
-          const price = p.price ? Number(p.price) : 0
-          const units = p.unitsBundle ? Number(p.unitsBundle) : 0
-          const bundlePrice = (price && units) ? price * units : 0
-
-          // Image Logic
-          let imgData = null
-          if (p.img && !p.img.includes("via.placeholder.com")) { 
-              imgData = await getImageData(p.img)
-          }
-
-          tableBody.push({
-            image: imgData,
-            code: p.code || "",
-            name: p.name || "Sin Nombre",
-            price: p.price == null ? "Cotizar" : "$" + price.toLocaleString("es-AR"),
-            units: units || "-",
-            bundlePrice: bundlePrice ? "$" + bundlePrice.toLocaleString("es-AR") : "-",
-            status: statusText,
-            statusColor: statusText === "AGOTADO" ? [220, 38, 38] : (statusText === "POCAS UNIDADES" ? [234, 88, 12] : (statusText === "BAJO PEDIDO" ? [217, 119, 6] : (statusText === "SOLO DESPACHO" ? [2, 132, 199] : [22, 163, 74])))
-          })
+        const imageGroups = getConsecutivePricelistImageGroups(items)
+        const imageGroupByRow = new Map()
+        imageGroups.forEach(group => {
+          for (let index = group.start; index <= group.end; index++) imageGroupByRow.set(index, group)
+        })
+        const drawnImageGroupsByPage = new Set()
+        let processedCount = 0
+        const imageUrls = Array.from(new Set(items.map(product => String(product.img || "")).filter(url => url && !url.includes("via.placeholder.com"))))
+        const imageDataByUrl = new Map()
+        for (let i = 0; i < imageUrls.length; i += 8) {
+          const batch = imageUrls.slice(i, i + 8)
+          const results = await Promise.all(batch.map(async url => [url, await getPricelistImageData(url)]))
+          results.forEach(([url, data]) => imageDataByUrl.set(url, data))
+          processedCount = Math.min(i + batch.length, imageUrls.length)
+          exportPricelistPdfBtn.textContent = imageUrls.length ? `Imágenes ${processedCount}/${imageUrls.length}` : "Generando..."
         }
+        let failedImages = 0
+        items.forEach(product => {
+          const price = product.price == null || product.price === "" ? null : Number(product.price)
+          const packageInfo = getSalesPackage(product, salesPackageConfigs)
+          const image = imageDataByUrl.get(String(product.img || "")) || null
+          const status = getPricelistStatus(product)
+          tableBody.push({
+            image,
+            code: product.code || "",
+            name: [
+              product.name || "Sin Nombre",
+              `Código: ${product.code || "-"}`,
+              product.category || ""
+            ].filter(Boolean).join("\n"),
+            price: price == null ? "Cotizar" : "$" + price.toLocaleString("es"),
+            packageName: packageInfo ? packageInfo.name : "-",
+            packageUnits: packageInfo ? packageInfo.units : "-",
+            status: status.toUpperCase(),
+            packagePrice: packageInfo && packageInfo.price != null ? formatPricelistMoney(packageInfo.price) : "-",
+            statusColor: status === "Agotado" ? [220, 38, 38] : (status === "Pocas unidades" ? [234, 88, 12] : (status === "Bajo Pedido" ? [217, 119, 6] : (status === "Solo Despacho" ? [2, 132, 199] : [22, 163, 74])))
+          })
+        })
+        failedImages = imageUrls.filter(url => !imageDataByUrl.get(url)).length
 
         // Generate Table
           doc.autoTable({
-            startY: 45,
-            head: [["Imagen", "Código", "Producto", "Precio Unit.", "Und/Bulto", "Precio Bulto", "Estatus"]],
-            body: tableBody.map(row => [row.image, row.code, row.name, row.price, row.units, row.bundlePrice, row.status]),
+            startY: 32,
+            margin: { left: 10, right: 10 },
+            head: [["Imagen", "Producto / Código / Categoría", "Precio unitario", "Empaque de venta", "Unid./paq.", "Estado", "Precio por empaque"]],
+            body: tableBody.map(row => [row.image, row.name, row.price, row.packageName, row.packageUnits, row.status, row.packagePrice]),
             styles: { 
-              fontSize: 9, 
-              cellPadding: 3,
+              fontSize: 8,
+              cellPadding: 1.5,
               valign: 'middle',
               lineColor: [229, 231, 235],
               lineWidth: 0.1,
@@ -1512,20 +1665,20 @@
               halign: 'center'
             },
             bodyStyles: { 
-              minCellHeight: 20,
+              minCellHeight: 15,
               textColor: [50, 50, 50]
             },
             alternateRowStyles: {
               fillColor: [248, 250, 252]
             },
             columnStyles: {
-              0: { cellWidth: 22 }, // Imagen
-              1: { cellWidth: 20, fontStyle: 'italic', fontSize: 8 }, // Código
-              2: { cellWidth: 'auto', fontStyle: 'bold' }, // Producto
-              3: { cellWidth: 25, halign: 'right' }, // Precio Unit
-              4: { cellWidth: 20, halign: 'center' }, // Und/Bulto
-              5: { cellWidth: 25, halign: 'right' }, // Precio Bulto
-              6: { cellWidth: 25, halign: 'center', fontStyle: 'bold' } // Estatus
+              0: { cellWidth: 14 },
+              1: { cellWidth: 61, fontStyle: 'bold', fontSize: 7.5 },
+              2: { cellWidth: 24, halign: 'right' },
+              3: { cellWidth: 24, fontSize: 7.5 },
+              4: { cellWidth: 15, halign: 'center' },
+              5: { cellWidth: 22, halign: 'center', fontStyle: 'bold', fontSize: 7.5 },
+              6: { cellWidth: 30, halign: 'right' }
             },
             didParseCell: (data) => {
               // Prevent the base64 image string from being printed as text in the first column
@@ -1533,7 +1686,7 @@
                 data.cell.text = [] 
               }
               // Colorize Status Column
-              if (data.section === 'body' && data.column.index === 6) {
+              if (data.section === 'body' && data.column.index === 5) {
                 const rowIdx = data.row.index
                 const rowData = tableBody[rowIdx]
                 if (rowData) {
@@ -1543,16 +1696,39 @@
             },
             didDrawCell: (data) => {
               if (data.section === 'body' && data.column.index === 0) {
-                // Access image data directly from the row data
-                const img = data.row.raw[0]
-                if (img) {
-                  doc.addImage(img, 'JPEG', data.cell.x + 2, data.cell.y + 2, 18, 18)
+                const rowIndex = data.row.index
+                const group = imageGroupByRow.get(rowIndex)
+                if (!group) return
+                const pageNumber = doc.internal.getCurrentPageInfo().pageNumber
+                const pageGroupKey = `${pageNumber}:${group.start}`
+                if (drawnImageGroupsByPage.has(pageGroupKey)) return
+                drawnImageGroupsByPage.add(pageGroupKey)
+
+                const bodyRows = data.table.body || []
+                const groupHeight = bodyRows
+                  .slice(rowIndex, group.end + 1)
+                  .reduce((height, row) => height + Number(row.height || data.row.height || 15), 0)
+                const pageBottom = doc.internal.pageSize.getHeight() - 10
+                const visibleHeight = Math.max(0, Math.min(groupHeight, pageBottom - data.cell.y))
+                const imageSize = Math.min(12, visibleHeight - 2)
+                if (imageSize < 4) return
+                const image = tableBody[rowIndex].image
+                if (image) {
+                  doc.addImage(
+                    image,
+                    'JPEG',
+                    data.cell.x + (data.cell.width - imageSize) / 2,
+                    data.cell.y + (visibleHeight - imageSize) / 2,
+                    imageSize,
+                    imageSize
+                  )
                 }
               }
             }
           })
 
         doc.save("lista_de_precios_embair.pdf")
+        if (failedImages) alert(`La lista se exportó, pero ${failedImages} imagen(es) no pudieron cargarse y quedaron sin miniatura.`)
 
       } catch (e) {
         console.error("PDF Generation Error:", e)

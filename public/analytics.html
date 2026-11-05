@@ -517,6 +517,7 @@
         let chartClientZona = null
         let chartBusinessSources = null
         let chartBusinessQuoteStatus = null
+        let adminCredentialsPrompt = null
 
         function getAdminToken() {
             try {
@@ -532,11 +533,31 @@
             const headers = token ? { ...baseHeaders, "Authorization": "Basic " + token } : baseHeaders
             const res = await fetch(path, { ...(options || {}), headers })
             if (res.status !== 401 && res.status !== 403) return res
-            const newToken = prompt("Credenciales requeridas. Ingrese user:pass:")
-            if (!newToken) return res
-            try { localStorage.setItem("admin_token", btoa(newToken)) } catch {}
-            const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + btoa(newToken) }
-            return fetch(path, { ...(options || {}), headers: headers2 })
+            if (!adminCredentialsPrompt) {
+                adminCredentialsPrompt = Promise.resolve().then(() => {
+                    const credentials = prompt("Credenciales requeridas. Ingrese user:pass:")
+                    return credentials ? btoa(credentials) : ""
+                }).finally(() => { adminCredentialsPrompt = null })
+            }
+            const encodedCredentials = await adminCredentialsPrompt
+            if (!encodedCredentials) {
+                if (res.status === 401 || res.status === 403) {
+                    try { localStorage.removeItem("admin_token") } catch {}
+                }
+                return res
+            }
+            try { localStorage.setItem("admin_token", encodedCredentials) } catch {}
+            const headers2 = { ...(options && options.headers ? options.headers : {}), "Authorization": "Basic " + encodedCredentials }
+            const retry = await fetch(path, { ...(options || {}), headers: headers2 })
+            if (retry.status === 401 || retry.status === 403) {
+                try { localStorage.removeItem("admin_token") } catch {}
+            }
+            return retry
+        }
+
+        function requireDashboardResponse(res, label) {
+            if (!res.ok) throw new Error(`${label}: HTTP ${res.status}${res.statusText ? ` ${res.statusText}` : ""}`)
+            return res
         }
 
         async function init() {
@@ -545,7 +566,7 @@
             if (refreshButton) refreshButton.disabled = true
             if (refreshStatus) refreshStatus.textContent = "Actualizando datos..."
             try {
-                await Promise.all([
+                const results = await Promise.allSettled([
                     loadEvents(),
                     loadProducts(),
                     loadClients(),
@@ -556,80 +577,87 @@
                     loadCampaigns(),
                     loadProcurement()
                 ])
+                const loaders = ["eventos", "productos", "clientes", "prospectos", "pedidos CRM", "cotizaciones de Distribución", "pedidos de Distribución", "campañas", "compras"]
+                const failures = results.flatMap((result, index) => {
+                    if (result.status === "fulfilled") return []
+                    console.error(`Error loading ${loaders[index]}:`, result.reason)
+                    return [`${loaders[index]}: ${result.reason.message || "error desconocido"}`]
+                })
+                const authFailures = failures.some(message => /401|403|unauthorized/i.test(message))
+                if (authFailures) {
+                    const error = new Error("Las credenciales administrativas no son válidas o no están configuradas.")
+                    error.dashboardFailures = failures
+                    throw error
+                }
                 setupBusinessDashboardFilters()
                 renderDashboard()
                 if (refreshStatus) {
-                    refreshStatus.textContent = "Actualizado " + new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })
+                    refreshStatus.textContent = failures.length
+                        ? `Actualizado parcialmente · ${failures.length} fuente(s) con error`
+                        : "Actualizado " + new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })
                 }
+                if (failures.length) alert(`Dashboard actualizado parcialmente. Fuentes con error:\n${failures.join("\n")}`)
             } catch (error) {
                 console.error("Error initializing dashboard:", error)
-                if (refreshStatus) refreshStatus.textContent = "Error al actualizar"
-                alert("Error cargando datos. Revisa la consola.")
+                if (refreshStatus) refreshStatus.textContent = "Error de autenticación o carga"
+                const detail = error.dashboardFailures ? `\n\n${error.dashboardFailures.join("\n")}` : ""
+                alert(`${error.message || "Error cargando datos."}${detail}`)
             } finally {
                 if (refreshButton) refreshButton.disabled = false
             }
         }
 
         async function loadEvents() {
-            const res = await fetchAdmin("/api/events")
-            if (!res.ok) throw new Error("Failed to load events")
+            const res = requireDashboardResponse(await fetchAdmin("/api/events"), "Eventos")
             EVENTS = await res.json()
         }
 
         async function loadProducts() {
-            const res = await fetch("/api/products")
-            if (!res.ok) throw new Error("Failed to load products")
+            const res = requireDashboardResponse(await fetch("/api/products"), "Productos")
             PRODUCTS = await res.json()
             PRODUCTS_MAP = new Map(PRODUCTS.map(p => [p.id, p]))
         }
 
         async function loadClients() {
-            const res = await fetchAdmin("/api/clients")
-            if (!res.ok) throw new Error("Failed to load clients")
+            const res = requireDashboardResponse(await fetchAdmin("/api/clients"), "Clientes")
             CLIENTS = await res.json()
         }
 
         async function loadLeads() {
-            const res = await fetchAdmin("/api/leads?limit=5000")
-            if (!res.ok) throw new Error("Failed to load leads")
+            const res = requireDashboardResponse(await fetchAdmin("/api/leads?limit=5000"), "Prospectos")
             const list = await res.json()
             LEADS = Array.isArray(list) ? list : []
         }
 
         async function loadOrders() {
-            const res = await fetchAdmin("/api/crm/orders")
-            if (!res.ok) throw new Error("Failed to load orders")
+            const res = requireDashboardResponse(await fetchAdmin("/api/crm/orders"), "Pedidos CRM")
             const list = await res.json()
             ORDERS = Array.isArray(list) ? list : []
         }
 
         async function loadDistributionQuotes() {
-            const res = await fetchAdmin("/api/admin/distribution/quotes")
-            if (!res.ok) throw new Error("Failed to load distribution quotes")
+            const res = requireDashboardResponse(await fetchAdmin("/api/admin/distribution/quotes"), "Cotizaciones de Distribución")
             const data = await res.json()
             if (!data || !Array.isArray(data.quotes)) throw new Error("Invalid distribution quotes response")
             DISTRIBUTION_QUOTES = data.quotes
         }
 
         async function loadDistributionOrders() {
-            const res = await fetchAdmin("/api/admin/distribution/orders")
-            if (!res.ok) throw new Error("Failed to load distribution orders")
+            const res = requireDashboardResponse(await fetchAdmin("/api/admin/distribution/orders"), "Pedidos de Distribución")
             const data = await res.json()
             if (!data || !Array.isArray(data.orders)) throw new Error("Invalid distribution orders response")
             DISTRIBUTION_ORDERS = data.orders
         }
 
         async function loadCampaigns() {
-            const res = await fetchAdmin("/api/campaigns")
-            if (!res.ok) throw new Error("Failed to load campaigns")
+            const res = requireDashboardResponse(await fetchAdmin("/api/campaigns"), "Campañas")
             const data = await res.json()
             if (!Array.isArray(data)) throw new Error("Invalid campaigns response")
             CAMPAIGNS = data
         }
 
         async function loadProcurement() {
-            const res = await fetchAdmin("/api/admin/procurement")
-            if (!res.ok) throw new Error("Failed to load procurement")
+            const res = requireDashboardResponse(await fetchAdmin("/api/admin/procurement"), "Compras a proveedores")
             const data = await res.json()
             if (!data || !Array.isArray(data.purchaseOrders)) throw new Error("Invalid procurement response")
             PURCHASE_ORDERS = data.purchaseOrders

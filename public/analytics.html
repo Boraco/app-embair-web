@@ -738,16 +738,24 @@
                 .sort((a, b) => a.label.localeCompare(b.label, "es"))
             setOptions($("business-campaign"), "Todas las campañas", campaigns)
 
-            const categories = [...new Set(DISTRIBUTION_QUOTES.flatMap(quote =>
-                (Array.isArray(quote.items) ? quote.items : []).map(item => String(item.category || "Sin categoría").trim() || "Sin categoría")
-            ))].sort((a, b) => a.localeCompare(b, "es"))
+            const categories = [...new Set([
+                ...PRODUCTS.map(product => String(product.category || "").trim()),
+                ...DISTRIBUTION_QUOTES.flatMap(quote =>
+                    (Array.isArray(quote.items) ? quote.items : []).map(item => businessQuoteItemTaxonomy(item).category)
+                )
+            ].filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"))
             setOptions($("business-category"), "Todas las categorías", categories.map(value => ({ value, label: value })))
             const selectedCategory = $("business-category").value
-            const subcategories = [...new Set(DISTRIBUTION_QUOTES.flatMap(quote =>
-                (Array.isArray(quote.items) ? quote.items : [])
-                    .filter(item => !selectedCategory || (String(item.category || "Sin categoría").trim() || "Sin categoría") === selectedCategory)
-                    .map(item => String(item.subcategory || "General").trim() || "General")
-            ))].sort((a, b) => a.localeCompare(b, "es"))
+            const subcategories = [...new Set([
+                ...PRODUCTS.filter(product => !selectedCategory || String(product.category || "").trim() === selectedCategory)
+                    .map(product => String(product.subcategory || "").trim() || "Sin subcategoría"),
+                ...DISTRIBUTION_QUOTES.flatMap(quote =>
+                    (Array.isArray(quote.items) ? quote.items : [])
+                        .map(item => businessQuoteItemTaxonomy(item))
+                        .filter(item => !selectedCategory || item.category === selectedCategory)
+                        .map(item => item.subcategory)
+                )
+            ])].sort((a, b) => a.localeCompare(b, "es"))
             setOptions($("business-subcategory"), "Todas las subcategorías", subcategories.map(value => ({ value, label: value })))
         }
 
@@ -785,13 +793,32 @@
                 .some(value => detail.includes(String(value).toLocaleLowerCase("es"))))
         }
 
+        function businessQuoteItemTaxonomy(item) {
+            const productId = Number(item && item.productId)
+            let product = Number.isFinite(productId)
+                ? PRODUCTS_MAP.get(productId) || PRODUCTS.find(candidate => Number(candidate.id) === productId) || null
+                : null
+            if (!product) {
+                const name = String(item && item.name || "").trim().toLocaleLowerCase("es")
+                if (name) {
+                    product = PRODUCTS.find(candidate =>
+                        String(candidate.name || "").trim().toLocaleLowerCase("es") === name
+                    ) || null
+                }
+            }
+            return {
+                product,
+                category: String(item && item.category || product && product.category || "").trim() || "Sin categoría",
+                subcategory: String(item && item.subcategory || product && product.subcategory || "").trim() || "Sin subcategoría"
+            }
+        }
+
         function businessQuoteCategoryMatches(quote, category, subcategory) {
             if (!category && !subcategory) return true
             return (Array.isArray(quote.items) ? quote.items : [])
                 .some(item => {
-                    const itemCategory = String(item.category || "Sin categoría").trim() || "Sin categoría"
-                    const itemSubcategory = String(item.subcategory || "General").trim() || "General"
-                    return (!category || itemCategory === category) && (!subcategory || itemSubcategory === subcategory)
+                    const taxonomy = businessQuoteItemTaxonomy(item)
+                    return (!category || taxonomy.category === category) && (!subcategory || taxonomy.subcategory === subcategory)
                 })
         }
 
@@ -855,8 +882,10 @@
             })
             const offerViews = EVENTS.filter(event => event.type === "offer_view" && isInBusinessPeriod(event.createdAt)).length
             const quotedItems = quotes.flatMap(quote => (Array.isArray(quote.items) ? quote.items : [])
-                .filter(item => (!category || (String(item.category || "Sin categoría").trim() || "Sin categoría") === category) &&
-                    (!subcategory || (String(item.subcategory || "General").trim() || "General") === subcategory)))
+                .filter(item => {
+                    const taxonomy = businessQuoteItemTaxonomy(item)
+                    return (!category || taxonomy.category === category) && (!subcategory || taxonomy.subcategory === subcategory)
+                }))
             const quotedUnits = quotedItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
 
             $("business-leads").textContent = leads.length.toLocaleString("es")
@@ -938,10 +967,11 @@
             const productTotals = new Map()
             quotedItems.forEach(item => {
                 const key = String(item.productId || item.name || "Producto")
+                const taxonomy = businessQuoteItemTaxonomy(item)
                 const total = productTotals.get(key) || {
-                    name: item.name || "Producto",
-                    category: String(item.category || "Sin categoría").trim() || "Sin categoría",
-                    subcategory: String(item.subcategory || "General").trim() || "General",
+                    name: item.name || taxonomy.product && taxonomy.product.name || "Producto",
+                    category: taxonomy.category,
+                    subcategory: taxonomy.subcategory,
                     units: 0
                 }
                 total.units += Number(item.qty || 0)
@@ -954,9 +984,8 @@
                 .join("") || '<tr><td colspan="3" class="py-4 text-center text-slate-400">Sin productos para este filtro.</td></tr>'
             const categoryTotals = new Map()
             quotedItems.forEach(item => {
-                const category = String(item.category || "Sin categoría").trim() || "Sin categoría"
-                const subcategory = String(item.subcategory || "General").trim() || "General"
-                const key = `${category}|${subcategory}`
+                const taxonomy = businessQuoteItemTaxonomy(item)
+                const key = `${taxonomy.category}|${taxonomy.subcategory}`
                 categoryTotals.set(key, (categoryTotals.get(key) || 0) + Number(item.qty || 0))
             })
             $("business-top-categories").innerHTML = [...categoryTotals.entries()]

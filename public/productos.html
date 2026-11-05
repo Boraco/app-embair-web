@@ -1581,10 +1581,10 @@
         const salesPackageConfigs = await getSalesPackageConfigs()
         // Intentar cargar logo
         const logoUrl = localStorage.getItem("company_logo") || "/uploads/logo.png"
-        const logoData = await getImageData(logoUrl)
+        const logoData = await getPricelistImageData(logoUrl)
         
         if (logoData) {
-            doc.addImage(logoData, 'PNG', 10, 8, 18, 18)
+            doc.addImage(logoData, 'JPEG', 10, 8, 18, 18)
             doc.setFontSize(17)
             doc.setTextColor(44, 62, 80)
             doc.text("Lista de Precios", 34, 15)

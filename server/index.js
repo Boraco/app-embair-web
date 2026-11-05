@@ -2062,7 +2062,11 @@ app.get("/api/leads", requireAdmin, (req, res) => {
     const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0
     return tb - ta
   })
-  res.json(sorted.slice(0, 1000))
+  const requestedLimit = Number(req.query.limit)
+  const limit = Number.isInteger(requestedLimit) && requestedLimit > 0
+    ? Math.min(requestedLimit, 5000)
+    : 1000
+  res.json(sorted.slice(0, limit))
 })
 
 app.post("/api/leads/convert", requireAdmin, (req, res) => {

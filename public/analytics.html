@@ -26,6 +26,7 @@
                     <h1 class="text-xl font-bold text-slate-800">Analíticas de Negocio</h1>
                 </div>
                 <div class="flex items-center gap-4">
+                    <span id="refresh-status" class="text-xs text-slate-400" aria-live="polite"></span>
                     <button id="refresh-btn" class="text-sm text-blue-600 font-medium hover:text-blue-800 flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                         Actualizar
@@ -36,7 +37,169 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <section id="business-dashboard" class="mb-10">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-5">
+                <div>
+                    <p class="text-xs uppercase tracking-wider font-semibold text-blue-600">Resumen para decisiones</p>
+                    <h2 class="text-2xl font-bold text-slate-900 mt-1">Indicadores comerciales y de marketing</h2>
+                    <p class="text-sm text-slate-500 mt-1">Prospectos, cotizaciones, pedidos, compras, campañas e interés en ofertas.</p>
+                </div>
+                <p id="business-dashboard-updated" class="text-xs text-slate-400" aria-live="polite"></p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end">
+                    <label class="text-sm font-semibold text-slate-700">Período
+                        <select id="business-period" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 font-normal bg-white">
+                            <option value="all">Global · todo el historial</option>
+                            <option value="today">Hoy</option>
+                            <option value="month">Mes actual</option>
+                            <option value="year">Año actual</option>
+                            <option value="custom">Rango personalizado</option>
+                        </select>
+                    </label>
+                    <label class="text-sm font-semibold text-slate-700">Origen del prospecto
+                        <select id="business-source" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 font-normal bg-white">
+                            <option value="">Todos los orígenes</option>
+                        </select>
+                    </label>
+                    <label class="text-sm font-semibold text-slate-700">Campaña
+                        <select id="business-campaign" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 font-normal bg-white">
+                            <option value="">Todas las campañas</option>
+                        </select>
+                    </label>
+                    <label class="text-sm font-semibold text-slate-700">Categoría cotizada
+                        <select id="business-category" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 font-normal bg-white">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </label>
+                    <label class="text-sm font-semibold text-slate-700">Subcategoría cotizada
+                        <select id="business-subcategory" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 font-normal bg-white">
+                            <option value="">Todas las subcategorías</option>
+                        </select>
+                    </label>
+                    <div id="business-custom-range" class="hidden grid grid-cols-2 gap-2 sm:col-span-2 lg:col-span-2">
+                        <label class="text-xs font-semibold text-slate-600">Desde
+                            <input id="business-date-from" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-2 py-2 text-sm font-normal">
+                        </label>
+                        <label class="text-xs font-semibold text-slate-600">Hasta
+                            <input id="business-date-to" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-2 py-2 text-sm font-normal">
+                        </label>
+                    </div>
+                </div>
+                <p id="business-filter-note" class="text-xs text-slate-500 mt-3">Los filtros de origen y campaña aplican a prospectos y cotizaciones; compras y pedidos se filtran por período.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Prospectos</p>
+                    <p id="business-leads" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p id="business-leads-converted" class="text-xs text-slate-500 mt-1">Convertidos a cliente: —</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Cotizaciones</p>
+                    <p id="business-quotes" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p id="business-quotes-approved" class="text-xs text-slate-500 mt-1">Aprobadas: —</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Tasa de aprobación</p>
+                    <p id="business-approval-rate" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p id="business-approved-value" class="text-xs text-slate-500 mt-1">Monto aprobado: —</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Pedidos de venta</p>
+                    <p id="business-orders" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p class="text-xs text-slate-500 mt-1">Pedidos vigentes de CRM y Distribución</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Compras a proveedores</p>
+                    <p id="business-purchase-orders" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p id="business-purchase-total" class="text-xs text-slate-500 mt-1">Comprometido / recibido: —</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Campañas</p>
+                    <p id="business-campaigns" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p id="business-campaign-sent" class="text-xs text-slate-500 mt-1">Correos enviados: —</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Interés en ofertas</p>
+                    <p id="business-offer-views" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p class="text-xs text-slate-500 mt-1">Vistas registradas de ofertas; no equivale a compras</p>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 font-semibold">Productos cotizados</p>
+                    <p id="business-quoted-units" class="text-3xl font-bold text-slate-900 mt-2">—</p>
+                    <p class="text-xs text-slate-500 mt-1">Unidades en las cotizaciones filtradas</p>
+                </article>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Prospectos y cotizaciones por origen</h3>
+                    <p class="text-xs text-slate-500 mt-1">Compara los contactos captados con las cotizaciones; selecciona un origen para filtrar.</p>
+                    <div class="h-64 mt-3"><canvas id="business-source-chart"></canvas></div>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Estado de cotizaciones</h3>
+                    <p class="text-xs text-slate-500 mt-1">Pendientes, aprobadas, no aprobadas y canceladas.</p>
+                    <div class="h-64 mt-3"><canvas id="business-quote-status-chart"></canvas></div>
+                </article>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Productos y categorías más cotizados</h3>
+                    <div class="overflow-x-auto mt-3">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-500 uppercase border-b"><tr><th class="py-2">Producto</th><th>Categoría / subcategoría</th><th class="text-right">Unidades</th></tr></thead>
+                            <tbody id="business-top-products"></tbody>
+                        </table>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-700 mt-5">Categorías y subcategorías</h4>
+                    <div class="overflow-x-auto mt-2">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-500 uppercase border-b"><tr><th class="py-2">Categoría / subcategoría</th><th class="text-right">Unidades</th></tr></thead>
+                            <tbody id="business-top-categories"></tbody>
+                        </table>
+                    </div>
+                </article>
+                <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <h3 class="font-bold text-slate-800">Rendimiento de campañas de correo</h3>
+                    <p class="text-xs text-slate-500 mt-1">Aperturas y clics únicos según los registros de seguimiento. No se calcula ROI porque aún no se registra inversión publicitaria.</p>
+                    <div class="overflow-x-auto mt-3">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-500 uppercase border-b"><tr><th class="py-2">Campaña</th><th>Enviados</th><th>Aperturas</th><th>Clics</th><th>Tasa de clic</th></tr></thead>
+                            <tbody id="business-campaign-rows"></tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+
+            <article class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                    <div>
+                        <h3 class="font-bold text-slate-800">Compras a proveedores</h3>
+                        <p class="text-xs text-slate-500 mt-1">Órdenes emitidas o recibidas; los borradores y cancelados no suman al monto comprometido.</p>
+                    </div>
+                    <a href="/compras-admin.html" class="text-sm font-semibold text-blue-600 hover:text-blue-800">Abrir módulo de compras</a>
+                </div>
+                <div class="overflow-x-auto mt-3">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-500 uppercase border-b"><tr><th class="py-2">Orden</th><th>Proveedor</th><th>Fecha</th><th>Estado</th><th class="text-right">Total USD</th></tr></thead>
+                        <tbody id="business-purchase-rows"></tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
         
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2 mb-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900">Actividad digital del catálogo y portal</h2>
+                <p class="text-sm text-slate-500">Estas métricas también responden al período seleccionado arriba.</p>
+            </div>
+        </div>
+
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -107,12 +270,24 @@
             
             <!-- Top Products -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 lg:col-span-2">
-                <h3 class="text-lg font-bold text-slate-800 mb-4">Productos Más Solicitados</h3>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                    <h3 id="product-chart-title" class="text-lg font-bold text-slate-800">Búsquedas y filtros del catálogo</h3>
+                    <label class="text-sm text-slate-600">
+                        Indicador
+                        <select id="product-activity-mode" class="ml-2 bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700">
+                            <option value="orders">Unidades en pedidos</option>
+                            <option value="views">Vistas de producto</option>
+                            <option value="searches" selected>Búsquedas y filtros</option>
+                            <option value="cart">Agregados al carrito</option>
+                        </select>
+                    </label>
+                </div>
+                <p id="product-chart-note" class="text-xs text-slate-500 mb-4">Las búsquedas se agrupan por término; si no hay término, por categoría o uso general del catálogo.</p>
                 <div class="h-64">
                     <canvas id="chart-products"></canvas>
                 </div>
                 <div class="mt-4">
-                    <h4 class="text-sm font-semibold text-slate-600 mb-2">Detalle por Familias</h4>
+                    <h4 id="product-breakdown-title" class="text-sm font-semibold text-slate-600 mb-2">Detalle por Familias</h4>
                     <ul id="top-families-list" class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm text-slate-600">
                         <!-- Filled by JS -->
                     </ul>
@@ -330,12 +505,18 @@
         let CLIENTS = []
         let LEADS = []
         let ORDERS = []
+        let DISTRIBUTION_QUOTES = []
+        let DISTRIBUTION_ORDERS = []
+        let CAMPAIGNS = []
+        let PURCHASE_ORDERS = []
         let PRODUCTS_MAP = new Map()
 
         // Charts Instances
         let chartProducts = null
         let chartClientType = null
         let chartClientZona = null
+        let chartBusinessSources = null
+        let chartBusinessQuoteStatus = null
 
         function getAdminToken() {
             try {
@@ -359,12 +540,33 @@
         }
 
         async function init() {
+            const refreshButton = document.getElementById("refresh-btn")
+            const refreshStatus = document.getElementById("refresh-status")
+            if (refreshButton) refreshButton.disabled = true
+            if (refreshStatus) refreshStatus.textContent = "Actualizando datos..."
             try {
-                await Promise.all([loadEvents(), loadProducts(), loadClients(), loadLeads(), loadOrders()])
+                await Promise.all([
+                    loadEvents(),
+                    loadProducts(),
+                    loadClients(),
+                    loadLeads(),
+                    loadOrders(),
+                    loadDistributionQuotes(),
+                    loadDistributionOrders(),
+                    loadCampaigns(),
+                    loadProcurement()
+                ])
+                setupBusinessDashboardFilters()
                 renderDashboard()
+                if (refreshStatus) {
+                    refreshStatus.textContent = "Actualizado " + new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" })
+                }
             } catch (error) {
                 console.error("Error initializing dashboard:", error)
+                if (refreshStatus) refreshStatus.textContent = "Error al actualizar"
                 alert("Error cargando datos. Revisa la consola.")
+            } finally {
+                if (refreshButton) refreshButton.disabled = false
             }
         }
 
@@ -388,7 +590,7 @@
         }
 
         async function loadLeads() {
-            const res = await fetchAdmin("/api/leads")
+            const res = await fetchAdmin("/api/leads?limit=5000")
             if (!res.ok) throw new Error("Failed to load leads")
             const list = await res.json()
             LEADS = Array.isArray(list) ? list : []
@@ -401,23 +603,388 @@
             ORDERS = Array.isArray(list) ? list : []
         }
 
+        async function loadDistributionQuotes() {
+            const res = await fetchAdmin("/api/admin/distribution/quotes")
+            if (!res.ok) throw new Error("Failed to load distribution quotes")
+            const data = await res.json()
+            if (!data || !Array.isArray(data.quotes)) throw new Error("Invalid distribution quotes response")
+            DISTRIBUTION_QUOTES = data.quotes
+        }
+
+        async function loadDistributionOrders() {
+            const res = await fetchAdmin("/api/admin/distribution/orders")
+            if (!res.ok) throw new Error("Failed to load distribution orders")
+            const data = await res.json()
+            if (!data || !Array.isArray(data.orders)) throw new Error("Invalid distribution orders response")
+            DISTRIBUTION_ORDERS = data.orders
+        }
+
+        async function loadCampaigns() {
+            const res = await fetchAdmin("/api/campaigns")
+            if (!res.ok) throw new Error("Failed to load campaigns")
+            const data = await res.json()
+            if (!Array.isArray(data)) throw new Error("Invalid campaigns response")
+            CAMPAIGNS = data
+        }
+
+        async function loadProcurement() {
+            const res = await fetchAdmin("/api/admin/procurement")
+            if (!res.ok) throw new Error("Failed to load procurement")
+            const data = await res.json()
+            if (!data || !Array.isArray(data.purchaseOrders)) throw new Error("Invalid procurement response")
+            PURCHASE_ORDERS = data.purchaseOrders
+        }
+
+        const businessSourceLabels = {
+            instagram: "Instagram",
+            email_campaign: "Campaña de correo",
+            referral: "Recomendado",
+            google: "Google",
+            mercado_libre: "Mercado Libre",
+            facebook: "Facebook",
+            whatsapp: "WhatsApp",
+            website: "Sitio web",
+            other: "Otro",
+            untracked: "Sin registrar"
+        }
+        let businessDashboardFiltersReady = false
+
+        function escapeDashboardHtml(value) {
+            return String(value == null ? "" : value).replace(/[&<>"']/g, character => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            })[character])
+        }
+
+        function businessDateKey(value) {
+            const date = value instanceof Date ? value : new Date(value)
+            if (!Number.isFinite(date.getTime())) return ""
+            const parts = new Intl.DateTimeFormat("en-US", {
+                timeZone: "America/Caracas",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit"
+            }).formatToParts(date).reduce((result, part) => {
+                if (part.type !== "literal") result[part.type] = part.value
+                return result
+            }, {})
+            return `${parts.year}-${parts.month}-${parts.day}`
+        }
+
+        function isInBusinessPeriod(value) {
+            const period = $("business-period").value
+            if (period === "all") return true
+            const dateKey = businessDateKey(value)
+            if (!dateKey) return false
+            const today = businessDateKey(new Date())
+            if (period === "today") return dateKey === today
+            if (period === "month") return dateKey.slice(0, 7) === today.slice(0, 7)
+            if (period === "year") return dateKey.slice(0, 4) === today.slice(0, 4)
+            const from = $("business-date-from").value
+            const to = $("business-date-to").value
+            return (!from || dateKey >= from) && (!to || dateKey <= to)
+        }
+
+        function businessSourceLabel(value) {
+            const key = String(value || "").trim()
+            return businessSourceLabels[key] || key || "Sin registrar"
+        }
+
+        function updateBusinessDashboardOptions() {
+            const setOptions = (select, placeholder, options) => {
+                const previous = select.value
+                select.replaceChildren(new Option(placeholder, ""))
+                options.forEach(option => select.add(new Option(option.label, option.value)))
+                if (options.some(option => option.value === previous)) select.value = previous
+            }
+            const sources = [...new Set([
+                ...LEADS.map(lead => String(lead.source || "").trim()),
+                ...DISTRIBUTION_QUOTES.map(quote => String(quote.source || "").trim())
+            ].filter(Boolean))].sort((a, b) => businessSourceLabel(a).localeCompare(businessSourceLabel(b), "es"))
+            if (LEADS.some(lead => !lead.source) || DISTRIBUTION_QUOTES.some(quote => !quote.source)) sources.push("untracked")
+            setOptions($("business-source"), "Todos los orígenes", sources.map(value => ({ value, label: businessSourceLabel(value) })))
+
+            const campaigns = CAMPAIGNS
+                .filter(campaign => campaign && campaign.id != null)
+                .map(campaign => ({ value: String(campaign.id), label: String(campaign.subject || `Campaña ${campaign.id}`) }))
+                .sort((a, b) => a.label.localeCompare(b.label, "es"))
+            setOptions($("business-campaign"), "Todas las campañas", campaigns)
+
+            const categories = [...new Set(DISTRIBUTION_QUOTES.flatMap(quote =>
+                (Array.isArray(quote.items) ? quote.items : []).map(item => String(item.category || "Sin categoría").trim() || "Sin categoría")
+            ))].sort((a, b) => a.localeCompare(b, "es"))
+            setOptions($("business-category"), "Todas las categorías", categories.map(value => ({ value, label: value })))
+            const selectedCategory = $("business-category").value
+            const subcategories = [...new Set(DISTRIBUTION_QUOTES.flatMap(quote =>
+                (Array.isArray(quote.items) ? quote.items : [])
+                    .filter(item => !selectedCategory || (String(item.category || "Sin categoría").trim() || "Sin categoría") === selectedCategory)
+                    .map(item => String(item.subcategory || "General").trim() || "General")
+            ))].sort((a, b) => a.localeCompare(b, "es"))
+            setOptions($("business-subcategory"), "Todas las subcategorías", subcategories.map(value => ({ value, label: value })))
+        }
+
+        function setupBusinessDashboardFilters() {
+            updateBusinessDashboardOptions()
+            const period = $("business-period")
+            const customRange = $("business-custom-range")
+            const update = () => {
+                updateBusinessDashboardOptions()
+                if (period.value === "custom" && !$("business-date-from").value && !$("business-date-to").value) {
+                    const today = businessDateKey(new Date())
+                    $("business-date-from").value = `${today.slice(0, 7)}-01`
+                    $("business-date-to").value = today
+                }
+                customRange.classList.toggle("hidden", period.value !== "custom")
+                renderBusinessDashboard()
+                renderKeyMetrics()
+                renderProductCharts()
+                renderClientCharts()
+                renderEventsTable()
+            }
+            if (!businessDashboardFiltersReady) {
+                businessDashboardFiltersReady = true
+                ;["business-period", "business-source", "business-campaign", "business-category", "business-subcategory", "business-date-from", "business-date-to"]
+                    .forEach(id => $(id).addEventListener("change", update))
+            }
+            customRange.classList.toggle("hidden", period.value !== "custom")
+        }
+
+        function businessQuoteCampaignMatches(quote, campaign) {
+            if (!campaign) return true
+            if (String(quote.campaignId || "") === String(campaign.id)) return true
+            const detail = String(quote.sourceDetail || "").toLocaleLowerCase("es")
+            return Boolean(detail && [campaign.id, campaign.subject].filter(Boolean)
+                .some(value => detail.includes(String(value).toLocaleLowerCase("es"))))
+        }
+
+        function businessQuoteCategoryMatches(quote, category, subcategory) {
+            if (!category && !subcategory) return true
+            return (Array.isArray(quote.items) ? quote.items : [])
+                .some(item => {
+                    const itemCategory = String(item.category || "Sin categoría").trim() || "Sin categoría"
+                    const itemSubcategory = String(item.subcategory || "General").trim() || "General"
+                    return (!category || itemCategory === category) && (!subcategory || itemSubcategory === subcategory)
+                })
+        }
+
+        function businessQuoteStatus(quote) {
+            const status = String(quote.status || "draft")
+            return status === "converted" ? "approved" : status
+        }
+
+        function businessMoneyByCurrency(quotes) {
+            const totals = new Map()
+            quotes.filter(quote => ["approved", "converted"].includes(String(quote.status || ""))).forEach(quote => {
+                const currency = quote.currency === "VES" ? "VES" : "USD"
+                const amount = currency === "VES"
+                    ? Number(quote.totalBs == null ? Number(quote.total || 0) * Number(quote.exchangeRate || 0) : quote.totalBs)
+                    : Number(quote.total || 0)
+                if (Number.isFinite(amount)) totals.set(currency, (totals.get(currency) || 0) + amount)
+            })
+            return [...totals.entries()].map(([currency, amount]) =>
+                new Intl.NumberFormat("es-VE", { style: "currency", currency, maximumFractionDigits: 2 }).format(amount)
+            ).join(" · ") || "—"
+        }
+
+        function renderBusinessDashboard() {
+            if (!$("business-period")) return
+            const source = $("business-source").value
+            const campaignId = $("business-campaign").value
+            const selectedCampaign = CAMPAIGNS.find(campaign => String(campaign.id) === campaignId)
+            const category = $("business-category").value
+            const subcategory = $("business-subcategory").value
+            const sourceMatches = record => !source ||
+                (source === "untracked" ? !record.source : String(record.source || "") === source)
+            const leads = LEADS.filter(lead =>
+                isInBusinessPeriod(lead.createdAt) &&
+                sourceMatches(lead) &&
+                (!campaignId || String(lead.campaignId || "") === campaignId)
+            )
+            const quotes = DISTRIBUTION_QUOTES.filter(quote =>
+                isInBusinessPeriod(quote.createdAt) &&
+                sourceMatches(quote) &&
+                businessQuoteCampaignMatches(quote, selectedCampaign) &&
+                businessQuoteCategoryMatches(quote, category, subcategory)
+            )
+            const chartQuotes = DISTRIBUTION_QUOTES.filter(quote =>
+                isInBusinessPeriod(quote.createdAt) &&
+                businessQuoteCampaignMatches(quote, selectedCampaign) &&
+                businessQuoteCategoryMatches(quote, category, subcategory)
+            )
+            const approvedQuotes = quotes.filter(quote => ["approved", "converted"].includes(businessQuoteStatus(quote)))
+            const eligibleQuotes = quotes.filter(quote => businessQuoteStatus(quote) !== "cancelled")
+            const conversionRate = eligibleQuotes.length ? approvedQuotes.length / eligibleQuotes.length * 100 : 0
+            const salesOrders = [
+                ...ORDERS.filter(order => isInBusinessPeriod(order.createdAt) && order.status !== "cancelled"),
+                ...DISTRIBUTION_ORDERS.filter(order => isInBusinessPeriod(order.createdAt) && order.status !== "cancelled")
+            ]
+            const purchaseOrders = PURCHASE_ORDERS.filter(order => isInBusinessPeriod(order.createdAt))
+            const committedPurchases = purchaseOrders.filter(order => ["ordered", "received"].includes(order.status))
+            const purchaseTotal = committedPurchases.reduce((sum, order) => sum + Number(order.total || 0), 0)
+            const campaigns = CAMPAIGNS.filter(campaign => {
+                const created = campaign.date || campaign.createdAt
+                return isInBusinessPeriod(created) && (!campaignId || String(campaign.id) === campaignId)
+            })
+            const offerViews = EVENTS.filter(event => event.type === "offer_view" && isInBusinessPeriod(event.createdAt)).length
+            const quotedItems = quotes.flatMap(quote => (Array.isArray(quote.items) ? quote.items : [])
+                .filter(item => (!category || (String(item.category || "Sin categoría").trim() || "Sin categoría") === category) &&
+                    (!subcategory || (String(item.subcategory || "General").trim() || "General") === subcategory)))
+            const quotedUnits = quotedItems.reduce((sum, item) => sum + Number(item.qty || 0), 0)
+
+            $("business-leads").textContent = leads.length.toLocaleString("es")
+            $("business-leads-converted").textContent = `Convertidos a cliente: ${leads.filter(lead => lead.convertedToClient || lead.convertedAt).length.toLocaleString("es")}`
+            $("business-quotes").textContent = quotes.length.toLocaleString("es")
+            $("business-quotes-approved").textContent = `Aprobadas / convertidas: ${approvedQuotes.length.toLocaleString("es")}`
+            $("business-approval-rate").textContent = `${conversionRate.toLocaleString("es", { maximumFractionDigits: 1 })}%`
+            $("business-approved-value").textContent = `Monto aprobado: ${businessMoneyByCurrency(approvedQuotes)}`
+            $("business-orders").textContent = salesOrders.length.toLocaleString("es")
+            $("business-purchase-orders").textContent = committedPurchases.length.toLocaleString("es")
+            $("business-purchase-total").textContent = `Comprometido / recibido: ${new Intl.NumberFormat("es-VE", { style: "currency", currency: "USD" }).format(purchaseTotal)}`
+            $("business-campaigns").textContent = campaigns.length.toLocaleString("es")
+            $("business-campaign-sent").textContent = `Correos enviados: ${campaigns.reduce((sum, campaign) => sum + Number(campaign.sent || 0), 0).toLocaleString("es")}`
+            $("business-offer-views").textContent = offerViews.toLocaleString("es")
+            $("business-quoted-units").textContent = quotedUnits.toLocaleString("es")
+
+            const statusLabels = {
+                draft: "Pendiente",
+                approved: "Aprobada / convertida",
+                not_approved: "No aprobada",
+                cancelled: "Cancelada"
+            }
+            const statusKeys = ["draft", "approved", "not_approved", "cancelled"]
+            const statusCounts = statusKeys.map(status => quotes.filter(quote => businessQuoteStatus(quote) === status).length)
+            const sourceCounts = new Map()
+            chartQuotes.forEach(quote => {
+                const key = quote.source || "untracked"
+                const counts = sourceCounts.get(key) || { leads: 0, quotes: 0 }
+                counts.quotes++
+                sourceCounts.set(key, counts)
+            })
+            LEADS.filter(lead => isInBusinessPeriod(lead.createdAt) &&
+                (!campaignId || String(lead.campaignId || "") === campaignId))
+                .forEach(lead => {
+                    const key = lead.source || "untracked"
+                    const counts = sourceCounts.get(key) || { leads: 0, quotes: 0 }
+                    counts.leads++
+                    sourceCounts.set(key, counts)
+                })
+            const sourceEntries = [...sourceCounts.entries()].sort((a, b) =>
+                (b[1].leads + b[1].quotes) - (a[1].leads + a[1].quotes)
+            )
+            const chartColors = ["#10165c", "#f97316", "#0f766e", "#7c3aed", "#e11d48", "#0284c7", "#65a30d", "#a16207", "#64748b"]
+
+            if (chartBusinessSources) chartBusinessSources.destroy()
+            chartBusinessSources = new Chart($("business-source-chart"), {
+                type: "bar",
+                data: {
+                    labels: sourceEntries.map(([key]) => businessSourceLabel(key)),
+                    datasets: [
+                        { label: "Prospectos", data: sourceEntries.map(([, counts]) => counts.leads), backgroundColor: "#f97316" },
+                        { label: "Cotizaciones", data: sourceEntries.map(([, counts]) => counts.quotes), backgroundColor: "#10165c" }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "bottom" } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                    onClick: (_event, elements) => {
+                        if (!elements.length) return
+                        $("business-source").value = sourceEntries[elements[0].index][0] === "untracked" ? "untracked" : sourceEntries[elements[0].index][0]
+                        renderBusinessDashboard()
+                    }
+                }
+            })
+            if (chartBusinessQuoteStatus) chartBusinessQuoteStatus.destroy()
+            chartBusinessQuoteStatus = new Chart($("business-quote-status-chart"), {
+                type: "doughnut",
+                data: {
+                    labels: statusKeys.map(status => statusLabels[status]),
+                    datasets: [{ data: statusCounts, backgroundColor: ["#64748b", "#0f766e", "#e11d48", "#f97316"] }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: "bottom" } }
+                }
+            })
+
+            const productTotals = new Map()
+            quotedItems.forEach(item => {
+                const key = String(item.productId || item.name || "Producto")
+                const total = productTotals.get(key) || {
+                    name: item.name || "Producto",
+                    category: String(item.category || "Sin categoría").trim() || "Sin categoría",
+                    subcategory: String(item.subcategory || "General").trim() || "General",
+                    units: 0
+                }
+                total.units += Number(item.qty || 0)
+                productTotals.set(key, total)
+            })
+            $("business-top-products").innerHTML = [...productTotals.values()]
+                .sort((a, b) => b.units - a.units)
+                .slice(0, 10)
+                .map(item => `<tr class="border-t"><td class="py-2">${escapeDashboardHtml(item.name)}</td><td>${escapeDashboardHtml(item.category)} / ${escapeDashboardHtml(item.subcategory)}</td><td class="text-right font-semibold">${item.units.toLocaleString("es")}</td></tr>`)
+                .join("") || '<tr><td colspan="3" class="py-4 text-center text-slate-400">Sin productos para este filtro.</td></tr>'
+            const categoryTotals = new Map()
+            quotedItems.forEach(item => {
+                const category = String(item.category || "Sin categoría").trim() || "Sin categoría"
+                const subcategory = String(item.subcategory || "General").trim() || "General"
+                const key = `${category}|${subcategory}`
+                categoryTotals.set(key, (categoryTotals.get(key) || 0) + Number(item.qty || 0))
+            })
+            $("business-top-categories").innerHTML = [...categoryTotals.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([key, units]) => `<tr class="border-t"><td class="py-2">${escapeDashboardHtml(key.replace("|", " / "))}</td><td class="text-right font-semibold">${units.toLocaleString("es")}</td></tr>`)
+                .join("") || '<tr><td colspan="2" class="py-4 text-center text-slate-400">Sin categorías para este filtro.</td></tr>'
+
+            const campaignRows = campaigns.slice().sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)).slice(0, 10)
+            $("business-campaign-rows").innerHTML = campaignRows.map(campaign => {
+                const sent = Number(campaign.sent || 0)
+                const opens = Object.values(campaign.opens || {}).filter(value => isInBusinessPeriod(value)).length
+                const clicks = Object.values(campaign.clicks || {}).filter(value => isInBusinessPeriod(value)).length
+                const clickRate = sent ? `${(clicks / sent * 100).toLocaleString("es", { maximumFractionDigits: 1 })}%` : "—"
+                return `<tr class="border-t"><td class="py-2">${escapeDashboardHtml(campaign.subject || "Campaña")}</td><td>${sent.toLocaleString("es")}</td><td>${opens.toLocaleString("es")}</td><td>${clicks.toLocaleString("es")}</td><td>${clickRate}</td></tr>`
+            }).join("") || '<tr><td colspan="5" class="py-4 text-center text-slate-400">Sin campañas para este período.</td></tr>'
+
+            const purchaseStatuses = { draft: "Borrador", ordered: "Emitida", received: "Recibida", cancelled: "Cancelada" }
+            $("business-purchase-rows").innerHTML = purchaseOrders
+                .slice()
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 10)
+                .map(order => `<tr class="border-t"><td class="py-2">${escapeDashboardHtml(order.id)}</td><td>${escapeDashboardHtml(order.supplierName || "—")}</td><td>${escapeDashboardHtml(order.createdAt ? new Date(order.createdAt).toLocaleDateString("es-VE") : "—")}</td><td>${purchaseStatuses[order.status] || escapeDashboardHtml(order.status)}</td><td class="text-right">${new Intl.NumberFormat("es-VE", { style: "currency", currency: "USD" }).format(Number(order.total || 0))}</td></tr>`)
+                .join("") || '<tr><td colspan="5" class="py-4 text-center text-slate-400">Sin órdenes de compra para este período.</td></tr>'
+
+            const periodLabels = { all: "Todo el historial", today: "Hoy", month: "Mes actual", year: "Año actual", custom: "Rango personalizado" }
+            $("business-dashboard-updated").textContent = `Período: ${periodLabels[$("business-period").value] || "Rango personalizado"} · Actualizado ${new Date().toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit" })}`
+        }
+
         function renderDashboard() {
+            renderBusinessDashboard()
             renderKeyMetrics()
             renderProductCharts()
             renderClientCharts()
             renderEventsTable()
+            setupProductActivitySelector()
             setupContactReport()
             setupJourneyModal()
         }
 
+        let productActivitySelectorReady = false
+        function setupProductActivitySelector() {
+            if (productActivitySelectorReady) return
+            productActivitySelectorReady = true
+            const selector = document.getElementById("product-activity-mode")
+            if (selector) selector.addEventListener("change", renderProductCharts)
+        }
+
         function renderKeyMetrics() {
-            const visits = EVENTS.filter(e => e.type === "landing_visit").length
-            const orders = EVENTS.filter(e => e.type === "order_sent").length
-            const downloads = EVENTS.filter(e => e.type === "catalog_download_confirmed").length
-            const registers = EVENTS.filter(e => e.type === "portal_register").length
-            const quoteEmailClicks = EVENTS.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "email").length
-            const quoteWhatsappClicks = EVENTS.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "whatsapp").length
-            const quoteRequestsSent = EVENTS.filter(e => e.type === "quote_request_sent").length
+            const periodEvents = EVENTS.filter(event => isInBusinessPeriod(event.createdAt))
+            const visits = periodEvents.filter(e => e.type === "landing_visit").length
+            const orders = periodEvents.filter(e => e.type === "order_sent").length
+            const downloads = periodEvents.filter(e => e.type === "catalog_download_confirmed").length
+            const registers = periodEvents.filter(e => e.type === "portal_register").length
+            const quoteEmailClicks = periodEvents.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "email").length
+            const quoteWhatsappClicks = periodEvents.filter(e => e.type === "quote_channel_click" && e.meta && e.meta.channel === "whatsapp").length
+            const quoteRequestsSent = periodEvents.filter(e => e.type === "quote_request_sent").length
 
             document.getElementById("stat-visits").textContent = visits
             document.getElementById("stat-orders").textContent = orders
@@ -538,7 +1105,7 @@
         function renderEventsTable() {
             const tbody = document.getElementById("events-table-body")
             if (!tbody) return
-            const recent = EVENTS.slice(0, 100)
+            const recent = EVENTS.filter(event => isInBusinessPeriod(event.createdAt)).slice(0, 100)
 
             tbody.innerHTML = recent.map((e, idx) => {
                 const email = normalizeEmailForLookup(e.email)
@@ -738,55 +1305,99 @@
             const ctx = document.getElementById("chart-products")
             if (!ctx) return
 
-            // Aggregate Product Counts from Orders
-            const productCounts = new Map()
-            
-            EVENTS.filter(e => e.type === "order_sent").forEach(order => {
-                if (order.meta && Array.isArray(order.meta.items)) {
-                    order.meta.items.forEach(item => {
-                        const pid = Number(item.id)
-                        const qty = Number(item.qty) || 1
-                        productCounts.set(pid, (productCounts.get(pid) || 0) + qty)
-                    })
-                }
-            })
+            const mode = document.getElementById("product-activity-mode")?.value || "orders"
+            const periodEvents = EVENTS.filter(event => isInBusinessPeriod(event.createdAt))
+            const counts = new Map()
+            const productIds = new Set()
+            const addProductCount = (id, count) => {
+                const productId = Number(id)
+                if (!Number.isFinite(productId)) return
+                productIds.add(productId)
+                counts.set(productId, (counts.get(productId) || 0) + count)
+            }
 
-            // Sort Top Products
-            const topProducts = Array.from(productCounts.entries())
+            if (mode === "orders") {
+                periodEvents.filter(e => e.type === "order_sent").forEach(order => {
+                    if (order.meta && Array.isArray(order.meta.items)) {
+                        order.meta.items.forEach(item => addProductCount(item.id, Number(item.qty) || 1))
+                    }
+                })
+            } else if (mode === "views" || mode === "cart") {
+                const eventType = mode === "views" ? "product_view" : "cart_add"
+                periodEvents.filter(e => e.type === eventType).forEach(event => {
+                    const meta = event.meta || {}
+                    addProductCount(meta.productId, mode === "cart" ? (Number(meta.qty) || 1) : 1)
+                })
+            } else if (mode === "searches") {
+                periodEvents.filter(e => e.type === "catalog_filter").forEach(event => {
+                    const meta = event.meta || {}
+                    const query = String(meta.q || "").trim()
+                    const category = String(meta.cat || "").trim()
+                    const label = query ? `Búsqueda: ${query}` : category ? `Categoría: ${category}` : "Catálogo general"
+                    counts.set(label, (counts.get(label) || 0) + 1)
+                })
+            }
+
+            const metricLabels = {
+                orders: ["Productos en pedidos enviados", "Unidades pedidas", "Detalle por familias"],
+                views: ["Productos más vistos", "Vistas de producto", "Detalle por familias"],
+                searches: ["Búsquedas y filtros del catálogo", "Eventos de búsqueda/filtro", "Detalle por términos y categorías"],
+                cart: ["Productos más agregados al carrito", "Veces agregado al carrito", "Detalle por familias"]
+            }
+            const [title, datasetLabel, breakdownTitle] = metricLabels[mode] || metricLabels.orders
+            document.getElementById("product-chart-title").textContent = title
+            document.getElementById("product-breakdown-title").textContent = breakdownTitle
+            document.getElementById("product-chart-note").textContent = mode === "searches"
+                ? "Las búsquedas se agrupan por término; si no hay término, por categoría o uso general del catálogo."
+                : mode === "orders"
+                    ? "Cuenta unidades incluidas en pedidos enviados; no representa búsquedas ni cotizaciones."
+                    : mode === "views"
+                        ? "Cuenta aperturas de la ficha de producto registradas en el catálogo."
+                        : "Cuenta unidades agregadas al carrito según los eventos registrados."
+
+            const topProducts = Array.from(counts.entries())
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 10) // Top 10
+                .slice(0, 10)
             
-            const labels = topProducts.map(([id]) => {
-                const p = PRODUCTS_MAP.get(id)
-                return p ? (p.name.length > 35 ? p.name.substring(0, 35) + "..." : p.name) : `ID ${id}`
+            const labels = topProducts.map(([key]) => {
+                const p = typeof key === "number" ? PRODUCTS_MAP.get(key) : null
+                const label = p ? p.name : String(key)
+                return label.length > 35 ? label.substring(0, 35) + "..." : label
             })
             const data = topProducts.map(([, count]) => count)
 
-            // Family Aggregation
             const familyCounts = new Map()
-            productCounts.forEach((count, id) => {
-                const p = PRODUCTS_MAP.get(id)
-                if (p) {
-                    let fam = "Otros"
-                    const text = (p.name + " " + (p.subcategory || "")).toLowerCase()
-                    if (/cable/.test(text)) fam = "Cables"
-                    else if (/interruptor/.test(text)) fam = "Interruptores"
-                    else if (/toma|enchufe/.test(text)) fam = "Tomacorrientes"
-                    else if (/lámpara|bombillo|foco/.test(text)) fam = "Iluminación"
-                    else if (/tubo|caño/.test(text)) fam = "Tuberías"
-                    
-                    familyCounts.set(fam, (familyCounts.get(fam) || 0) + count)
-                }
-            })
+            if (mode === "searches") {
+                familyCounts.clear()
+                periodEvents.filter(e => e.type === "catalog_filter").forEach(event => {
+                    const meta = event.meta || {}
+                    const query = String(meta.q || "").trim()
+                    const category = String(meta.cat || "").trim()
+                    const label = category || (query ? "Sin categoría" : "Catálogo general")
+                    familyCounts.set(label, (familyCounts.get(label) || 0) + 1)
+                })
+            } else {
+                productIds.forEach(id => {
+                    const product = PRODUCTS_MAP.get(id)
+                    if (!product) return
+                    let family = "Otros"
+                    const text = (product.name + " " + (product.subcategory || "")).toLowerCase()
+                    if (/cable/.test(text)) family = "Cables"
+                    else if (/interruptor/.test(text)) family = "Interruptores"
+                    else if (/toma|enchufe/.test(text)) family = "Tomacorrientes"
+                    else if (/lámpara|bombillo|foco/.test(text)) family = "Iluminación"
+                    else if (/tubo|caño/.test(text)) family = "Tuberías"
+                    familyCounts.set(family, (familyCounts.get(family) || 0) + (counts.get(id) || 0))
+                })
+            }
 
-            // Render Chart
             if (chartProducts) chartProducts.destroy()
             chartProducts = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Unidades Solicitadas',
+                        label: datasetLabel,
                         data: data,
                         backgroundColor: '#3b82f6',
                         borderRadius: 4
@@ -806,22 +1417,36 @@
                 }
             })
 
-            // Render Family List
             const familyList = document.getElementById("top-families-list")
-            familyList.innerHTML = Array.from(familyCounts.entries())
+            familyList.replaceChildren()
+            const breakdown = Array.from(familyCounts.entries())
                 .sort((a,b) => b[1] - a[1])
-                .map(([fam, count]) => `
-                    <li class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span class="font-medium">${fam}:</span> ${count}
-                    </li>
-                `).join("")
+                .slice(0, 9)
+            if (!breakdown.length) {
+                const empty = document.createElement("li")
+                empty.className = "text-slate-400"
+                empty.textContent = "Sin datos registrados para este indicador."
+                familyList.appendChild(empty)
+                return
+            }
+            breakdown.forEach(([label, count]) => {
+                const item = document.createElement("li")
+                item.className = "flex items-center gap-2"
+                const marker = document.createElement("span")
+                marker.className = "w-2 h-2 rounded-full bg-blue-500"
+                const text = document.createElement("span")
+                text.className = "font-medium"
+                text.textContent = label + ":"
+                item.append(marker, text, document.createTextNode(" " + count))
+                familyList.appendChild(item)
+            })
         }
 
         function renderClientCharts() {
             // Type Distribution
+            const clientsInPeriod = CLIENTS.filter(client => isInBusinessPeriod(client.created_at || client.createdAt))
             const typeCounts = { Particular: 0, Instalador: 0, Otro: 0 }
-            CLIENTS.forEach(c => {
+            clientsInPeriod.forEach(c => {
                 const t = (c.tipo === "Particular" || c.tipo === "Instalador") ? c.tipo : "Otro"
                 typeCounts[t]++
             })
@@ -851,7 +1476,7 @@
 
             // Zone Distribution
             const zonaCounts = new Map()
-            CLIENTS.forEach(c => {
+            clientsInPeriod.forEach(c => {
                 const z = (c.zona || "Sin zona").trim()
                 zonaCounts.set(z, (zonaCounts.get(z) || 0) + 1)
             })

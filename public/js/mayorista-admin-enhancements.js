@@ -149,7 +149,39 @@
     })
   }
 
-  function exportCatalogPdf() {
+  function ensureAutoTable() {
+    const { jsPDF } = window.jspdf
+    window.jsPDF = jsPDF
+    if (typeof jsPDF.API.autoTable === "function") return Promise.resolve()
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script")
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"
+      script.onload = () => {
+        if (typeof jsPDF.API.autoTable === "function") resolve()
+        else reject(new Error("No se pudo inicializar la tabla del PDF."))
+      }
+      script.onerror = () => reject(new Error("No se pudo cargar el formato de tabla para el PDF."))
+      document.head.appendChild(script)
+    })
+  }
+
+  function getConsecutiveImageGroups(entries) {
+    const groups = []
+    entries.forEach((entry, index) => {
+      const url = String(entry.product.img || "")
+      if (!url) return
+      const previous = groups[groups.length - 1]
+      if (previous && previous.url === url && previous.end === index - 1) {
+        previous.end = index
+      } else {
+        groups.push({ url, start: index, end: index })
+      }
+    })
+    return groups
+  }
+
+  async function exportCatalogPdf() {
     if (!selectedProductIds.size) return announce("Selecciona al menos un producto para generar el PDF.")
     if (!window.jspdf?.jsPDF) return announce("No se pudo cargar el generador PDF. Recarga la página e inténtalo nuevamente.")
 
@@ -160,139 +192,185 @@
         || String(a.product.name || "").localeCompare(String(b.product.name || ""), "es"))
     if (!selectedProducts.length) return announce("No hay productos seleccionados disponibles para exportar.")
 
-    const doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
-    const pageWidth = doc.internal.pageSize.getWidth()
-    const gridColumns = 4
-    const gridRows = 3
-    const pageCapacity = gridColumns * gridRows
-    const margin = 8
-    const gap = 4
-    const cardWidth = (pageWidth - margin * 2 - gap * (gridColumns - 1)) / gridColumns
-    const cardHeight = 55
-    const gridTop = 25
+    const exportButton = document.getElementById("bulk-export-catalog-pdf")
+    const originalButtonText = exportButton.textContent
+    exportButton.disabled = true
     let missingImages = 0
-    let logoData = null
     let logoUnavailable = false
 
-    function drawPageHeader(pageNumber) {
-      doc.setFillColor(16, 22, 92)
-      doc.rect(0, 0, pageWidth, 21, "F")
-      if (logoData) {
-        doc.addImage(logoData, "PNG", margin, 3.5, 15, 14)
-        doc.setDrawColor(255, 255, 255)
-        doc.setLineWidth(0.2)
-        doc.line(26, 4, 26, 17)
+    try {
+      await ensureAutoTable()
+      const { jsPDF } = window.jspdf
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const margin = 10
+      const logoData = await imageAsDataUrl("/img/embair-isotype-white.png", null).catch(error => {
+        logoUnavailable = true
+        console.error("No se pudo cargar el isotipo para el catálogo PDF:", error)
+        return null
+      })
+
+      const imageUrls = Array.from(new Set(selectedProducts.map(({ product }) => String(product.img || "")).filter(Boolean)))
+      const imageDataByUrl = new Map()
+      for (let index = 0; index < imageUrls.length; index += 8) {
+        const batch = imageUrls.slice(index, index + 8)
+        const results = await Promise.all(batch.map(async url => {
+          try {
+            return [url, await imageAsDataUrl(url)]
+          } catch (error) {
+            console.warn(`No se pudo cargar la imagen del catálogo (${url}):`, error)
+            return [url, null]
+          }
+        }))
+        results.forEach(([url, data]) => imageDataByUrl.set(url, data))
+        announce(`Preparando imágenes ${Math.min(index + batch.length, imageUrls.length)}/${imageUrls.length} para el PDF.`)
       }
-      doc.setTextColor(255, 255, 255)
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(14)
-      doc.text("EMBAIR · CATÁLOGO MAYORISTA", logoData ? 31 : margin, 9)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(7.5)
-      doc.text(`Precios mayoristas · ${selectedProducts.length} productos · Generado ${new Date().toLocaleDateString("es-AR")}`, logoData ? 31 : margin, 16)
-      doc.text(`Página ${pageNumber} de ${Math.ceil(selectedProducts.length / pageCapacity)}`, pageWidth - margin, 16, { align: "right" })
-    }
+      missingImages = imageUrls.filter(url => !imageDataByUrl.get(url)).length
 
-    async function drawProductCard(entry, index) {
-      const { product, config } = entry
-      const position = index % pageCapacity
-      const column = position % gridColumns
-      const row = Math.floor(position / gridColumns)
-      const x = margin + column * (cardWidth + gap)
-      const y = gridTop + row * (cardHeight + gap)
-      const contentX = x + 3
-      const contentWidth = cardWidth - 6
+      const rows = selectedProducts.map(({ product, config }) => {
+        const units = Math.max(1, Number(config.unitsPerPackage) || 1)
+        const unitBasePrice = config.unitWholesalePrice == null ? null : Number(config.unitWholesalePrice)
+        const packageBasePrice = config.wholesalePrice == null
+          ? unitBasePrice == null ? null : Number((unitBasePrice * units).toFixed(2))
+          : Number(config.wholesalePrice)
+        const discount = Math.min(100, Math.max(0, Number(config.discountPercent) || 0))
+        const packagePrice = packageBasePrice == null
+          ? null
+          : Number((packageBasePrice * (1 - discount / 100)).toFixed(2))
+        const unitPrice = unitBasePrice == null
+          ? packageBasePrice == null ? null : Number((packageBasePrice / units).toFixed(2))
+          : unitBasePrice
+        const availability = String(config.availability || "Disponible")
+        const availabilityColor = availability === "Agotado"
+          ? [220, 38, 38]
+          : availability === "Bajo Pedido" ? [217, 119, 6] : [22, 163, 74]
+        const code = String(product.code || product.sku || "").trim()
 
-      doc.setFillColor(255, 255, 255)
-      doc.setDrawColor(226, 232, 240)
-      doc.setLineWidth(0.35)
-      doc.roundedRect(x, y, cardWidth, cardHeight, 2, 2, "FD")
+        return {
+          image: imageDataByUrl.get(String(product.img || "")) || null,
+          name: [
+            product.name || "Producto",
+            code ? `Código: ${code}` : "",
+            product.category || product.categoria || ""
+          ].filter(Boolean).join("\n"),
+          unitPrice: unitPrice == null ? "Consultar" : wholesaleMoney(unitPrice),
+          packageName: config.packageName || "Paquete",
+          units,
+          minimum: `${Math.max(1, Number(config.minimumQuantity) || 1)} paquetes`,
+          availability,
+          availabilityColor,
+          packagePrice: packagePrice == null ? "Consultar" : wholesaleMoney(packagePrice)
+        }
+      })
 
-      doc.setFillColor(248, 250, 252)
-      doc.roundedRect(contentX, y + 2, contentWidth, 19, 1, 1, "F")
-      if (product.img) {
-        try {
-          const dataUrl = await imageAsDataUrl(product.img)
-          doc.addImage(dataUrl, "JPEG", contentX + (contentWidth - 25) / 2, y + 2.5, 25, 18, undefined, "FAST")
-        } catch (error) {
-          missingImages++
+      const imageGroups = getConsecutiveImageGroups(selectedProducts)
+      const imageGroupByRow = new Map()
+      imageGroups.forEach(group => {
+        for (let index = group.start; index <= group.end; index++) imageGroupByRow.set(index, group)
+      })
+      const drawnImageGroupsByPage = new Set()
+      const generatedAt = new Date().toLocaleDateString("es-AR")
+
+      doc.autoTable({
+        startY: 31,
+        margin: { left: margin, right: margin, top: 31, bottom: 12 },
+        head: [["Imagen", "Producto / Código / Categoría", "Mayorista por unidad", "Empaque", "Unid./paq.", "Mínimo", "Estado", "Mayorista por empaque"]],
+        body: rows.map(row => [row.image, row.name, row.unitPrice, row.packageName, row.units, row.minimum, row.availability.toUpperCase(), row.packagePrice]),
+        styles: {
+          fontSize: 7.5,
+          cellPadding: 1.5,
+          valign: "middle",
+          lineColor: [229, 231, 235],
+          lineWidth: 0.1,
+          overflow: "linebreak"
+        },
+        headStyles: { fillColor: [44, 62, 80], textColor: 255, fontStyle: "bold", halign: "center" },
+        bodyStyles: { minCellHeight: 15, textColor: [50, 50, 50] },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { cellWidth: 14 },
+          1: { cellWidth: 58, fontStyle: "bold", fontSize: 7 },
+          2: { cellWidth: 22, halign: "right" },
+          3: { cellWidth: 22, fontSize: 7 },
+          4: { cellWidth: 13, halign: "center" },
+          5: { cellWidth: 15, halign: "center" },
+          6: { cellWidth: 19, halign: "center", fontStyle: "bold", fontSize: 6.5 },
+          7: { cellWidth: 27, halign: "right" }
+        },
+        didDrawPage: data => {
+          const pageNumber = doc.internal.getCurrentPageInfo().pageNumber
+          doc.setFillColor(16, 22, 92)
+          doc.rect(0, 0, pageWidth, 27, "F")
+          if (logoData) {
+            doc.addImage(logoData, "PNG", margin, 3, 14, 14)
+            doc.setDrawColor(255, 255, 255)
+            doc.setLineWidth(0.2)
+            doc.line(27, 3, 27, 17)
+          }
+          doc.setTextColor(255, 255, 255)
+          doc.setFont("helvetica", "bold")
+          doc.setFontSize(13)
+          doc.text("EMBAIR · CATÁLOGO MAYORISTA", logoData ? 32 : margin, 10)
           doc.setFont("helvetica", "normal")
-          doc.setFontSize(6)
-          doc.setTextColor(100, 116, 139)
-          doc.text("Imagen no disponible", x + cardWidth / 2, y + 12.5, { align: "center" })
+          doc.setFontSize(7.5)
+          doc.text(`Precios mayoristas · ${selectedProducts.length} productos · Generado ${generatedAt}`, logoData ? 32 : margin, 18)
+          doc.text(`Página ${pageNumber}`, pageWidth - margin, 18, { align: "right" })
+        },
+        didParseCell: data => {
+          if (data.section === "body" && data.column.index === 0) data.cell.text = []
+          if (data.section === "body" && data.column.index === 6) {
+            data.cell.styles.textColor = rows[data.row.index].availabilityColor
+          }
+        },
+        didDrawCell: data => {
+          if (data.section !== "body" || data.column.index !== 0) return
+          const rowIndex = data.row.index
+          const group = imageGroupByRow.get(rowIndex)
+          if (!group) return
+          const pageNumber = doc.internal.getCurrentPageInfo().pageNumber
+          const pageGroupKey = `${pageNumber}:${group.start}`
+          if (drawnImageGroupsByPage.has(pageGroupKey)) return
+          drawnImageGroupsByPage.add(pageGroupKey)
+
+          const bodyRows = data.table.body || []
+          const groupHeight = bodyRows
+            .slice(rowIndex, group.end + 1)
+            .reduce((height, row) => height + Number(row.height || data.row.height || 15), 0)
+          const pageBottom = pageHeight - 12
+          const visibleHeight = Math.max(0, Math.min(groupHeight, pageBottom - data.cell.y))
+          const imageSize = Math.min(12, visibleHeight - 2)
+          const image = rows[rowIndex].image
+          if (!image || imageSize < 4) return
+          doc.addImage(
+            image,
+            "JPEG",
+            data.cell.x + (data.cell.width - imageSize) / 2,
+            data.cell.y + (visibleHeight - imageSize) / 2,
+            imageSize,
+            imageSize
+          )
         }
-      } else {
-        missingImages++
+      })
+
+      const pageCount = doc.internal.getNumberOfPages()
+      for (let page = 1; page <= pageCount; page++) {
+        doc.setPage(page)
         doc.setFont("helvetica", "normal")
-        doc.setFontSize(6)
+        doc.setFontSize(7)
         doc.setTextColor(100, 116, 139)
-        doc.text("Sin imagen", x + cardWidth / 2, y + 12.5, { align: "center" })
+        doc.text(`Página ${page} de ${pageCount}`, pageWidth - margin, pageHeight - 5, { align: "right" })
       }
 
-      doc.setTextColor(148, 163, 184)
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(5.5)
-      doc.text(String(index + 1).padStart(2, "0"), x + cardWidth - 3, y + 4.5, { align: "right" })
-
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(7)
-      doc.setTextColor(30, 41, 59)
-      const productLines = doc.splitTextToSize(String(product.name || "Producto"), contentWidth)
-      doc.text(productLines.slice(0, 2), contentX, y + 25, { lineHeightFactor: 1.05 })
-
-      doc.setFont("helvetica", "normal")
-      doc.setFontSize(5.5)
-      doc.setTextColor(100, 116, 139)
-      const code = String(product.code || product.sku || "").trim()
-      if (code) doc.text(doc.splitTextToSize(code, contentWidth)[0], contentX, y + 33)
-
-      doc.setDrawColor(241, 245, 249)
-      doc.line(contentX, y + 35, x + cardWidth - 3, y + 35)
-      doc.setTextColor(71, 85, 105)
-      doc.setFontSize(6)
-      const packageDetails = `${config.packageName || "Paquete"} · ${config.unitsPerPackage || 1} und./paq.`
-      doc.text(doc.splitTextToSize(packageDetails, contentWidth)[0], contentX, y + 39)
-      doc.setFontSize(5.5)
-      doc.text(`Mínimo: ${config.minimumQuantity || 1} paquetes`, contentX, y + 43)
-
-      const basePrice = config.wholesalePrice == null
-        ? (config.unitWholesalePrice == null ? null : Number((Number(config.unitWholesalePrice) * Number(config.unitsPerPackage || 1)).toFixed(2)))
-        : Number(config.wholesalePrice)
-      const price = basePrice == null
-        ? "Consultar"
-        : `$${(basePrice * (1 - Number(config.discountPercent || 0) / 100)).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      doc.setFillColor(255, 247, 237)
-      doc.roundedRect(contentX, y + 45, contentWidth, 7, 1, 1, "F")
-      doc.setFont("helvetica", "bold")
-      doc.setFontSize(8.5)
-      doc.setTextColor(154, 52, 18)
-      doc.text(price, x + cardWidth / 2, y + 50, { align: "center" })
+      doc.save("catalogo-mayorista-seleccionados.pdf")
+      announce(`PDF generado con ${selectedProducts.length} productos${missingImages ? `; ${missingImages} sin imagen disponible` : ""}${logoUnavailable ? "; isotipo no disponible" : ""}.`)
+    } catch (error) {
+      console.error("Error generando el catálogo mayorista PDF:", error)
+      announce(`No se pudo generar el PDF del catálogo: ${error.message}`)
+    } finally {
+      exportButton.disabled = false
+      exportButton.textContent = originalButtonText
     }
-
-    async function generate() {
-      try {
-        try {
-          logoData = await imageAsDataUrl("/img/embair-isotype-white.png", null)
-        } catch (error) {
-          logoUnavailable = true
-          console.error("No se pudo cargar el isotipo para el catálogo PDF:", error)
-        }
-        const pageCount = Math.ceil(selectedProducts.length / pageCapacity)
-        for (let page = 0; page < pageCount; page++) {
-          if (page > 0) doc.addPage()
-          drawPageHeader(page + 1)
-          const start = page * pageCapacity
-          const end = Math.min(start + pageCapacity, selectedProducts.length)
-          for (let index = start; index < end; index++) await drawProductCard(selectedProducts[index], index)
-        }
-        doc.save("catalogo-mayorista-seleccionados.pdf")
-        announce(`PDF generado con ${selectedProducts.length} productos${missingImages ? `; ${missingImages} sin imagen disponible` : ""}${logoUnavailable ? "; isotipo no disponible" : ""}.`)
-      } catch (error) {
-        console.error("Error generando el catálogo mayorista PDF:", error)
-        announce("No se pudo generar el PDF del catálogo. Inténtalo nuevamente.")
-      }
-    }
-    generate()
   }
 
   document.getElementById("bulk-export-catalog-pdf").addEventListener("click", exportCatalogPdf)

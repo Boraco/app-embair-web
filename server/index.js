@@ -214,6 +214,31 @@ app.get("/vendor/pdfjs/pdf.worker.mjs", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "node_modules", "pdfjs-dist", "legacy", "build", "pdf.worker.mjs"))
 })
 
+app.get("/vendor/tesseract/tesseract.esm.min.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "node_modules", "tesseract.js", "dist", "tesseract.esm.min.js"))
+})
+
+app.get("/vendor/tesseract/worker.min.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "node_modules", "tesseract.js", "dist", "worker.min.js"))
+})
+
+app.get("/vendor/tesseract/core/:filename", (req, res) => {
+  const allowedFiles = new Set([
+    "tesseract-core.js", "tesseract-core.wasm", "tesseract-core.wasm.js",
+    "tesseract-core-lstm.js", "tesseract-core-lstm.wasm", "tesseract-core-lstm.wasm.js",
+    "tesseract-core-simd.js", "tesseract-core-simd.wasm", "tesseract-core-simd.wasm.js",
+    "tesseract-core-simd-lstm.js", "tesseract-core-simd-lstm.wasm", "tesseract-core-simd-lstm.wasm.js",
+    "tesseract-core-relaxedsimd.js", "tesseract-core-relaxedsimd.wasm", "tesseract-core-relaxedsimd.wasm.js",
+    "tesseract-core-relaxedsimd-lstm.js", "tesseract-core-relaxedsimd-lstm.wasm", "tesseract-core-relaxedsimd-lstm.wasm.js"
+  ])
+  if (!allowedFiles.has(req.params.filename)) return res.sendStatus(404)
+  res.sendFile(path.join(__dirname, "..", "node_modules", "tesseract.js-core", req.params.filename))
+})
+
+app.get("/vendor/tesseract/lang-data/spa.traineddata.gz", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "node_modules", "@tesseract.js-data", "spa", "4.0.0_best_int", "spa.traineddata.gz"))
+})
+
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "admin.html"))
 })
@@ -263,6 +288,7 @@ function getProcurementState() {
     suppliers: Array.isArray(saved.suppliers) ? saved.suppliers : [],
     productTerms: Array.isArray(saved.productTerms) ? saved.productTerms : [],
     supplierCatalogItems: Array.isArray(saved.supplierCatalogItems) ? saved.supplierCatalogItems : [],
+    supplierCatalogImages: Array.isArray(saved.supplierCatalogImages) ? saved.supplierCatalogImages : [],
     purchaseOrders: Array.isArray(saved.purchaseOrders) ? saved.purchaseOrders : []
   }
 }
@@ -547,7 +573,8 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
       minimumQuantity,
       discountRules,
       priceVerifiedAt: String(term.priceVerifiedAt || "").slice(0, 40),
-      preferredSupplier: term.preferredSupplier === true
+      preferredSupplier: term.preferredSupplier === true,
+      supplierImageId: String(term.supplierImageId || "").slice(0, 80)
     }
   })
   if (productTerms.some(term => !term)) return res.status(400).json({ error: "invalid_product_term" })
@@ -560,10 +587,20 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
   }
 
   const state = getProcurementState()
+  if (productTerms.some(term => term.supplierImageId &&
+    !state.supplierCatalogImages.some(image => image.id === term.supplierImageId && image.supplierId === term.supplierId))) {
+    return res.status(400).json({ error: "invalid_supplier_image_reference" })
+  }
   state.suppliers = suppliers
   state.productTerms = productTerms
   writeData(procurementFile, state)
-  res.json({ ok: true, suppliers, productTerms, supplierCatalogItems: state.supplierCatalogItems })
+  res.json({
+    ok: true,
+    suppliers,
+    productTerms,
+    supplierCatalogItems: state.supplierCatalogItems,
+    supplierCatalogImages: state.supplierCatalogImages
+  })
 })
 
 app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
@@ -587,6 +624,28 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
       .map(term => [Number(term.productId), term])
   )
   const previousExternal = state.supplierCatalogItems.filter(item => item.supplierId === supplierId)
+  const incomingImages = new Map()
+  let totalImageBytes = 0
+  for (const [index, image] of inputImages.entries()) {
+    const id = String(image && image.id || "")
+    const dataUrl = String(image && image.dataUrl || "")
+    const match = dataUrl.match(/^data:image\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/)
+    if (!/^SUPIMG-[0-9a-f-]{36}$/i.test(id) || !match || incomingImages.has(id)) {
+      return res.status(400).json({ error: "invalid_price_list_image", image: index + 1 })
+    }
+    const bytes = Buffer.from(match[1], "base64")
+    if (!bytes.length || bytes.length > 20000 || bytes.toString("base64") !== match[1]) {
+      return res.status(400).json({ error: "invalid_price_list_image", image: index + 1 })
+    }
+    totalImageBytes += bytes.length
+    if (totalImageBytes > 5 * 1024 * 1024) {
+      return res.status(400).json({ error: "price_list_images_too_large" })
+    }
+    incomingImages.set(id, { id, supplierId, dataUrl })
+  }
+  const existingImageIds = new Set(state.supplierCatalogImages
+    .filter(image => image.supplierId === supplierId)
+    .map(image => image.id))
   const updatedAt = new Date().toISOString()
   const groupedItems = new Map()
   for (const [index, item] of inputItems.entries()) {
@@ -602,6 +661,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
     const discountMinimumAmount = Number(item && item.discountMinimumAmount || 0)
     const discountPercentage = Number(item && item.discountPercentage || 0)
     const paymentMethod = String(item && item.paymentMethod || "").trim().slice(0, 80)
+    const supplierImageId = String(item && item.supplierImageId || "")
     if ((!external && !catalogIds.has(productId)) ||
       (external && (!productName || (productName.length < 2 && !productCode))) ||
       !Number.isFinite(unitCost) || unitCost < 0 ||
@@ -611,7 +671,8 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
       !Number.isInteger(discountMinimumQuantity) || discountMinimumQuantity < 0 ||
       !Number.isFinite(discountMinimumAmount) || discountMinimumAmount < 0 ||
       !Number.isFinite(discountPercentage) || discountPercentage < 0 || discountPercentage > 100 ||
-      (discountPercentage > 0 && !discountMinimumQuantity && !discountMinimumAmount && !paymentMethod)) {
+      (discountPercentage > 0 && !discountMinimumQuantity && !discountMinimumAmount && !paymentMethod) ||
+      (supplierImageId && !incomingImages.has(supplierImageId) && !existingImageIds.has(supplierImageId))) {
       return res.status(400).json({ error: "invalid_price_list_item", row: index + 1 })
     }
     const externalKey = external ? `external:${String(item.supplierSku || productCode || productName).trim().toLocaleLowerCase("es")}` : `product:${productId}`
@@ -620,6 +681,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
     if (existing && (existing.unitCost !== Number(unitCost.toFixed(2)) ||
       existing.purchaseUnit !== purchaseUnit || existing.unitsPerPurchase !== unitsPerPurchase ||
       existing.minimumQuantity !== minimumQuantity || existing.supplierSku !== String(item.supplierSku || "").trim().slice(0, 120) ||
+      existing.supplierImageId !== supplierImageId ||
       (external && (existing.productName !== productName || existing.productCode !== productCode)))) {
       return res.status(400).json({ error: "inconsistent_repeated_product", row: index + 1 })
     }
@@ -633,6 +695,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
       unitsPerPurchase,
       minimumQuantity,
       supplierSku: String(item.supplierSku || "").trim().slice(0, 120),
+      supplierImageId,
       discountRules: [],
       hasBaseRow: false
     }
@@ -670,6 +733,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
       unitsPerPurchase: item.unitsPerPurchase,
       minimumQuantity: item.minimumQuantity,
       discountRules: item.discountRules,
+      supplierImageId: item.supplierImageId || previous?.supplierImageId || "",
       priceVerifiedAt: updatedAt,
       preferredSupplier: previous ? previous.preferredSupplier === true : false
     }
@@ -692,6 +756,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
       unitsPerPurchase: item.unitsPerPurchase,
       minimumQuantity: item.minimumQuantity,
       discountRules: item.discountRules,
+      supplierImageId: item.supplierImageId || previous?.supplierImageId || "",
       sourceName,
       priceVerifiedAt: updatedAt,
       candidateForCatalog: true
@@ -713,6 +778,14 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
     ...externalItems,
     ...retainedExternal
   ]
+  const referencedImageIds = new Set([
+    ...state.productTerms.map(term => term.supplierImageId),
+    ...state.supplierCatalogItems.map(item => item.supplierImageId)
+  ].filter(Boolean))
+  state.supplierCatalogImages = [
+    ...state.supplierCatalogImages.filter(image => image.supplierId !== supplierId || referencedImageIds.has(image.id)),
+    ...[...incomingImages.values()].filter(image => referencedImageIds.has(image.id))
+  ]
   supplier.priceListName = sourceName
   supplier.priceListUpdatedAt = updatedAt
   writeData(procurementFile, state)
@@ -721,6 +794,7 @@ app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
     supplierId,
     importedCount: importedTerms.length,
     importedExternalCount: externalItems.length,
+    importedImageCount: incomingImages.size,
     retainedCount: retainedTerms.length,
     priceListUpdatedAt: supplier.priceListUpdatedAt
   })

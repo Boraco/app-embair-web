@@ -1,6 +1,6 @@
 (() => {
   const $ = id => document.getElementById(id)
-  const state = { suppliers: [], productTerms: [], supplierCatalogItems: [], purchaseOrders: [], catalog: [], wholesaleOrders: [], forecast: null, dispatchCosts: null, priceListPreview: null, pdfDocument: null, pdfNextPage: 1, priceListPage: 0 }
+  const state = { suppliers: [], productTerms: [], supplierCatalogItems: [], supplierCatalogImages: [], purchaseOrders: [], catalog: [], wholesaleOrders: [], forecast: null, dispatchCosts: null, priceListPreview: null, pdfDocument: null, ocrWorker: null, pdfNextPage: 1, priceListPage: 0 }
   const money = value => `US$ ${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -44,6 +44,9 @@
         multiple_preferred_suppliers_for_product: "Solo puede haber un proveedor principal por producto.",
         invalid_price_list: "La lista debe incluir entre 1 y 5000 productos.",
         invalid_price_list_item: `La fila ${result.row || ""} contiene datos inválidos o productos repetidos.`,
+        invalid_price_list_image: "No se pudo validar una imagen comprimida de referencia del proveedor.",
+        invalid_supplier_image_reference: "La imagen referenciada no pertenece al mismo proveedor del producto.",
+        price_list_images_too_large: "Las miniaturas de esta lista superan el límite total de almacenamiento. Reduce la cantidad de imágenes o divide el catálogo.",
         inconsistent_repeated_product: `La fila ${result.row || ""} repite el producto con precios o presentaciones base distintos.`,
         duplicate_discount_rule: `La fila ${result.row || ""} repite una misma regla de descuento.`,
         duplicate_price_list_row: `La fila ${result.row || ""} repite un producto sin una etapa de descuento distinta.`,
@@ -57,6 +60,7 @@
   const supplierById = id => state.suppliers.find(supplier => supplier.id === id)
   const productById = id => state.catalog.find(product => Number(product.id) === Number(id))
   const termById = id => state.productTerms.find(term => term.id === id)
+  const supplierImageById = id => state.supplierCatalogImages.find(image => image.id === id)
 
   function getReceivedLandedCost(productId, supplierId) {
     let totalCost = 0
@@ -165,6 +169,7 @@
         const product = productById(term.productId) || {}
         return {
           ...term,
+          supplierImage: supplierImageById(term.supplierImageId)?.dataUrl || "",
           kind: "Producto del catálogo comercial",
           productName: product.name || "Producto",
           productCode: product.code || product.sku || "",
@@ -174,6 +179,7 @@
       }),
       ...state.supplierCatalogItems.map(item => ({
         ...item,
+        supplierImage: supplierImageById(item.supplierImageId)?.dataUrl || "",
         kind: "Artículo externo · candidato",
         category: "",
         brand: ""
@@ -197,7 +203,7 @@
         <tbody>${visibleMatches.map(item => {
           const supplier = supplierById(item.supplierId) || {}
           const discounts = (item.discountRules || []).map(rule => `${Number(rule.percentage)}%${rule.minimumQuantity ? ` desde ${Number(rule.minimumQuantity)} compras` : ""}${rule.minimumAmount ? ` · monto ${money(rule.minimumAmount)}` : ""}${rule.paymentMethod ? ` · ${escapeHtml(rule.paymentMethod)}` : ""}`).join("<br>")
-          return `<tr class="border-t"><td class="p-2"><strong>${escapeHtml(item.productName)}</strong><span class="block text-xs text-slate-500">${escapeHtml([item.productCode, item.supplierSku, item.brand, item.category].filter(Boolean).join(" · ") || "Sin código")}</span><span class="text-xs ${item.kind.startsWith("Artículo externo") ? "text-amber-800" : "text-emerald-800"}">${escapeHtml(item.kind)}</span></td><td class="p-2">${escapeHtml(supplier.name || "Proveedor")}<span class="block text-xs text-slate-500">${escapeHtml([supplier.paymentTerms, supplier.deliveryTerms].filter(Boolean).join(" · ") || "Sin condiciones registradas")}</span><span class="block text-xs text-slate-500">Mínimo proveedor: ${money(supplier.minimumOrderAmount)}</span></td><td class="p-2">${money(item.unitCost)} / ${escapeHtml(item.purchaseUnit)}</td><td class="p-2">${Number(item.minimumQuantity)} ${escapeHtml(item.purchaseUnit)} · ${Number(item.unitsPerPurchase)} unidades/empaque</td><td class="p-2">${discounts || "Sin descuentos estructurados"}</td><td class="p-2">${item.priceVerifiedAt ? escapeHtml(new Date(item.priceVerifiedAt).toLocaleDateString("es")) : "—"}</td></tr>`
+          return `<tr class="border-t"><td class="p-2">${item.supplierImage ? `<img src="${escapeHtml(item.supplierImage)}" alt="Referencia visual del proveedor para ${escapeHtml(item.productName)}" loading="lazy" class="mb-1 h-14 w-14 rounded border bg-white object-contain">` : ""}<strong>${escapeHtml(item.productName)}</strong><span class="block text-xs text-slate-500">${escapeHtml([item.productCode, item.supplierSku, item.brand, item.category].filter(Boolean).join(" · ") || "Sin código")}</span><span class="text-xs ${item.kind.startsWith("Artículo externo") ? "text-amber-800" : "text-emerald-800"}">${escapeHtml(item.kind)}</span></td><td class="p-2">${escapeHtml(supplier.name || "Proveedor")}<span class="block text-xs text-slate-500">${escapeHtml([supplier.paymentTerms, supplier.deliveryTerms].filter(Boolean).join(" · ") || "Sin condiciones registradas")}</span><span class="block text-xs text-slate-500">Mínimo proveedor: ${money(supplier.minimumOrderAmount)}</span></td><td class="p-2">${money(item.unitCost)} / ${escapeHtml(item.purchaseUnit)}</td><td class="p-2">${Number(item.minimumQuantity)} ${escapeHtml(item.purchaseUnit)} · ${Number(item.unitsPerPurchase)} unidades/empaque</td><td class="p-2">${discounts || "Sin descuentos estructurados"}</td><td class="p-2">${item.priceVerifiedAt ? escapeHtml(new Date(item.priceVerifiedAt).toLocaleDateString("es")) : "—"}</td></tr>`
         }).join("")}</tbody>
       </table></div>` : `<p class="rounded-lg border border-dashed p-5 text-sm text-slate-500">${tokens.length ? "No se encontraron productos ni artículos de proveedores con esos términos." : "Aún no hay precios de proveedores. Al cargar listas y registrar condiciones aparecerán aquí tanto los productos del catálogo comercial como los artículos externos."}</p>`
   }
@@ -371,7 +377,7 @@
     const file = $("price-list-file").files[0]
     const supplierId = $("price-list-supplier").value
     if (!supplierId) throw new Error("Selecciona el proveedor de esta lista.")
-    if (!file) throw new Error("Selecciona un archivo CSV.")
+    if (!file) throw new Error("Selecciona un archivo CSV o PDF.")
     if (file.name.toLowerCase().endsWith(".pdf")) {
       if (file.size > 50 * 1024 * 1024) throw new Error("Por seguridad, el PDF no puede superar 50 MB.")
       await discardPdfDocument()
@@ -385,7 +391,18 @@
       state.pdfDocument = pdfDocument
       state.pdfNextPage = 1
       state.priceListPage = 0
-      state.priceListPreview = { supplierId, sourceName: file.name, rows: [], sourceKeys: new Set(), totalPages: pdfDocument.numPages, complete: false }
+      state.priceListPreview = {
+        supplierId,
+        sourceName: file.name,
+        rows: [],
+        sourceKeys: new Set(),
+        supplierPhotos: [],
+        ocrPages: [],
+        ocrPagesWithoutRows: [],
+        totalPages: pdfDocument.numPages,
+        complete: false,
+        reviewAcknowledged: false
+      }
       $("pdf-batch-controls").classList.remove("hidden")
       $("pdf-batch-controls").classList.add("flex")
       $("extract-pdf-batch").disabled = false
@@ -457,9 +474,340 @@
     const preview = state.priceListPreview
     if (!preview || !preview.totalPages) return
     const processed = Math.min(state.pdfNextPage - 1, preview.totalPages)
-    $("pdf-progress").textContent = `PDF leído localmente · ${processed} de ${preview.totalPages} páginas · ${preview.rows.length} renglones detectados`
+    const ocrPages = preview.ocrPages?.length || 0
+    $("pdf-progress").textContent = `PDF leído localmente · ${processed} de ${preview.totalPages} páginas · ${preview.rows.length} renglones detectados${ocrPages ? ` · OCR en ${ocrPages} páginas escaneadas` : ""}`
     $("extract-pdf-batch").textContent = processed >= preview.totalPages ? "Extracción completa" : `Extraer páginas ${state.pdfNextPage}–${Math.min(preview.totalPages, state.pdfNextPage + 19)}`
     $("extract-pdf-batch").disabled = processed >= preview.totalPages
+  }
+
+  function multiplyPdfTransforms(left, right) {
+    return [
+      left[0] * right[0] + left[2] * right[1],
+      left[1] * right[0] + left[3] * right[1],
+      left[0] * right[2] + left[2] * right[3],
+      left[1] * right[2] + left[3] * right[3],
+      left[0] * right[4] + left[2] * right[5] + left[4],
+      left[1] * right[4] + left[3] * right[5] + left[5]
+    ]
+  }
+
+  async function getPdfImagePlacements(page, pdfjs) {
+    const operators = await page.getOperatorList()
+    const operationNames = new Map(Object.entries(pdfjs.OPS).map(([name, value]) => [value, name]))
+    const imageOperations = new Set(["paintImageXObject", "paintJpegXObject", "paintInlineImageXObject", "paintImageMaskXObject"])
+    const stack = []
+    let matrix = [1, 0, 0, 1, 0, 0]
+    const viewport = page.getViewport({ scale: 1 })
+    const images = []
+    for (let index = 0; index < operators.fnArray.length; index += 1) {
+      const operation = operationNames.get(operators.fnArray[index])
+      const args = operators.argsArray[index]
+      if (operation === "save") stack.push(matrix)
+      else if (operation === "restore") matrix = stack.pop() || matrix
+      else if (operation === "transform" && Array.isArray(args)) matrix = multiplyPdfTransforms(matrix, args)
+      else if (imageOperations.has(operation) && matrix.every(Number.isFinite)) {
+        const [a, b, c, d, e, f] = matrix
+        const points = [
+          viewport.convertToViewportPoint(e, f),
+          viewport.convertToViewportPoint(e + a, f + b),
+          viewport.convertToViewportPoint(e + c, f + d),
+          viewport.convertToViewportPoint(e + a + c, f + b + d)
+        ]
+        const left = Math.max(0, Math.min(...points.map(point => point[0])))
+        const top = Math.max(0, Math.min(...points.map(point => point[1])))
+        const right = Math.min(viewport.width, Math.max(...points.map(point => point[0])))
+        const bottom = Math.min(viewport.height, Math.max(...points.map(point => point[1])))
+        const width = right - left
+        const height = bottom - top
+        if (width >= 12 && height >= 12 && width * height < viewport.width * viewport.height * 0.2) {
+          images.push({ left, top, width, height, centerY: top + height / 2 })
+        }
+      }
+    }
+    return images.sort((left, right) => left.centerY - right.centerY)
+  }
+
+  async function renderPdfPage(page, scale) {
+    const viewport = page.getViewport({ scale })
+    const canvas = document.createElement("canvas")
+    canvas.width = Math.ceil(viewport.width)
+    canvas.height = Math.ceil(viewport.height)
+    const context = canvas.getContext("2d", { alpha: false })
+    if (!context) throw new Error("No se pudo preparar la vista local de la página PDF.")
+    await page.render({ canvasContext: context, viewport }).promise
+    return { canvas, viewport }
+  }
+
+  function makeSupplierPhoto(pageCanvas, viewport, bounds, id) {
+    const scaleX = pageCanvas.width / viewport.width
+    const scaleY = pageCanvas.height / viewport.height
+    const sourceX = Math.max(0, Math.floor(bounds.left * scaleX))
+    const sourceY = Math.max(0, Math.floor(bounds.top * scaleY))
+    const sourceWidth = Math.min(pageCanvas.width - sourceX, Math.ceil(bounds.width * scaleX))
+    const sourceHeight = Math.min(pageCanvas.height - sourceY, Math.ceil(bounds.height * scaleY))
+    if (sourceWidth < 1 || sourceHeight < 1) return null
+    const target = document.createElement("canvas")
+    const ratio = Math.min(1, 96 / Math.max(sourceWidth, sourceHeight))
+    target.width = Math.max(1, Math.round(sourceWidth * ratio))
+    target.height = Math.max(1, Math.round(sourceHeight * ratio))
+    const context = target.getContext("2d", { alpha: false })
+    if (!context) throw new Error("No se pudo comprimir la foto de referencia del proveedor.")
+    context.fillStyle = "#fff"
+    context.fillRect(0, 0, target.width, target.height)
+    context.drawImage(pageCanvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, target.width, target.height)
+    const dataUrl = target.toDataURL("image/jpeg", 0.5)
+    if (dataUrl.length > 27000) throw new Error("Una foto de referencia supera el límite de tamaño después de comprimirla.")
+    return { id, dataUrl, centerY: bounds.centerY, topY: bounds.top, bottomY: bounds.top + bounds.height }
+  }
+
+  async function getSupplierPagePhotos(pageNumber, placements, pageCanvas, viewport) {
+    return placements.map((placement, index) =>
+      makeSupplierPhoto(pageCanvas, viewport, placement, `SUPIMG-${crypto.randomUUID()}`)
+    ).filter(Boolean).map((photo, index) => ({ ...photo, pageNumber, index }))
+  }
+
+  async function getOcrWorker() {
+    if (state.ocrWorker) return state.ocrWorker
+    const { createWorker } = await import("/vendor/tesseract/tesseract.esm.min.js")
+    state.ocrWorker = await createWorker("spa", 1, {
+      workerPath: "/vendor/tesseract/worker.min.js",
+      corePath: "/vendor/tesseract/core",
+      langPath: "/vendor/tesseract/lang-data",
+      gzip: true,
+      cacheMethod: "write"
+    })
+    return state.ocrWorker
+  }
+
+  function hasPdfCardFieldLabels(lines) {
+    return lines.some(({ text }) =>
+      /^(?:referencia|ref\.?|codigo|cod\.?|sku|precio|costo|importe|valor|p\.?\s*unitario|empaque|presentacion|paquete|pack|unidades por|contenido|piezas por|unds? por|minimo|cantidad minima|compra minima|min\.? compra)\s*[:#=-]/i.test(text.trim())
+    )
+  }
+
+  function getPdfSectionHeader(text) {
+    if (!/(?:\bPAQUETES?\s*\/\s*UND\b|\bUSD\b|US\$)/i.test(text) || /(?:[$€£]\s*)?\d[\d.,]*[.,]\d{2}/.test(text)) return null
+    const packageColumn = /\bPAQUETES?\s*\/\s*UND\b/i.test(text)
+    const title = text
+      .replace(/\bPAQUETES?\s*\/\s*UND\b/gi, " ")
+      .replace(/US\$|\bUSD\b/gi, " ")
+      .replace(/\bFOTO\b/gi, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim()
+    return { title, packageColumn }
+  }
+
+  function addPdfSectionTitle(sectionTitle, productName) {
+    const title = String(sectionTitle || "").trim()
+    const name = String(productName || "").trim()
+    if (!title) return name
+    if (!name || canonical(name).includes(canonical(title))) return name || title
+    return `${title} ${name}`.replace(/\s{2,}/g, " ").trim()
+  }
+
+  function assignPdfPhotos(preview, pageNumber, firstRowIndex, photos) {
+    if (!photos.length) return
+    const pageRows = preview.rows.slice(firstRowIndex).filter(row => row.pageNumber === pageNumber)
+    const photoUseCounts = new Map()
+    for (const row of pageRows) {
+      if (!Number.isFinite(row.pdfTopY)) continue
+      const nearest = photos.reduce((best, photo) => {
+        const gap = Math.max(photo.topY - row.pdfTopY, 0, row.pdfTopY - photo.bottomY)
+        const distance = gap ? gap : Math.abs(photo.centerY - row.pdfTopY) / 10
+        return !best || distance < best.distance ? { photo, distance } : best
+      }, null)
+      if (!nearest || nearest.distance > 90) continue
+      const photo = nearest.photo
+      row.supplierImageId = photo.id
+      photoUseCounts.set(photo.id, (photoUseCounts.get(photo.id) || 0) + 1)
+    }
+    const usedPhotos = photos.filter(photo => photoUseCounts.has(photo.id))
+    for (const photo of usedPhotos) photo.rowCount = photoUseCounts.get(photo.id)
+    preview.supplierPhotos.push(...usedPhotos)
+  }
+
+  function pdfHeaderField(text) {
+    const value = canonical(text)
+    if (/\b(descripcion|producto|articulo|detalle)\b/.test(value)) return "description"
+    if (/\b(referencia|ref|codigo|cod|sku)\b/.test(value)) return "reference"
+    if (/\b(precio|costo|importe|valor|price)\b/.test(value)) return "price"
+    if (/\b(unidades por (empaque|paquete|caja)|contenido|piezas por|unds? por)\b/.test(value)) return "unitsPerPurchase"
+    if (/\b(empaque|presentacion|paquete|unidad compra|pack)\b/.test(value)) return "package"
+    if (/\b(minimo|minima|cantidad minima|min compra|compra minima)\b/.test(value)) return "minimumQuantity"
+    return ""
+  }
+
+  function findPdfHeaderColumns(parts) {
+    const columns = []
+    for (const part of parts) {
+      const field = pdfHeaderField(part.text)
+      if (field && !columns.some(column => column.field === field)) columns.push({ field, x: part.x })
+    }
+    return columns.some(column => column.field === "price") && columns.length >= 2
+      ? columns.sort((left, right) => left.x - right.x)
+      : []
+  }
+
+  function readPdfCells(parts, columns) {
+    const cells = Object.fromEntries(columns.map(column => [column.field, ""]))
+    if (!columns.length) return cells
+    for (const part of parts) {
+      let columnIndex = 0
+      for (let index = 1; index < columns.length; index += 1) {
+        const boundary = (columns[index - 1].x + columns[index].x) / 2
+        if (part.x >= boundary) columnIndex = index
+      }
+      const field = columns[columnIndex].field
+      cells[field] = `${cells[field]} ${part.text}`.trim()
+    }
+    return cells
+  }
+
+  function isPdfDecimalPriceLine(line) {
+    return /^\s*(?:[$€£]\s*)?\d[\d.,]*[.,]\d{2}(?:\s*(?:USD|EUR|VES))?\s*$/i.test(line)
+  }
+
+  function parsePdfCard(lines) {
+    const labels = {
+      description: /^(?:producto|descripcion|articulo|detalle)\s*[:=-]\s*/i,
+      reference: /^(?:referencia|ref\.?|codigo|cod\.?|sku)\s*[:#=-]\s*/i,
+      price: /^(?:precio|costo|importe|valor|p\.?\s*unitario)\s*[:=-]\s*/i,
+      package: /^(?:empaque|presentacion|paquete|pack)\s*[:=-]\s*/i,
+      unitsPerPurchase: /^(?:unidades por (?:empaque|paquete|caja)|contenido|piezas por|unds? por)\s*[:=-]\s*/i,
+      minimumQuantity: /^(?:minimo(?: de compra| compra)?|cantidad minima|compra minima|min\.? compra)\s*[:=-]\s*/i
+    }
+    const fields = {}
+    const titleLines = []
+    for (const rawLine of lines) {
+      let line = rawLine.trim()
+      if (!line) continue
+      let matchedField = false
+      for (const [field, pattern] of Object.entries(labels)) {
+        if (!pattern.test(line)) continue
+        fields[field] = line.replace(pattern, "").trim()
+        matchedField = true
+        break
+      }
+      if (!matchedField) {
+        line = line.replace(/^(?:nombre del producto|producto|descripcion|articulo)\s*[:=-]\s*/i, "")
+        if (line && !isPdfDecimalPriceLine(line) && !/\b(?:catalogo|pagina|subtotal|vigencia|condiciones generales)\b/i.test(line)) titleLines.push(line)
+      }
+    }
+    const title = titleLines.join(" ").replace(/\s{2,}/g, " ").trim()
+    const priceValue = fields.price || lines.map(line => {
+      return isPdfDecimalPriceLine(line) ? line.trim().replace(/\s*(?:USD|EUR|VES)$/i, "") : ""
+    }).find(Boolean) || ""
+    if (!priceValue) return null
+    const cells = {
+      price: priceValue,
+      description: fields.description || title,
+      reference: fields.reference || "",
+      package: fields.package || "",
+      unitsPerPurchase: fields.unitsPerPurchase || "",
+      minimumQuantity: fields.minimumQuantity || ""
+    }
+    const parsed = parsePdfCatalogLine(lines.join(" "), cells)
+    if (!parsed) return null
+    if (!parsed.productName && title) parsed.productName = title
+    return parsed
+  }
+
+  function parsePdfCatalogLine(line, cells = null) {
+    const decimalPrices = [...line.matchAll(/(?:[$€£]\s*)?\d[\d.,]*[.,]\d{2}(?!\d)/g)]
+    const explicitCurrency = [...line.matchAll(/[$€£]\s*\d[\d.,]*/g)]
+    const priceMatch = decimalPrices.at(-1) || explicitCurrency.at(-1) || null
+    const hasPriceColumn = Boolean(cells && Object.hasOwn(cells, "price"))
+    const columnPrice = hasPriceColumn ? parseListNumber(cells.price, NaN) : NaN
+    if (!hasPriceColumn && !priceMatch) return null
+
+    const unitCost = hasPriceColumn
+      ? columnPrice
+      : parseListNumber(priceMatch[0].replace(/[$€£]/g, ""), NaN)
+    if (!Number.isFinite(unitCost) || unitCost < 0) return null
+    const beforePrice = priceMatch
+      ? line.slice(0, priceMatch.index).trim().replace(/[|·–—-]\s*$/, "").trim()
+      : line
+    const codeMatch = beforePrice.match(/^([A-Z0-9]{2,}(?:[-_/][A-Z0-9]+)+)\b/i)
+    const productCode = String(cells
+      ? Object.hasOwn(cells, "reference") ? cells.reference : ""
+      : codeMatch ? codeMatch[1] : "").trim()
+    const rawProductName = String(cells
+      ? Object.hasOwn(cells, "description") ? cells.description : ""
+      : productCode && codeMatch ? beforePrice.slice(codeMatch[0].length) : beforePrice)
+      .replace(/^[\s:|·–—-]+/, "").trim()
+    if (!rawProductName && !productCode && !cells) return null
+
+    const packageValue = String(cells?.package || "").trim()
+    const packageMatch = (packageValue || rawProductName).match(/\b(ROLLO|CARRETE|CAJA|PAQUETE|PAQ\.?|BOLSA|BULTO|PACK|SET)\s*(\d+(?:[.,]\d+)?)?\s*(MTS?|METROS?|UNIDADES|UNDS?|PZAS?|PIEZAS)?\b/i)
+    const productName = rawProductName
+      .replace(packageValue || packageMatch?.[0] || "", " ")
+      .replace(/\s{2,}/g, " ")
+      .replace(/^[\s:|·–—-]+|[\s:|·–—-]+$/g, "")
+      .trim()
+    const notes = []
+    if (!cells?.price && decimalPrices.length > 1) notes.push("Hay varios importes decimales; confirma cuál es el precio.")
+    if (!productCode) notes.push("No se detectó una referencia/código separado.")
+    if (!productName) notes.push("Revisa la descripción del producto.")
+    if (!packageValue && !packageMatch) notes.push("Confirma empaque o presentación; no se identificó un encabezado/dato claro.")
+    if (!cells?.minimumQuantity) notes.push("Confirma el mínimo de compra; no se identificó un encabezado/dato claro.")
+    const minimumQuantity = cells?.minimumQuantity
+      ? parseListNumber(cells.minimumQuantity, NaN)
+      : 1
+    const unitsPerPurchase = cells?.unitsPerPurchase
+      ? parseListNumber(cells.unitsPerPurchase, NaN)
+      : packageMatch?.[2] && /\b(UNIDADES|UNDS?|PZAS?|PIEZAS)\b/i.test(packageMatch[0])
+        ? parseListNumber(packageMatch[2], 1)
+        : 1
+    return {
+      productCode,
+      supplierSku: productCode,
+      productName,
+      unitCost: Number(unitCost.toFixed(2)),
+      purchaseUnit: packageValue || (packageMatch
+        ? `${packageMatch[1]}${packageMatch[2] ? ` ${packageMatch[2]}` : ""}${packageMatch[3] ? ` ${packageMatch[3]}` : ""}`
+        : "unidad"),
+      unitsPerPurchase: cells?.unitsPerPurchase && (!Number.isInteger(unitsPerPurchase) || unitsPerPurchase < 1)
+        ? NaN
+        : unitsPerPurchase,
+      minimumQuantity: cells?.minimumQuantity && (!Number.isInteger(minimumQuantity) || minimumQuantity < 1)
+        ? NaN
+        : minimumQuantity,
+      confidence: cells?.price && cells?.description && cells?.reference ? "alta" : cells?.price && cells?.description ? "media" : "baja",
+      reviewNotes: notes
+    }
+  }
+
+  function addPdfPreviewRow(preview, parsed, pageNumber, topY = NaN) {
+    if (!parsed.productName && !parsed.productCode) return
+    const product = resolveImportProduct(parsed.productCode, preview.supplierId) ||
+      resolveImportProduct(parsed.productName, preview.supplierId)
+    const productText = `${parsed.productCode} ${parsed.productName}`.trim()
+    const existingKey = `${pageNumber}:${canonical(productText)}:${parsed.unitCost}`
+    if (preview.sourceKeys.has(existingKey)) return
+    preview.sourceKeys.add(existingKey)
+    preview.rows.push({
+      rowNumber: preview.rows.length + 1,
+      pageNumber,
+      pdfTopY: topY,
+      sourceKey: existingKey,
+      productId: product ? Number(product.id) : null,
+      external: !product,
+      productName: parsed.productName,
+      productCode: parsed.productCode,
+      productChoice: product ? `${product.name || "Producto"} (${product.code || product.id})` : parsed.productName,
+      supplierSku: parsed.supplierSku,
+      unitCost: parsed.unitCost,
+      purchaseUnit: parsed.purchaseUnit,
+      unitsPerPurchase: parsed.unitsPerPurchase,
+      minimumQuantity: parsed.minimumQuantity,
+      discountMinimumQuantity: 0,
+      discountMinimumAmount: 0,
+      paymentMethod: "",
+      discountPercentage: 0,
+      extractionConfidence: parsed.confidence,
+      reviewNotes: parsed.reviewNotes
+    })
+    if (preview.rows.length > 5000) throw new Error("Se detectaron más de 5000 renglones. Divide el catálogo en archivos más pequeños.")
   }
 
   async function extractPdfBatch() {
@@ -467,57 +815,182 @@
     const document = state.pdfDocument
     if (!preview || !document || state.pdfNextPage > preview.totalPages) return
     const endPage = Math.min(preview.totalPages, state.pdfNextPage + 19)
+    const pdfjs = await import("/vendor/pdfjs/pdf.mjs")
     $("extract-pdf-batch").disabled = true
     try {
       for (let pageNumber = state.pdfNextPage; pageNumber <= endPage; pageNumber += 1) {
         const page = await document.getPage(pageNumber)
         const content = await page.getTextContent()
+        const pageHeight = page.getViewport({ scale: 1 }).height
         const lineMap = new Map()
-        for (const item of content.items) {
-          if (!item.str || !item.str.trim()) continue
-          const y = Math.round(item.transform[5] / 3) * 3
-          if (!lineMap.has(y)) lineMap.set(y, [])
-          lineMap.get(y).push({ x: item.transform[4], text: item.str.trim() })
+        let isOcrPage = false
+        let pageCanvas = null
+        let pageViewport = null
+        let imagePlacements = []
+        const selectableText = content.items.map(item => item.str || "").join(" ").trim()
+        if (selectableText.length < 20) {
+          isOcrPage = true
+          if (!preview.ocrPages.includes(pageNumber)) preview.ocrPages.push(pageNumber)
+          $("pdf-progress").textContent = `Página ${pageNumber}: sin texto seleccionable; preparando OCR local…`
+          const rendered = await renderPdfPage(page, 2)
+          pageCanvas = rendered.canvas
+          pageViewport = rendered.viewport
+          const worker = await getOcrWorker()
+          $("pdf-progress").textContent = `Leyendo página escaneada ${pageNumber} con OCR local…`
+          const recognized = await worker.recognize(pageCanvas)
+          for (const line of recognized.data.lines || []) {
+            const text = String(line.text || "").trim()
+            if (!text) continue
+            const topY = Number(line.bbox?.y0) / 2
+            const x = Number(line.bbox?.x0) / 2
+            const y = Math.round((pageHeight - topY) / 3) * 3
+            if (!lineMap.has(y)) lineMap.set(y, [])
+            lineMap.get(y).push({ x: Number.isFinite(x) ? x : 0, y, text })
+          }
+          if (!lineMap.size) preview.ocrPagesWithoutRows.push(pageNumber)
+        } else {
+          for (const item of content.items) {
+            if (!item.str || !item.str.trim()) continue
+            const y = Math.round(item.transform[5] / 3) * 3
+            if (!lineMap.has(y)) lineMap.set(y, [])
+            lineMap.get(y).push({ x: item.transform[4], y, text: item.str.trim() })
+          }
+          imagePlacements = await getPdfImagePlacements(page, pdfjs)
+          if (imagePlacements.length) {
+            const rendered = await renderPdfPage(page, 1.5)
+            pageCanvas = rendered.canvas
+            pageViewport = rendered.viewport
+          }
         }
-        for (const parts of lineMap.values()) {
-          parts.sort((left, right) => left.x - right.x)
-          let line = ""
+        let pendingDescription = ""
+        let headerColumns = preview.pdfHeaderColumns || []
+        const pageLines = [...lineMap.entries()].sort((a, b) => b[0] - a[0]).map(([, lineParts]) => {
+          lineParts.sort((left, right) => left.x - right.x)
+          let text = ""
           let previousX = null
-          for (const part of parts) {
-            if (previousX != null && part.x - previousX > 24) line += "  "
-            else if (line && !line.endsWith(" ")) line += " "
-            line += part.text
+          for (const part of lineParts) {
+            if (previousX != null && part.x - previousX > 24) text += "  "
+            else if (text && !text.endsWith(" ")) text += " "
+            text += part.text
             previousX = part.x
           }
-          const match = line.match(/(?:[$€£]\s*)?(-?\d[\d.,]*)\s*(?:USD|EUR|€)?\s*$/i)
-          if (!match) continue
-          const unitCost = parseListNumber(match[1], NaN)
-          const productText = line.slice(0, match.index).replace(/[|·–—-]\s*$/, "").trim()
-          if (!productText || !Number.isFinite(unitCost) || unitCost < 0) continue
-          const product = resolveImportProduct(productText, preview.supplierId)
-          const existingKey = `${pageNumber}:${canonical(productText)}:${unitCost}`
-          if (preview.sourceKeys.has(existingKey)) continue
-          preview.sourceKeys.add(existingKey)
-          preview.rows.push({
-            rowNumber: preview.rows.length + 1,
-            pageNumber,
-            sourceKey: existingKey,
-            productId: product ? Number(product.id) : null,
-            external: !product,
-            productName: productText,
-            productCode: "",
-            productChoice: product ? `${product.name || "Producto"} (${product.code || product.id})` : productText,
-            supplierSku: "",
-            unitCost,
-            purchaseUnit: "unidad",
-            unitsPerPurchase: 1,
-            minimumQuantity: 1,
-            discountMinimumQuantity: 0,
-            discountMinimumAmount: 0,
-            paymentMethod: "",
-            discountPercentage: 0
-          })
-          if (preview.rows.length > 5000) throw new Error("Se detectaron más de 5000 renglones. Divide el catálogo en archivos más pequeños.")
+          return { parts: lineParts, text, topY: pageHeight - lineParts[0].y }
+        })
+        const firstPageRowIndex = preview.rows.length
+        if (!headerColumns.length) {
+          const pageHeader = pageLines.map(({ parts }) => findPdfHeaderColumns(parts)).find(columns => columns.length)
+          if (pageHeader) headerColumns = pageHeader
+        }
+        if (!headerColumns.length && hasPdfCardFieldLabels(pageLines)) {
+          let cardLines = []
+          let cardTopY = NaN
+          let cardHasPrice = false
+          const flushCard = () => {
+            if (!cardLines.length) return
+            const parsed = parsePdfCard(cardLines)
+            cardLines = []
+            cardHasPrice = false
+            if (parsed) {
+              if (isOcrPage) {
+                parsed.confidence = "baja"
+                parsed.reviewNotes.push("Lectura OCR de una página escaneada; verifica cada campo.")
+              }
+              addPdfPreviewRow(preview, parsed, pageNumber, cardTopY)
+            }
+            cardTopY = NaN
+          }
+          for (const { text, topY } of pageLines) {
+            const line = text.trim()
+            const isTitle = line && !/^(?:referencia|ref\.?|codigo|cod\.?|sku|precio|costo|importe|valor|p\.?\s*unitario|empaque|presentacion|paquete|pack|unidades por|contenido|piezas por|unds? por|minimo(?: de compra| compra)?|cantidad minima|compra minima|min\.? compra)\s*[:#=-]/i.test(line) &&
+              !/(?:[$€£]\s*)?\d[\d.,]*[.,]\d{2}(?!\d)/.test(line) &&
+              !/\b(?:catalogo|pagina|subtotal|vigencia|condiciones generales)\b/i.test(line)
+            if (isTitle && cardHasPrice) flushCard()
+            if (line) {
+              if (!Number.isFinite(cardTopY)) cardTopY = topY
+              cardLines.push(line)
+            }
+            if (/^(?:precio|costo|importe|valor|p\.?\s*unitario)\s*[:=-]/i.test(line) ||
+              /(?:[$€£]\s*)\d[\d.,]*/.test(line) || isPdfDecimalPriceLine(line)) cardHasPrice = true
+          }
+          flushCard()
+        } else {
+          let sectionTitle = ""
+          let pendingSectionTitle = ""
+          let sectionHasPackages = false
+          for (const { parts, text: line, topY } of pageLines) {
+            const detectedColumns = findPdfHeaderColumns(parts)
+            if (detectedColumns.length) {
+              headerColumns = detectedColumns
+              preview.pdfHeaderColumns = detectedColumns
+              pendingDescription = ""
+              continue
+            }
+            const sectionHeader = getPdfSectionHeader(line)
+            if (sectionHeader) {
+              sectionTitle = addPdfSectionTitle(pendingSectionTitle, sectionHeader.title)
+              pendingSectionTitle = ""
+              sectionHasPackages = sectionHeader.packageColumn
+              continue
+            }
+            const cells = readPdfCells(parts, headerColumns)
+            const parsed = parsePdfCatalogLine(line, headerColumns.length ? cells : null)
+            if (!parsed) {
+              const text = line.trim()
+              const looksLikeHeader = /\b(descripcion|producto|referencia|codigo|precio|costo|catalogo|pagina|subtotal|vigencia)\b/i.test(text)
+              const looksLikeFooter = /\b(subtotal|total|pagina|vigencia|condiciones|forma de pago)\b/i.test(text)
+              if (!looksLikeHeader && !looksLikeFooter && text.length > 2 && text.length < 180) {
+                pendingSectionTitle = [pendingSectionTitle, text].filter(Boolean).slice(-2).join(" ")
+              }
+              continue
+            }
+            if (pendingSectionTitle) {
+              sectionTitle = addPdfSectionTitle(sectionTitle, pendingSectionTitle)
+              pendingSectionTitle = ""
+            }
+            if (pendingDescription) {
+              const pendingCode = pendingDescription.match(/^([A-Z0-9]{2,}(?:[-_/][A-Z0-9]+)+)\b/i)
+              const continuation = pendingCode ? pendingDescription.slice(pendingCode[0].length).trim() : pendingDescription
+              parsed.productName = addPdfSectionTitle(continuation || sectionTitle, parsed.productName)
+              if (!parsed.productCode && pendingCode) {
+                parsed.productCode = pendingCode[1]
+                parsed.supplierSku = pendingCode[1]
+              }
+              pendingDescription = ""
+            } else {
+              parsed.productName = addPdfSectionTitle(sectionTitle, parsed.productName)
+            }
+            if (sectionHasPackages) {
+              const priceMatches = [...line.matchAll(/(?:[$€£]\s*)?\d[\d.,]*[.,]\d{2}(?!\d)/g)]
+              const lastPrice = priceMatches.at(-1)
+              const trailing = lastPrice ? line.slice(lastPrice.index + lastPrice[0].length).trim() : ""
+              const packageCount = trailing.match(/^(\d{1,6})$/)
+              if (packageCount) {
+                parsed.purchaseUnit = "paquete"
+                parsed.unitsPerPurchase = Number(packageCount[1])
+                parsed.reviewNotes = parsed.reviewNotes.filter(note => !note.startsWith("Confirma empaque o presentación"))
+              } else if (/^(?:UND|UNIDAD)$/i.test(trailing)) {
+                parsed.purchaseUnit = "unidad"
+                parsed.unitsPerPurchase = 1
+                parsed.reviewNotes = parsed.reviewNotes.filter(note => !note.startsWith("Confirma empaque o presentación"))
+              }
+            }
+            if (isOcrPage) {
+              parsed.confidence = "baja"
+              parsed.reviewNotes.push("Lectura OCR de una página escaneada; verifica cada campo.")
+            }
+            addPdfPreviewRow(preview, parsed, pageNumber, topY)
+          }
+        }
+        if (isOcrPage && !preview.rows.slice(firstPageRowIndex).some(row => row.pageNumber === pageNumber)) {
+          preview.ocrPagesWithoutRows.push(pageNumber)
+        }
+        if (pageCanvas && pageViewport && !isOcrPage) {
+          const photos = await getSupplierPagePhotos(pageNumber, imagePlacements, pageCanvas, pageViewport)
+          assignPdfPhotos(preview, pageNumber, firstPageRowIndex, photos)
+        }
+        if (pageCanvas) {
+          pageCanvas.width = 0
+          pageCanvas.height = 0
         }
         page.cleanup()
         state.pdfNextPage = pageNumber + 1
@@ -528,7 +1001,7 @@
       if (preview.rows.length === 0 && endPage === preview.totalPages) {
         throw new Error("No se encontró texto con precios en el PDF. Puede ser un escaneo o tener un formato no compatible; no se modificó ningún costo.")
       }
-      if (preview.rows.length > 0) renderPriceListPreview()
+      if (preview.rows.length > 0 || preview.ocrPagesWithoutRows.length) renderPriceListPreview()
       updatePdfProgress()
     } finally {
       if (state.pdfNextPage <= preview.totalPages) $("extract-pdf-batch").disabled = false
@@ -539,6 +1012,10 @@
     if (state.pdfDocument) {
       await state.pdfDocument.destroy()
       state.pdfDocument = null
+    }
+    if (state.ocrWorker) {
+      await state.ocrWorker.terminate()
+      state.ocrWorker = null
     }
     state.pdfNextPage = 1
   }
@@ -568,12 +1045,20 @@
     state.priceListPage = Math.min(state.priceListPage, pageCount - 1)
     const pageStart = state.priceListPage * pageSize
     const visibleRows = preview.rows.slice(pageStart, pageStart + pageSize)
+    const photoBytes = (preview.supplierPhotos || []).reduce((total, photo) =>
+      total + Math.floor((photo.dataUrl.length - photo.dataUrl.indexOf(",") - 1) * 0.75), 0)
     $("price-list-preview").innerHTML = `
       <datalist id="price-list-products">${options}</datalist>
       <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-violet-50 p-3 text-sm">
-        <span>${escapeHtml(preview.sourceName)} · ${preview.rows.length} filas${preview.totalPages ? ` · ${Math.min(state.pdfNextPage - 1, preview.totalPages)}/${preview.totalPages} páginas` : ""} · ${!preview.complete ? "continúa la extracción para completar el PDF" : invalidCount ? `${invalidCount} requieren revisión` : "lista lista para confirmar"}</span>
-        <button id="apply-price-list" type="button" ${invalidCount || !preview.complete ? "disabled" : ""} class="rounded-lg bg-emerald-700 px-4 py-2 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Confirmar y actualizar costos</button>
+        <span>${escapeHtml(preview.sourceName)} · ${preview.rows.length} filas${preview.totalPages ? ` · ${Math.min(state.pdfNextPage - 1, preview.totalPages)}/${preview.totalPages} páginas` : ""} · ${!preview.complete ? "continúa la extracción para completar el PDF" : invalidCount ? `${invalidCount} requieren revisión` : "revisa la identificación antes de confirmar"}</span>
+        <button id="apply-price-list" type="button" ${invalidCount || !preview.complete || (preview.totalPages && !preview.reviewAcknowledged) ? "disabled" : ""} class="rounded-lg bg-emerald-700 px-4 py-2 font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Confirmar y actualizar costos</button>
       </div>
+      ${preview.totalPages ? `<div class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-950">
+        <p><strong>Revisión importante:</strong> el PDF no tiene un formato universal. Se interpretan encabezados de columnas o, cuando parece una tarjeta, su título y rótulos internos. Verifica costo, referencia, descripción, empaque, unidades y mínimo antes de guardar.</p>
+        ${(preview.ocrPages || []).length ? `<p class="mt-1">OCR local aplicado en páginas escaneadas: ${escapeHtml(preview.ocrPages.join(", "))}. Verifica especialmente sus lecturas.${preview.ocrPagesWithoutRows?.length ? ` No se detectaron filas con precio en las páginas ${escapeHtml(preview.ocrPagesWithoutRows.join(", "))}.` : ""}</p>` : ""}
+        ${(preview.supplierPhotos || []).length ? `<p class="mt-1">Fotos del proveedor comprimidas a miniaturas de 96 px (${(photoBytes / 1024).toFixed(0)} KB en total). Se guardarán solo para consulta en Compras, sin alterar fotos de productos.</p>` : ""}
+        <label class="mt-2 flex items-center gap-2 font-semibold"><input id="confirm-pdf-review" type="checkbox" ${preview.reviewAcknowledged ? "checked" : ""}> Revisé los datos extraídos; corregí las referencias, descripciones y precios necesarios.</label>
+      </div>` : ""}
       <div class="flex items-center justify-between gap-2 text-sm">
         <button type="button" data-import-page="${state.priceListPage - 1}" ${state.priceListPage === 0 ? "disabled" : ""} class="rounded border px-3 py-1 disabled:opacity-40">Anterior</button>
         <span>Filas ${preview.rows.length ? pageStart + 1 : 0}–${Math.min(pageStart + pageSize, preview.rows.length)} de ${preview.rows.length} · Página ${state.priceListPage + 1}/${pageCount}</span>
@@ -581,11 +1066,12 @@
       </div>
       <div class="max-h-[32rem] overflow-auto rounded-lg border">
         <table class="w-full min-w-[1000px] text-left text-xs">
-          <thead class="sticky top-0 bg-slate-100"><tr><th class="p-2">Fila / página</th><th class="p-2">Producto del sistema (nombre o código exacto)</th><th class="p-2">Costo</th><th class="p-2">Unidad compra</th><th class="p-2">Unidades/compra</th><th class="p-2">Mínimo</th><th class="p-2">Código proveedor</th><th class="p-2">Cantidad desde</th><th class="p-2">Monto desde</th><th class="p-2">Método de pago</th><th class="p-2">Descuento %</th></tr></thead>
+          <thead class="sticky top-0 bg-slate-100"><tr><th class="p-2">Foto del grupo</th><th class="p-2">Fila / página</th><th class="p-2">Vincular producto / descripción detectada</th><th class="p-2">Costo</th><th class="p-2">Unidad compra</th><th class="p-2">Unidades/compra</th><th class="p-2">Mínimo</th><th class="p-2">Referencia / código proveedor</th><th class="p-2">Cantidad desde</th><th class="p-2">Monto desde</th><th class="p-2">Método de pago</th><th class="p-2">Descuento %</th></tr></thead>
           <tbody>${visibleRows.map((row, visibleIndex) => {
             const index = pageStart + visibleIndex
             const duplicateKey = row.productId ? `product:${row.productId}` : `external:${canonical(row.supplierSku || row.productCode || row.productName)}`
             const duplicate = invalidDuplicateIds.has(duplicateKey)
+            const supplierPhoto = (preview.supplierPhotos || []).find(photo => photo.id === row.supplierImageId)
             const invalid = (!row.productId && (!row.external || !String(row.productName || "").trim())) || !Number.isFinite(row.unitCost) || row.unitCost < 0 ||
               !Number.isInteger(row.unitsPerPurchase) || row.unitsPerPurchase < 1 ||
               !Number.isInteger(row.minimumQuantity) || row.minimumQuantity < 1 ||
@@ -594,8 +1080,9 @@
               !Number.isFinite(row.discountPercentage) || row.discountPercentage < 0 || row.discountPercentage > 100 ||
               (row.discountPercentage > 0 && !row.discountMinimumQuantity && !row.discountMinimumAmount && !row.paymentMethod) || duplicate
             return `<tr class="border-t ${invalid ? "bg-rose-50" : ""}">
+              <td class="p-2">${supplierPhoto ? `<img src="${supplierPhoto.dataUrl}" alt="Foto compartida por ${supplierPhoto.rowCount} filas del grupo" loading="lazy" class="h-14 w-14 rounded border bg-white object-contain"><span class="text-[10px] text-slate-500">${supplierPhoto.rowCount} filas</span>` : "—"}</td>
               <td class="p-2">${row.pageNumber ? `Pág. ${row.pageNumber}` : row.rowNumber}</td>
-              <td class="p-2"><input data-import-product="${index}" list="price-list-products" value="${escapeHtml(row.productChoice)}" class="w-full rounded border px-2 py-1" aria-label="Producto del sistema para fila ${row.rowNumber}">${!row.productId ? `<label class="mt-1 flex items-center gap-1 text-xs text-amber-900"><input type="checkbox" data-import-external="${index}" ${row.external ? "checked" : ""}> Guardar como artículo externo (no se agrega a productos)</label>` : ""}<span class="block text-rose-700">${duplicate ? "Revisa las etapas repetidas o datos base distintos" : ""}</span></td>
+              <td class="p-2"><input data-import-product="${index}" list="price-list-products" value="${escapeHtml(row.productChoice)}" class="w-full min-w-56 rounded border px-2 py-1" aria-label="Vincular con producto del catálogo para fila ${row.rowNumber}">${row.extractionConfidence ? `<label class="mt-1 block text-xs text-slate-600">Descripción detectada<input data-import-field="productName" data-import-index="${index}" value="${escapeHtml(row.productName)}" class="mt-1 w-full min-w-56 rounded border px-2 py-1 text-xs" aria-label="Descripción extraída del PDF para fila ${row.rowNumber}"></label>` : ""}${!row.productId ? `<label class="mt-1 flex items-center gap-1 text-xs text-amber-900"><input type="checkbox" data-import-external="${index}" ${row.external ? "checked" : ""}> Guardar como artículo externo (no se agrega a productos)</label>` : ""}${row.extractionConfidence ? `<span class="mt-1 block text-xs ${row.extractionConfidence === "baja" ? "font-semibold text-rose-700" : "text-amber-800"}">PDF · confianza ${row.extractionConfidence}${row.reviewNotes?.length ? ` · ${escapeHtml(row.reviewNotes.join(" "))}` : ""}</span>` : ""}<span class="block text-rose-700">${duplicate ? "Revisa las etapas repetidas o datos base distintos" : ""}</span></td>
               <td class="p-2"><input data-import-field="unitCost" data-import-index="${index}" type="number" min="0" step="0.01" value="${escapeHtml(row.unitCost)}" class="w-24 rounded border px-2 py-1" aria-label="Costo de compra"></td>
               <td class="p-2"><input data-import-field="purchaseUnit" data-import-index="${index}" value="${escapeHtml(row.purchaseUnit)}" class="w-24 rounded border px-2 py-1" aria-label="Unidad de compra"></td>
               <td class="p-2"><input data-import-field="unitsPerPurchase" data-import-index="${index}" type="number" min="1" step="1" value="${escapeHtml(row.unitsPerPurchase)}" class="w-20 rounded border px-2 py-1" aria-label="Unidades por compra"></td>
@@ -614,13 +1101,14 @@
         <span>Página ${state.priceListPage + 1}/${pageCount}</span>
         <button type="button" data-import-page="${state.priceListPage + 1}" ${state.priceListPage >= pageCount - 1 ? "disabled" : ""} class="rounded border px-3 py-1 disabled:opacity-40">Siguiente</button>
       </div>
-      <p class="text-xs text-slate-500">La lista vigente no cambia hasta confirmar. Se actualizan los productos incluidos; los que no aparezcan conservan su último precio verificado. Las órdenes y el catálogo comercial se conservan.</p>`
+      <p class="text-xs text-slate-500">${preview.totalPages ? "Si el PDF no indica empaque o mínimo, el valor inicial 1 es provisional y debes verificarlo." : ""} La lista vigente no cambia hasta confirmar. Se actualizan los productos incluidos; los que no aparezcan conservan su último costo verificado. Las órdenes y el catálogo comercial se conservan.</p>`
   }
 
   async function applyPriceList() {
     const preview = state.priceListPreview
     if (!preview) return
     if (!preview.complete) throw new Error("Termina de extraer todas las páginas del PDF antes de actualizar la lista.")
+    if (preview.totalPages && !preview.reviewAcknowledged) throw new Error("Revisa y confirma los datos extraídos del PDF antes de actualizar la lista.")
     const supplier = supplierById(preview.supplierId)
     if (!supplier) throw new Error("El proveedor de la vista previa ya no existe.")
     const invalidDuplicateIds = getInvalidDiscountProductIds(preview.rows)
@@ -637,29 +1125,36 @@
     }
     const updatedCount = new Set(preview.rows.filter(row => row.productId).map(row => Number(row.productId))).size
     const externalCount = new Set(preview.rows.filter(row => !row.productId && row.external).map(row => canonical(row.supplierSku || row.productCode || row.productName))).size
-    if (!confirm(`Se actualizarán ${updatedCount} productos existentes y se guardarán ${externalCount} artículos en el catálogo separado de ${supplier.name}. Los artículos externos no se agregarán al catálogo comercial; los precios omitidos conservarán su último registro. No se modificarán precios de venta, imágenes, órdenes ni datos de otros proveedores. ¿Continuar?`)) return
+    if (!confirm(`Se actualizarán ${updatedCount} productos existentes y se guardarán ${externalCount} artículos en el catálogo separado de ${supplier.name}. Las miniaturas del proveedor se guardarán aparte para consulta y nunca reemplazarán las fotos de los productos. Los artículos externos no se agregarán al catálogo comercial; los precios omitidos conservarán su último registro. ¿Continuar?`)) return
+    const payload = {
+      supplierId: preview.supplierId,
+      sourceName: preview.sourceName,
+      images: (preview.supplierPhotos || []).map(({ id, dataUrl }) => ({ id, dataUrl })),
+      items: preview.rows.map(row => ({
+        productId: row.productId,
+        external: !row.productId && row.external === true,
+        productName: row.productName,
+        productCode: row.productCode,
+        supplierSku: row.supplierSku,
+        supplierImageId: row.supplierImageId || "",
+        unitCost: row.unitCost,
+        purchaseUnit: row.purchaseUnit,
+        unitsPerPurchase: row.unitsPerPurchase,
+        minimumQuantity: row.minimumQuantity,
+        discountMinimumQuantity: row.discountMinimumQuantity,
+        discountMinimumAmount: row.discountMinimumAmount,
+        paymentMethod: row.paymentMethod,
+        discountPercentage: row.discountPercentage
+      }))
+    }
+    const body = JSON.stringify(payload)
+    if (new TextEncoder().encode(body).byteLength > 9 * 1024 * 1024) {
+      throw new Error("La lista y sus miniaturas superan el límite seguro de carga. Divide el catálogo en archivos más pequeños.")
+    }
     const result = await request("/api/admin/procurement/price-list", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        supplierId: preview.supplierId,
-        sourceName: preview.sourceName,
-        items: preview.rows.map(row => ({
-          productId: row.productId,
-          external: !row.productId && row.external === true,
-          productName: row.productName,
-          productCode: row.productCode,
-          supplierSku: row.supplierSku,
-          unitCost: row.unitCost,
-          purchaseUnit: row.purchaseUnit,
-          unitsPerPurchase: row.unitsPerPurchase,
-          minimumQuantity: row.minimumQuantity,
-          discountMinimumQuantity: row.discountMinimumQuantity,
-          discountMinimumAmount: row.discountMinimumAmount,
-          paymentMethod: row.paymentMethod,
-          discountPercentage: row.discountPercentage
-        }))
-      })
+      body
     })
     state.priceListPreview = null
     await discardPdfDocument()
@@ -668,7 +1163,7 @@
     $("pdf-batch-controls").classList.remove("flex")
     renderPriceListPreview()
     await load()
-    showStatus(`Lista de ${supplier.name} actualizada: ${result.importedCount} precios del catálogo comercial, ${result.importedExternalCount} artículos externos guardados y ${result.retainedCount} precios anteriores conservados. No se almacenó el archivo original.`)
+    showStatus(`Lista de ${supplier.name} actualizada: ${result.importedCount} precios del catálogo comercial, ${result.importedExternalCount} artículos externos, ${result.retainedCount} precios anteriores conservados y ${result.importedImageCount || 0} miniaturas guardadas. No se almacenó el PDF original.`)
   }
 
   function getComparisonProductMatches(query) {
@@ -1171,7 +1666,7 @@
   async function load() {
     const data = await request("/api/admin/procurement")
     state.dispatchCosts = await request("/api/admin/wholesale/dispatch-costs")
-    for (const key of ["suppliers", "productTerms", "supplierCatalogItems", "purchaseOrders", "catalog", "wholesaleOrders"]) {
+    for (const key of ["suppliers", "productTerms", "supplierCatalogItems", "supplierCatalogImages", "purchaseOrders", "catalog", "wholesaleOrders"]) {
       state[key] = Array.isArray(data[key]) ? data[key] : []
     }
     renderAll()
@@ -1247,6 +1742,11 @@
     }
   })
   $("price-list-preview").addEventListener("change", event => {
+    if (event.target.id === "confirm-pdf-review" && state.priceListPreview) {
+      state.priceListPreview.reviewAcknowledged = event.target.checked
+      renderPriceListPreview()
+      return
+    }
     const input = event.target.closest("[data-import-product]")
     if (input && state.priceListPreview) {
       const row = state.priceListPreview.rows[Number(input.dataset.importProduct)]
@@ -1273,6 +1773,7 @@
     row[key] = ["unitCost", "unitsPerPurchase", "minimumQuantity", "discountMinimumQuantity", "discountMinimumAmount", "discountPercentage"].includes(key)
       ? parseListNumber(field.value, NaN)
       : field.value.trim()
+    if (key === "supplierSku") row.productCode = row.supplierSku
     renderPriceListPreview()
   })
   $("price-list-preview").addEventListener("click", async event => {

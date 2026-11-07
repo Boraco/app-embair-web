@@ -628,12 +628,12 @@
 
   function pdfHeaderField(text) {
     const value = canonical(text)
-    if (/\b(descripcion|producto|articulo|detalle)\b/.test(value)) return "description"
-    if (/\b(referencia|ref|codigo|cod|sku)\b/.test(value)) return "reference"
-    if (/\b(precio|costo|importe|valor|price)\b/.test(value)) return "price"
-    if (/\b(unidades por (empaque|paquete|caja)|contenido|piezas por|unds? por)\b/.test(value)) return "unitsPerPurchase"
-    if (/\b(empaque|presentacion|paquete|unidad compra|pack)\b/.test(value)) return "package"
-    if (/\b(minimo|minima|cantidad minima|min compra|compra minima)\b/.test(value)) return "minimumQuantity"
+    if (/^(descripcion|producto|articulo|detalle)$/.test(value)) return "description"
+    if (/^(referencia|ref|codigo|cod|sku)$/.test(value)) return "reference"
+    if (/^(precio|costo|importe|valor|price|cost)(\s|$)/.test(value)) return "price"
+    if (/^(unidades por (empaque|paquete|caja)|contenido|piezas por|unds? por|unid\.?\s*x\s*caja)$/.test(value)) return "unitsPerPurchase"
+    if (/^(empaque|presentacion|paquete|unidad compra|pack)$/.test(value)) return "package"
+    if (/^(minimo|minima|cantidad minima|min compra|compra minima)$/.test(value)) return "minimumQuantity"
     return ""
   }
 
@@ -643,9 +643,19 @@
       const field = pdfHeaderField(part.text)
       if (field && !columns.some(column => column.field === field)) columns.push({ field, x: part.x })
     }
-    return columns.some(column => column.field === "price") && columns.length >= 2
+    return columns.some(column => column.field === "price") &&
+      columns.some(column => column.field === "description") &&
+      columns.length >= 2
       ? columns.sort((left, right) => left.x - right.x)
       : []
+  }
+
+  function findNearbyPdfHeaderColumns(pageLines, lineIndex) {
+    const line = pageLines[lineIndex]
+    const nearbyParts = pageLines
+      .filter(candidate => Math.abs(candidate.topY - line.topY) <= 18)
+      .flatMap(candidate => candidate.parts)
+    return findPdfHeaderColumns(nearbyParts)
   }
 
   function readPdfCells(parts, columns) {
@@ -720,22 +730,25 @@
     const columnPrice = hasPriceColumn ? parseListNumber(cells.price, NaN) : NaN
     if (!hasPriceColumn && !priceMatch) return null
 
-    const unitCost = hasPriceColumn
-      ? columnPrice
-      : parseListNumber(priceMatch[0].replace(/[$€£]/g, ""), NaN)
+    const explicitPriceMatch = explicitCurrency.at(-1)
+    const unitCost = explicitPriceMatch
+      ? parseListNumber(explicitPriceMatch[0].replace(/[$€£]/g, ""), NaN)
+      : hasPriceColumn ? columnPrice : parseListNumber(priceMatch[0].replace(/[$€£]/g, ""), NaN)
     if (!Number.isFinite(unitCost) || unitCost < 0) return null
     const beforePrice = priceMatch
       ? line.slice(0, priceMatch.index).trim().replace(/[|·–—-]\s*$/, "").trim()
       : line
-    const codeMatch = beforePrice.match(/^([A-Z0-9]{2,}(?:[-_/][A-Z0-9]+)+)\b/i)
-    const productCode = String(cells
-      ? Object.hasOwn(cells, "reference") ? cells.reference : ""
-      : codeMatch ? codeMatch[1] : "").trim()
-    const rawProductName = String(cells
-      ? Object.hasOwn(cells, "description") ? cells.description : ""
-      : productCode && codeMatch ? beforePrice.slice(codeMatch[0].length) : beforePrice)
+    const codePattern = /^([A-Z0-9]{2,}(?:\s*[-_/]\s*[A-Z0-9]+)+)\b/i
+    const codeMatch = beforePrice.match(codePattern)
+    const description = String(cells?.description || "").trim()
+    const descriptionCodeMatch = description.match(codePattern)
+    const normalizeCode = value => String(value || "").replace(/\s*([-_/])\s*/g, "$1").trim()
+    const productCode = normalizeCode(cells?.reference || codeMatch?.[1] || descriptionCodeMatch?.[1])
+    const rawProductName = String(cells?.description
+      ? descriptionCodeMatch ? description.slice(descriptionCodeMatch[0].length) : description
+      : codeMatch ? beforePrice.slice(codeMatch[0].length) : beforePrice)
       .replace(/^[\s:|·–—-]+/, "").trim()
-    if (!rawProductName && !productCode && !cells) return null
+    if (!rawProductName && !productCode) return null
 
     const packageValue = String(cells?.package || "").trim()
     const packageMatch = (packageValue || rawProductName).match(/\b(ROLLO|CARRETE|CAJA|PAQUETE|PAQ\.?|BOLSA|BULTO|PACK|SET)\s*(\d+(?:[.,]\d+)?)?\s*(MTS?|METROS?|UNIDADES|UNDS?|PZAS?|PIEZAS)?\b/i)
@@ -745,7 +758,7 @@
       .replace(/^[\s:|·–—-]+|[\s:|·–—-]+$/g, "")
       .trim()
     const notes = []
-    if (!cells?.price && decimalPrices.length > 1) notes.push("Hay varios importes decimales; confirma cuál es el precio.")
+    if (!cells?.price && !explicitPriceMatch && decimalPrices.length > 1) notes.push("Hay varios importes decimales; confirma cuál es el precio.")
     if (!productCode) notes.push("No se detectó una referencia/código separado.")
     if (!productName) notes.push("Revisa la descripción del producto.")
     if (!packageValue && !packageMatch) notes.push("Confirma empaque o presentación; no se identificó un encabezado/dato claro.")
@@ -878,7 +891,9 @@
         })
         const firstPageRowIndex = preview.rows.length
         if (!headerColumns.length) {
-          const pageHeader = pageLines.map(({ parts }) => findPdfHeaderColumns(parts)).find(columns => columns.length)
+          const pageHeader = pageLines
+            .map((_, index) => findNearbyPdfHeaderColumns(pageLines, index))
+            .find(columns => columns.length)
           if (pageHeader) headerColumns = pageHeader
         }
         if (!headerColumns.length && hasPdfCardFieldLabels(pageLines)) {
@@ -917,8 +932,8 @@
           let sectionTitle = ""
           let pendingSectionTitle = ""
           let sectionHasPackages = false
-          for (const { parts, text: line, topY } of pageLines) {
-            const detectedColumns = findPdfHeaderColumns(parts)
+          for (const [lineIndex, { parts, text: line, topY }] of pageLines.entries()) {
+            const detectedColumns = findNearbyPdfHeaderColumns(pageLines, lineIndex)
             if (detectedColumns.length) {
               headerColumns = detectedColumns
               preview.pdfHeaderColumns = detectedColumns
@@ -938,8 +953,13 @@
               const text = line.trim()
               const looksLikeHeader = /\b(descripcion|producto|referencia|codigo|precio|costo|catalogo|pagina|subtotal|vigencia)\b/i.test(text)
               const looksLikeFooter = /\b(subtotal|total|pagina|vigencia|condiciones|forma de pago)\b/i.test(text)
-              if (!looksLikeHeader && !looksLikeFooter && text.length > 2 && text.length < 180) {
-                pendingSectionTitle = [pendingSectionTitle, text].filter(Boolean).slice(-2).join(" ")
+              const isQuantityOrUnit = /^(?:\d+(?:[.,]\d+)?\s*)?(?:unds?\.?|unidades|unit(?:ario)?\.?|pzas?\.?)?$/i.test(text)
+              if (!looksLikeHeader && !looksLikeFooter && !isQuantityOrUnit && text.length > 2 && text.length < 180) {
+                if (/^[A-Z0-9]{2,}(?:\s*[-_/]\s*[A-Z0-9]+)+(?:\s|$)/i.test(text)) {
+                  pendingDescription = [pendingDescription, text].filter(Boolean).slice(-2).join(" ")
+                } else {
+                  pendingSectionTitle = [pendingSectionTitle, text].filter(Boolean).slice(-2).join(" ")
+                }
               }
               continue
             }
@@ -948,12 +968,12 @@
               pendingSectionTitle = ""
             }
             if (pendingDescription) {
-              const pendingCode = pendingDescription.match(/^([A-Z0-9]{2,}(?:[-_/][A-Z0-9]+)+)\b/i)
+              const pendingCode = pendingDescription.match(/^([A-Z0-9]{2,}(?:\s*[-_/]\s*[A-Z0-9]+)+)\b/i)
               const continuation = pendingCode ? pendingDescription.slice(pendingCode[0].length).trim() : pendingDescription
               parsed.productName = addPdfSectionTitle(continuation || sectionTitle, parsed.productName)
               if (!parsed.productCode && pendingCode) {
-                parsed.productCode = pendingCode[1]
-                parsed.supplierSku = pendingCode[1]
+                parsed.productCode = pendingCode[1].replace(/\s*([-_/])\s*/g, "$1")
+                parsed.supplierSku = parsed.productCode
               }
               pendingDescription = ""
             } else {

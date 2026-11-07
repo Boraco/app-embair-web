@@ -10,6 +10,7 @@ import nodemailer from "nodemailer"
 import crypto from "crypto"
 import os from "os"
 import { spawn } from "child_process"
+import ExcelJS from "exceljs"
 
 dotenv.config()
 
@@ -205,6 +206,14 @@ app.get("/api/admin/ping", requireAdmin, (req, res) => {
   res.json({ ok: true })
 })
 
+app.get("/vendor/pdfjs/pdf.mjs", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "node_modules", "pdfjs-dist", "legacy", "build", "pdf.mjs"))
+})
+
+app.get("/vendor/pdfjs/pdf.worker.mjs", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "node_modules", "pdfjs-dist", "legacy", "build", "pdf.worker.mjs"))
+})
+
 app.get("/admin", requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "admin.html"))
 })
@@ -253,8 +262,37 @@ function getProcurementState() {
   return {
     suppliers: Array.isArray(saved.suppliers) ? saved.suppliers : [],
     productTerms: Array.isArray(saved.productTerms) ? saved.productTerms : [],
+    supplierCatalogItems: Array.isArray(saved.supplierCatalogItems) ? saved.supplierCatalogItems : [],
     purchaseOrders: Array.isArray(saved.purchaseOrders) ? saved.purchaseOrders : []
   }
+}
+
+function createProcurementWorkbook(title, headers, rows) {
+  const workbook = new ExcelJS.Workbook()
+  workbook.creator = "Gestión de compras"
+  workbook.created = new Date()
+  const sheet = workbook.addWorksheet(title.slice(0, 31))
+  sheet.addRow(headers)
+  for (const row of rows) sheet.addRow(row)
+  sheet.views = [{ state: "frozen", ySplit: 1 }]
+  sheet.autoFilter = { from: "A1", to: `${sheet.getColumn(headers.length).letter}1` }
+  sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } }
+  sheet.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF273574" } }
+  sheet.columns.forEach(column => {
+    let width = 12
+    column.eachCell({ includeEmpty: false }, cell => {
+      width = Math.max(width, Math.min(42, String(cell.value ?? "").length + 2))
+    })
+    column.width = width
+  })
+  return workbook
+}
+
+async function sendProcurementWorkbook(res, workbook, filename) {
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`)
+  await workbook.xlsx.write(res)
+  res.end()
 }
 
 app.get("/api/admin/procurement", requireAdmin, (req, res) => {
@@ -463,6 +501,11 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
       email: String(supplier.email || "").trim().slice(0, 160),
       phone: String(supplier.phone || "").trim().slice(0, 80),
       minimumOrderAmount,
+      paymentTerms: String(supplier.paymentTerms || "").trim().slice(0, 240),
+      deliveryTerms: String(supplier.deliveryTerms || "").trim().slice(0, 240),
+      discountApplication: supplier.discountApplication === "cumulative" ? "cumulative" : "best",
+      priceListName: String(supplier.priceListName || "").trim().slice(0, 160),
+      priceListUpdatedAt: String(supplier.priceListUpdatedAt || "").slice(0, 40),
       active: supplier.active !== false
     }
   })
@@ -477,10 +520,22 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
     const unitCost = Number(term && term.unitCost)
     const purchaseUnit = String(term && term.purchaseUnit || "").trim().slice(0, 80)
     const supplierId = String(term && term.supplierId || "")
+    const discountRules = Array.isArray(term && term.discountRules) ? term.discountRules.map(rule => {
+      const minimumDiscountQuantity = Number(rule.minimumQuantity || 0)
+      const minimumDiscountAmount = Number(rule.minimumAmount || 0)
+      const percentage = Number(rule.percentage)
+      const paymentMethod = String(rule.paymentMethod || "").trim().slice(0, 80)
+      if ((!Number.isInteger(minimumDiscountQuantity) || minimumDiscountQuantity < 0) ||
+        !Number.isFinite(minimumDiscountAmount) || minimumDiscountAmount < 0 ||
+        !Number.isFinite(percentage) || percentage <= 0 || percentage > 100 ||
+        (!minimumDiscountQuantity && !minimumDiscountAmount && !paymentMethod)) return null
+      return { minimumQuantity: minimumDiscountQuantity, minimumAmount: minimumDiscountAmount, paymentMethod, percentage }
+    }) : []
     if (!catalogIds.has(productId) || !supplierIds.has(supplierId) || !purchaseUnit ||
       !Number.isFinite(unitCost) || unitCost < 0 ||
       !Number.isInteger(unitsPerPurchase) || unitsPerPurchase < 1 ||
-      !Number.isInteger(minimumQuantity) || minimumQuantity < 1) return null
+      !Number.isInteger(minimumQuantity) || minimumQuantity < 1 ||
+      discountRules.length > 50 || discountRules.some(rule => !rule)) return null
     return {
       id: String(term.id || `TERM-${Date.now()}-${index}`).slice(0, 80),
       productId,
@@ -490,6 +545,8 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
       purchaseUnit,
       unitsPerPurchase,
       minimumQuantity,
+      discountRules,
+      priceVerifiedAt: String(term.priceVerifiedAt || "").slice(0, 40),
       preferredSupplier: term.preferredSupplier === true
     }
   })
@@ -506,7 +563,224 @@ app.put("/api/admin/procurement", requireAdmin, (req, res) => {
   state.suppliers = suppliers
   state.productTerms = productTerms
   writeData(procurementFile, state)
-  res.json({ ok: true, suppliers, productTerms })
+  res.json({ ok: true, suppliers, productTerms, supplierCatalogItems: state.supplierCatalogItems })
+})
+
+app.post("/api/admin/procurement/price-list", requireAdmin, (req, res) => {
+  const input = req.body || {}
+  const supplierId = String(input.supplierId || "")
+  const sourceName = String(input.sourceName || "").trim().slice(0, 160)
+  const inputItems = Array.isArray(input.items) ? input.items : []
+  if (!supplierId || !inputItems.length || inputItems.length > 5000) {
+    return res.status(400).json({ error: "invalid_price_list" })
+  }
+
+  const state = getProcurementState()
+  const supplier = state.suppliers.find(item => item.id === supplierId)
+  if (!supplier) return res.status(404).json({ error: "supplier_not_found" })
+
+  const catalog = readData(productsFile)
+  const catalogIds = new Set(catalog.map(product => Number(product.id)))
+  const previousByProduct = new Map(
+    state.productTerms
+      .filter(term => term.supplierId === supplierId)
+      .map(term => [Number(term.productId), term])
+  )
+  const previousExternal = state.supplierCatalogItems.filter(item => item.supplierId === supplierId)
+  const updatedAt = new Date().toISOString()
+  const groupedItems = new Map()
+  for (const [index, item] of inputItems.entries()) {
+    const productId = Number(item && item.productId)
+    const external = item && item.external === true
+    const productName = String(item && item.productName || "").trim().slice(0, 200)
+    const productCode = String(item && item.productCode || "").trim().slice(0, 120)
+    const unitCost = Number(item && item.unitCost)
+    const unitsPerPurchase = Number(item && item.unitsPerPurchase)
+    const minimumQuantity = Number(item && item.minimumQuantity)
+    const purchaseUnit = String(item && item.purchaseUnit || "").trim().slice(0, 80)
+    const discountMinimumQuantity = Number(item && item.discountMinimumQuantity || 0)
+    const discountMinimumAmount = Number(item && item.discountMinimumAmount || 0)
+    const discountPercentage = Number(item && item.discountPercentage || 0)
+    const paymentMethod = String(item && item.paymentMethod || "").trim().slice(0, 80)
+    if ((!external && !catalogIds.has(productId)) ||
+      (external && (!productName || (productName.length < 2 && !productCode))) ||
+      !Number.isFinite(unitCost) || unitCost < 0 ||
+      unitCost > Number.MAX_SAFE_INTEGER / 100 ||
+      !Number.isInteger(unitsPerPurchase) || unitsPerPurchase < 1 ||
+      !Number.isInteger(minimumQuantity) || minimumQuantity < 1 || !purchaseUnit ||
+      !Number.isInteger(discountMinimumQuantity) || discountMinimumQuantity < 0 ||
+      !Number.isFinite(discountMinimumAmount) || discountMinimumAmount < 0 ||
+      !Number.isFinite(discountPercentage) || discountPercentage < 0 || discountPercentage > 100 ||
+      (discountPercentage > 0 && !discountMinimumQuantity && !discountMinimumAmount && !paymentMethod)) {
+      return res.status(400).json({ error: "invalid_price_list_item", row: index + 1 })
+    }
+    const externalKey = external ? `external:${String(item.supplierSku || productCode || productName).trim().toLocaleLowerCase("es")}` : `product:${productId}`
+    const key = external ? externalKey : `product:${productId}`
+    const existing = groupedItems.get(key)
+    if (existing && (existing.unitCost !== Number(unitCost.toFixed(2)) ||
+      existing.purchaseUnit !== purchaseUnit || existing.unitsPerPurchase !== unitsPerPurchase ||
+      existing.minimumQuantity !== minimumQuantity || existing.supplierSku !== String(item.supplierSku || "").trim().slice(0, 120) ||
+      (external && (existing.productName !== productName || existing.productCode !== productCode)))) {
+      return res.status(400).json({ error: "inconsistent_repeated_product", row: index + 1 })
+    }
+    const grouped = existing || {
+      external,
+      productId,
+      productName,
+      productCode,
+      unitCost: Number(unitCost.toFixed(2)),
+      purchaseUnit,
+      unitsPerPurchase,
+      minimumQuantity,
+      supplierSku: String(item.supplierSku || "").trim().slice(0, 120),
+      discountRules: [],
+      hasBaseRow: false
+    }
+    if (discountPercentage > 0) {
+      const rule = {
+        minimumQuantity: discountMinimumQuantity,
+        minimumAmount: Number(discountMinimumAmount.toFixed(2)),
+        paymentMethod,
+        percentage: Number(discountPercentage.toFixed(2))
+      }
+      if (grouped.discountRules.some(existingRule =>
+        existingRule.minimumQuantity === rule.minimumQuantity &&
+        existingRule.minimumAmount === rule.minimumAmount &&
+        existingRule.paymentMethod.toLocaleLowerCase("es") === rule.paymentMethod.toLocaleLowerCase("es") &&
+        existingRule.percentage === rule.percentage
+      )) return res.status(400).json({ error: "duplicate_discount_rule", row: index + 1 })
+      grouped.discountRules.push(rule)
+    } else {
+      if (grouped.hasBaseRow) return res.status(400).json({ error: "duplicate_price_list_row", row: index + 1 })
+      grouped.hasBaseRow = true
+    }
+    groupedItems.set(key, grouped)
+  }
+
+  const importedTerms = [...groupedItems.values()].filter(item => !item.external).map(item => {
+    const productId = item.productId
+    const previous = previousByProduct.get(productId)
+    return {
+      id: previous ? previous.id : `TERM-${crypto.randomUUID()}`,
+      productId,
+      supplierId,
+      supplierSku: item.supplierSku,
+      unitCost: item.unitCost,
+      purchaseUnit: item.purchaseUnit,
+      unitsPerPurchase: item.unitsPerPurchase,
+      minimumQuantity: item.minimumQuantity,
+      discountRules: item.discountRules,
+      priceVerifiedAt: updatedAt,
+      preferredSupplier: previous ? previous.preferredSupplier === true : false
+    }
+  })
+  const updatedProducts = new Set(importedTerms.map(item => Number(item.productId)))
+  const retainedTerms = [...previousByProduct.values()].filter(term => !updatedProducts.has(Number(term.productId)))
+  const externalItems = [...groupedItems.values()].filter(item => item.external).map(item => {
+    const normalizedKey = String(item.supplierSku || item.productCode || item.productName).trim().toLocaleLowerCase("es")
+    const previous = previousExternal.find(existing =>
+      String(existing.supplierSku || existing.productCode || existing.productName).trim().toLocaleLowerCase("es") === normalizedKey
+    )
+    return {
+      id: previous ? previous.id : `SCAT-${crypto.randomUUID()}`,
+      supplierId,
+      productName: item.productName,
+      productCode: item.productCode,
+      supplierSku: item.supplierSku,
+      unitCost: item.unitCost,
+      purchaseUnit: item.purchaseUnit,
+      unitsPerPurchase: item.unitsPerPurchase,
+      minimumQuantity: item.minimumQuantity,
+      discountRules: item.discountRules,
+      sourceName,
+      priceVerifiedAt: updatedAt,
+      candidateForCatalog: true
+    }
+  })
+  const importedExternalKeys = new Set(externalItems.map(item =>
+    String(item.supplierSku || item.productCode || item.productName).trim().toLocaleLowerCase("es")
+  ))
+  const retainedExternal = previousExternal.filter(item =>
+    !importedExternalKeys.has(String(item.supplierSku || item.productCode || item.productName).trim().toLocaleLowerCase("es"))
+  )
+  state.productTerms = [
+    ...state.productTerms.filter(term => term.supplierId !== supplierId),
+    ...importedTerms,
+    ...retainedTerms
+  ]
+  state.supplierCatalogItems = [
+    ...state.supplierCatalogItems.filter(item => item.supplierId !== supplierId),
+    ...externalItems,
+    ...retainedExternal
+  ]
+  supplier.priceListName = sourceName
+  supplier.priceListUpdatedAt = updatedAt
+  writeData(procurementFile, state)
+  res.json({
+    ok: true,
+    supplierId,
+    importedCount: importedTerms.length,
+    importedExternalCount: externalItems.length,
+    retainedCount: retainedTerms.length,
+    priceListUpdatedAt: supplier.priceListUpdatedAt
+  })
+})
+
+app.post("/api/admin/procurement/export/comparison", requireAdmin, async (req, res, next) => {
+  try {
+    const rows = Array.isArray(req.body && req.body.rows) ? req.body.rows : []
+    if (!rows.length || rows.length > 20000 || rows.some(row => !Array.isArray(row) || row.length !== 22)) {
+      return res.status(400).json({ error: "invalid_comparison_export" })
+    }
+    const headers = [
+      "Proveedor", "Producto", "Código", "Cantidad solicitada", "Cantidad a comprar",
+      "Presentación proveedor", "Unidades recibidas", "Precio por presentación (USD)",
+      "Subtotal antes de descuento (USD)", "Máx. descuento individual (%)", "Descuento aplicado (%)",
+      "Descuento aplicado (USD)", "Subtotal final producto (USD)", "Mínimo de compra proveedor (USD)",
+      "Subtotal antes de descuento cumple mínimo", "Productos faltantes proveedor",
+      "Subtotal final lista proveedor (USD)", "Forma/plazo de pago", "Método de pago evaluado",
+      "Entrega/flete", "Precio verificado", "Menor subtotal final completo"
+    ]
+    const workbook = createProcurementWorkbook("Comparativo", headers, rows)
+    await sendProcurementWorkbook(res, workbook, `comparativo-proveedores-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  } catch (error) {
+    next(error)
+  }
+})
+
+app.get("/api/admin/procurement/suppliers/:id/export", requireAdmin, async (req, res, next) => {
+  try {
+    const state = getProcurementState()
+    const supplier = state.suppliers.find(item => item.id === String(req.params.id))
+    if (!supplier) return res.status(404).json({ error: "supplier_not_found" })
+    const catalog = readData(productsFile)
+    const productsById = new Map(catalog.map(product => [Number(product.id), product]))
+    const terms = state.productTerms.filter(item => item.supplierId === supplier.id).map(term => {
+      const product = productsById.get(Number(term.productId)) || {}
+      return [
+        "Catálogo comercial", product.name || "Producto", product.code || "", term.supplierSku || "",
+        term.unitCost, term.purchaseUnit, term.unitsPerPurchase, term.minimumQuantity,
+        (term.discountRules || []).map(rule => `${rule.percentage}% · desde ${rule.minimumQuantity || 0} compras · monto ${rule.minimumAmount || 0} · ${rule.paymentMethod || "cualquier método"}`).join(" | "),
+        term.priceVerifiedAt || "", supplier.paymentTerms || "", supplier.deliveryTerms || "", supplier.minimumOrderAmount
+      ]
+    })
+    const external = state.supplierCatalogItems.filter(item => item.supplierId === supplier.id).map(item => [
+      "Catálogo proveedor / candidato", item.productName, item.productCode || "", item.supplierSku || "",
+      item.unitCost, item.purchaseUnit, item.unitsPerPurchase, item.minimumQuantity,
+      (item.discountRules || []).map(rule => `${rule.percentage}% · desde ${rule.minimumQuantity || 0} compras · monto ${rule.minimumAmount || 0} · ${rule.paymentMethod || "cualquier método"}`).join(" | "),
+      item.priceVerifiedAt || "", supplier.paymentTerms || "", supplier.deliveryTerms || "", supplier.minimumOrderAmount
+    ])
+    const headers = [
+      "Tipo de artículo", "Producto", "Código catálogo/proveedor", "SKU proveedor", "Costo por presentación (USD)",
+      "Presentación", "Unidades por presentación", "Mínimo de compra", "Descuentos y condiciones",
+      "Precio verificado", "Condiciones de pago", "Entrega/flete", "Mínimo de orden (USD)"
+    ]
+    const workbook = createProcurementWorkbook("Lista proveedor", headers, [...terms, ...external])
+    const safeName = supplier.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60) || "proveedor"
+    await sendProcurementWorkbook(res, workbook, `lista-${safeName}-${new Date().toISOString().slice(0, 10)}.xlsx`)
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.post("/api/admin/procurement/orders", requireAdmin, (req, res) => {
